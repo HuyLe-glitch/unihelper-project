@@ -52,7 +52,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   };
 
   const handleSubMenuClick = (parentId, childId) => {
-    onTabChange(`${parentId}-${childId}`);
+    onTabChange(childId);
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../Sidebar';
 import { Dashboard } from '../../dashboard';
+import { StudentAffairs } from '../../student-affairs';
 import './Layout.css';
 
 const Layout = () => {
@@ -14,13 +15,8 @@ const Layout = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'requests-student-affairs':
-        return (
-          <div className="page-content">
-            <h1>Công tác sinh viên</h1>
-            <p>Form gửi yêu cầu về công tác sinh viên sẽ được phát triển ở đây</p>
-          </div>
-        );
+      case 'student-affairs':
+        return <StudentAffairs />;
       case 'requests-dormitory':
         return (
           <div className="page-content">
