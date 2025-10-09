@@ -1,0 +1,8 @@
+/* Admin specific layout styles */
+.admin-layout {
+  background-color: #fff3cd;
+}
+
+.admin-layout .sidebar {
+  border-right: 2px solid #dc3545;
+}

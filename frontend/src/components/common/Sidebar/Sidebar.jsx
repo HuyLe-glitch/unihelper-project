@@ -1,45 +1,12 @@
 import React, { useState } from 'react';
+import { MENU_CONFIGS } from '../../../constants';
 import './Sidebar.css';
 
-const Sidebar = ({ activeTab, onTabChange }) => {
+const Sidebar = ({ activeTab, onTabChange, userRole = 'student' }) => {
   const [isRequestsExpanded, setIsRequestsExpanded] = useState(false);
 
-  const menuItems = [
-    {
-      id: 'dashboard',
-      icon: '📊',
-      label: 'Dashboard',
-      type: 'single'
-    },
-    {
-      id: 'requests',
-      icon: '📝',
-      label: 'Gửi yêu cầu',
-      type: 'expandable',
-      children: [
-        { id: 'student-affairs', label: 'Công tác sinh viên' },
-        { id: 'dormitory', label: 'Ký túc xá' }
-      ]
-    },
-    {
-      id: 'chat',
-      icon: '💬',
-      label: 'Chat',
-      type: 'single'
-    },
-    {
-      id: 'schedule',
-      icon: '📅',
-      label: 'Schedule',
-      type: 'single'
-    },
-    {
-      id: 'settings',
-      icon: '⚙️',
-      label: 'Settings',
-      type: 'single'
-    }
-  ];
+  // Get menu items based on user role
+  const menuItems = MENU_CONFIGS[userRole] || MENU_CONFIGS.student;
 
   const handleMenuClick = (item) => {
     if (item.type === 'expandable') {

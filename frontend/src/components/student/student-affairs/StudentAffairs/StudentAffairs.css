@@ -1,0 +1,381 @@
+.student-affairs {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.student-affairs-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  gap: 30px;
+}
+
+.info-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 15px 25px;
+  text-align: center;
+}
+
+.section-header h2 {
+  color: white;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.info-form {
+  padding: 30px 40px 20px 40px;
+  background: #f8f9fa;
+}
+
+.form-row {
+  margin-bottom: 15px;
+  display: flex;
+  width: 100%;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #667eea;
+  flex-shrink: 0;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #000;
+  min-width: 180px;
+  text-align: left;
+  font-size: 14px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.form-group input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #f8f9fa;
+  color: #000;
+  min-width: 0;
+  cursor: default;
+}
+
+.form-group input[type="text"]:focus {
+  outline: none;
+  border-color: #ddd;
+  box-shadow: none;
+}
+
+.form-group input[type="text"]::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.note-section {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 0;
+  padding: 15px 40px;
+  margin: 0;
+}
+
+.note-text {
+  margin: 0;
+  color: #856404;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.note-text strong {
+  color: #d63384;
+  font-weight: 700;
+}
+
+/* Certificate Form Styles */
+.certificate-form {
+  padding: 30px 40px 20px 40px;
+  background: white;
+}
+
+.form-group-certificate {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  min-width: fit-content;
+}
+
+.form-group-certificate label {
+  font-weight: 600;
+  color: #000;
+  font-size: 14px;
+  text-transform: uppercase;
+  min-width: 220px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.select-container {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.select-input {
+  width: 100%;
+  min-width: 250px;
+  padding: 8px 35px 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f9fa;
+  font-size: 14px;
+  color: #000;
+  cursor: pointer;
+  height: 38px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* Style for dropdown options */
+.select-input option {
+  padding: 8px 12px;
+  background: white;
+  color: #000;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Add dropdown arrow */
+.select-container::after {
+  content: '▼';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
+  font-size: 12px;
+}
+
+.text-input {
+  width: 100%;
+  min-width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f9fa;
+  font-size: 14px;
+  color: #000;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #ddd;
+  box-shadow: none;
+}
+
+.textarea-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  font-size: 14px;
+  color: #000;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.textarea-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.info-note {
+  margin: 15px 0 20px 0;
+  padding-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.info-note p {
+  color: #007bff;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  min-width: 220px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.confirmation-label {
+  color: #dc3545 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  text-transform: none !important;
+  min-width: auto !important;
+  line-height: 1.5;
+  margin-left: 0;
+}
+
+/* Special spacing for confirmation section */
+.confirmation-row {
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-left: 235px;
+}
+
+.confirmation-row .form-checkbox {
+  margin-left: 0;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #667eea;
+  flex-shrink: 0;
+}
+
+.confirmation-text {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.confirmation-text p {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.submit-section {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.submit-btn {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  padding: 10px 30px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #138496;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-affairs-container {
+    padding: 20px 15px;
+    max-width: 100%;
+  }
+  
+  .info-section {
+    max-width: 100%;
+  }
+  
+  .info-form, .certificate-form {
+    padding: 25px 20px;
+  }
+  
+  .note-section {
+    padding: 15px 20px;
+  }
+  
+  .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .form-checkbox {
+    align-self: flex-start;
+  }
+  
+  .form-group label {
+    min-width: auto;
+    font-size: 13px;
+  }
+  
+  .section-header h2 {
+    font-size: 16px;
+  }
+  
+  .section-header {
+    padding: 15px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-affairs {
+    padding: 10px;
+  }
+  
+  .info-form {
+    padding: 15px;
+  }
+  
+  .note-section {
+    padding: 15px 20px;
+  }
+}

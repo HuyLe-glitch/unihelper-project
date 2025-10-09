@@ -1,0 +1,30 @@
+/* Student specific layout styles */
+.student-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.student-layout .main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.page-content {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.page-content h1 {
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+/* Override sidebar styles for student */
+.student-layout .sidebar {
+  border-right: 2px solid #007bff;
+}

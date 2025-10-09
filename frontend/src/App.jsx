@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import Layout from './components/common/Layout'
+import { StudentLayout } from './components/student'
 import './App.css'
 
 function App() {
   return (
     <div className="app">
-      <Layout />
+      <StudentLayout />
     </div>
   )
 }
