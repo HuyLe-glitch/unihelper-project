@@ -1,4 +1,4 @@
 // Routes exports
-export * from './studentRoutes';
-export * from './staffRoutes';
-export * from './adminRoutes';
+export * from './studentRoutes.jsx';
+export * from './staffRoutes.jsx';
+export * from './adminRoutes.jsx';

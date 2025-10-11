@@ -2,7 +2,7 @@
   width: 250px;
   min-height: 100vh;
   background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #fff;
   position: fixed;
   left: 0;
   top: 0;
@@ -36,7 +36,7 @@
 .app-name {
   font-size: 1.2rem;
   font-weight: 600;
-  color: white;
+  color: #fff;
 }
 
 .sidebar-nav {
@@ -52,18 +52,28 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  font: inherit;
 }
 
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.menu-item:focus {
+  outline: none;
+}
+
 .menu-item.active {
   background: rgba(255, 255, 255, 0.2);
-  border-right: 3px solid white;
+  border-right: 3px solid #fff;
 }
 
 .menu-item-content {
@@ -97,25 +107,28 @@
   background: rgba(0, 0, 0, 0.1);
   border-left: 2px solid rgba(255, 255, 255, 0.2);
   margin-left: 20px;
+  animation: slideDown 0.3s ease;
 }
 
 .submenu-item {
+  display: block;
   padding: 10px 20px 10px 40px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
 }
 
 .submenu-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: #fff;
 }
 
 .submenu-item.active {
   background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border-right: 2px solid white;
+  color: #fff;
+  border-right: 2px solid #fff;
 }
 
 .submenu-label {
@@ -123,15 +136,10 @@
 }
 
 .submenu-label::before {
-  content: '•';
+  content: '›';
   position: absolute;
   left: -15px;
   color: rgba(255, 255, 255, 0.5);
-}
-
-/* Animation cho submenu */
-.submenu {
-  animation: slideDown 0.3s ease;
 }
 
 @keyframes slideDown {
@@ -145,34 +153,33 @@
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .sidebar {
     width: 70px;
     overflow: hidden;
   }
-  
+
   .sidebar:hover {
     width: 250px;
   }
-  
+
   .menu-label,
   .app-name,
   .expand-arrow {
     opacity: 0;
     transition: opacity 0.2s ease;
   }
-  
+
   .sidebar:hover .menu-label,
   .sidebar:hover .app-name,
   .sidebar:hover .expand-arrow {
     opacity: 1;
   }
-  
+
   .submenu {
     display: none;
   }
-  
+
   .sidebar:hover .submenu {
     display: block;
   }

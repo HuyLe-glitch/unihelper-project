@@ -1,13 +1,12 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import { Layout } from '../../components/common';
 import './StaffLayout.css';
 
-const StaffLayout = ({ children }) => {
-  return (
-    <Layout userRole="staff">
-      {children}
-    </Layout>
-  );
-};
+const StaffLayout = () => (
+  <Layout userRole="staff">
+    <Outlet />
+  </Layout>
+);
 
 export default StaffLayout;

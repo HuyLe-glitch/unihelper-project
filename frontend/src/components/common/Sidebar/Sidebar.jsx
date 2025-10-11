@@ -1,25 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { MENU_CONFIGS } from '../../../constants';
 import './Sidebar.css';
 
-const Sidebar = ({ activeTab, onTabChange, userRole = 'student' }) => {
-  const [isRequestsExpanded, setIsRequestsExpanded] = useState(false);
+const Sidebar = ({ userRole = 'student' }) => {
+  const location = useLocation();
+  const [expandedItems, setExpandedItems] = useState({});
 
-  // Get menu items based on user role
   const menuItems = MENU_CONFIGS[userRole] || MENU_CONFIGS.student;
 
-  const handleMenuClick = (item) => {
-    if (item.type === 'expandable') {
-      if (item.id === 'requests') {
-        setIsRequestsExpanded(!isRequestsExpanded);
+  useEffect(() => {
+    menuItems.forEach((item) => {
+      if (item.type !== 'expandable' || !item.children) return;
+      const shouldExpand = item.children.some((child) => location.pathname.startsWith(child.path));
+      if (shouldExpand) {
+        setExpandedItems((prev) => (prev[item.id] ? prev : { ...prev, [item.id]: true }));
       }
-    } else {
-      onTabChange(item.id);
-    }
+    });
+  }, [location.pathname, menuItems]);
+
+  const toggleExpand = (itemId) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemId]: !prev[itemId],
+    }));
   };
 
-  const handleSubMenuClick = (parentId, childId) => {
-    onTabChange(childId);
+  const isActiveItem = (item) => {
+    if (item.type === 'single') {
+      return item.path ? location.pathname.startsWith(item.path) : false;
+    }
+    return item.children?.some((child) => location.pathname.startsWith(child.path));
   };
 
   return (
@@ -32,39 +43,58 @@ const Sidebar = ({ activeTab, onTabChange, userRole = 'student' }) => {
       </div>
 
       <nav className="sidebar-nav">
-        {menuItems.map((item) => (
-          <div key={item.id} className="menu-item-container">
-            <div 
-              className={`menu-item ${activeTab === item.id ? 'active' : ''}`}
-              onClick={() => handleMenuClick(item)}
-            >
-              <div className="menu-item-content">
-                <span className="menu-icon">{item.icon}</span>
-                <span className="menu-label">{item.label}</span>
-              </div>
-              {item.type === 'expandable' && (
-                <span className={`expand-arrow ${isRequestsExpanded ? 'expanded' : ''}`}>
-                  ➤
-                </span>
+        {menuItems.map((item) => {
+          const expanded = expandedItems[item.id];
+          const isActive = isActiveItem(item);
+
+          return (
+            <div key={item.id} className="menu-item-container">
+              {item.type === 'single' ? (
+                <NavLink
+                  to={item.path}
+                  className={({ isActive: linkActive }) =>
+                    `menu-item ${linkActive || isActive ? 'active' : ''}`
+                  }
+                  end
+                >
+                  <div className="menu-item-content">
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-label">{item.label}</span>
+                  </div>
+                </NavLink>
+              ) : (
+                <button
+                  type="button"
+                  className={`menu-item ${isActive ? 'active' : ''}`}
+                  onClick={() => toggleExpand(item.id)}
+                >
+                  <div className="menu-item-content">
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-label">{item.label}</span>
+                  </div>
+                  <span className={`expand-arrow ${expanded ? 'expanded' : ''}`}>▸</span>
+                </button>
+              )}
+
+              {item.type === 'expandable' && expanded && (
+                <div className="submenu">
+                  {item.children.map((child) => (
+                    <NavLink
+                      key={child.id}
+                      to={child.path}
+                      className={({ isActive: linkActive }) =>
+                        `submenu-item ${linkActive ? 'active' : ''}`
+                      }
+                      end
+                    >
+                      <span className="submenu-label">{child.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Submenu cho Gửi yêu cầu */}
-            {item.type === 'expandable' && item.id === 'requests' && isRequestsExpanded && (
-              <div className="submenu">
-                {item.children.map((child) => (
-                  <div
-                    key={child.id}
-                    className={`submenu-item ${activeTab === `requests-${child.id}` ? 'active' : ''}`}
-                    onClick={() => handleSubMenuClick('requests', child.id)}
-                  >
-                    <span className="submenu-label">{child.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </nav>
     </div>
   );

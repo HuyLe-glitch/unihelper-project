@@ -1,13 +1,13 @@
 # Cau truc Frontend UniHelper
 
-Tai lieu nay tom tat nhanh cach ma phan frontend duoc to chuc de ca nhom co the nắm bat va mo rong de dang.
+Tai lieu nay tom tat nhanh cach frontend duoc to chuc de ca nhom de dang tiep nhan va mo rong.
 
 ## Tong quan
-- Cong cu: Vite + React 19 (`frontend/package.json`).
-- Entry point: `src/main.jsx` khoi tao React root va render `<App />`.
-- `App.jsx` hien tai nap `StudentLayout` lam giao dien chinh (se mo rong them routing vai tro sau nay).
+- Nen tang: Vite + React 19 (`frontend/package.json`).
+- `src/main.jsx` khoi tao React root va boc `<App />` trong `BrowserRouter` de ho tro routing.
+- `App.jsx` su dung React Router V6 map cac route tu `src/routes` (student, staff, admin) va redirect `/` ve `/student/dashboard`.
 - Styles duoc tach theo tung component/layout bang cac file `.css`.
-- Sau nay co the bao boc toan bo ung dung bang `AuthProvider` tu `src/contexts/AuthContext.js` de chia se trang thai dang nhap.
+- Co the boc toan bo ung dung bang `AuthProvider` (`src/contexts/AuthContext.js`) khi tich hop dang nhap.
 
 ## Cay thu muc chinh
 ```
@@ -16,14 +16,14 @@ frontend/
 |   |-- assets/              # Anh, icon, font...
 |   |-- components/
 |   |   |-- common/          # Layout, Sidebar, Modal dung chung
-|   |   |-- student/         # Giao dien danh rieng cho sinh vien
-|   |   |-- staff/           # (Placeholder) thanh phan cho can bo
-|   |   `-- admin/           # (Placeholder) thanh phan cho admin
-|   |-- constants/           # roles, permissions, menuConfig
-|   |-- contexts/            # AuthContext va cac Provider
+|   |   |-- student/         # Chuc nang giao dien cho sinh vien
+|   |   |-- staff/           # Chuc nang giao dien cho nhan vien
+|   |   `-- admin/           # (Dang placeholder) thanh phan cho admin
+|   |-- constants/           # menuConfig, roles, permissions
+|   |-- contexts/            # AuthContext va cac provider khac
 |   |-- hooks/               # Custom hooks (vi du: useAuth)
-|   |-- layouts/             # Layout wrap cho tung vai tro
-|   |-- routes/              # Cau hinh React Router cho moi vai tro
+|   |-- layouts/             # Layout wrap cho tung vai tro (Student/Staff/Admin)
+|   |-- routes/              # Cau hinh route cho moi vai tro
 |   |-- services/            # Goi API chia theo vai tro va auth
 |   `-- utils/               # Ham tien ich (format date, currency...)
 |-- App.jsx
@@ -33,45 +33,41 @@ frontend/
 ```
 
 ## Component va Layout
-- `components/common/Layout`: Layout co Sidebar chung, quan ly tab active noi bo.
-- `components/common/Sidebar`: Doc cau hinh tu `constants/menuConfig.js` de tao menu theo vai tro (student/staff/admin); ho tro submenu "Gui yeu cau".
-- `components/student/StudentLayout/StudentLayout.jsx`: Layout cu the cho sinh vien, hien thi `Sidebar` va render noi dung theo tab.
-- `components/student/dashboard`: Dashboard sinh vien gom thong ke yeu cau, modal danh sach, va `ProfilePanel`.
-- `components/student/profile/ProfilePanel`: Sidebar thong tin ca nhan mac dinh.
-- `components/common/Modal`: Modal co props `isOpen`, `onClose`, `title` dung chung.
+- `components/common/Layout`: Layout dung chung, nhan prop `userRole` va hien `Sidebar` tuong ung, noi dung chinh la children (thuong la `<Outlet />`).
+- `components/common/Sidebar`: Doc `MENU_CONFIGS` de render menu theo vai tro, ho tro submenu "Gui yeu cau" va highlight theo URL hien tai bang `NavLink`.
+- `components/student/dashboard`: Dashboard sinh vien gom thong ke yeu cau, modal danh sach va `ProfilePanel`.
+- `components/staff/dashboard`: Dashboard nhan vien voi cac panel CTSV, KTX, thong tin phong ban, tra cuu va lich su xu ly.
+- `components/student/profile/ProfilePanel`: Panel thong tin ca nhan co san.
+- `components/common/Modal`: Modal dung chung voi props `isOpen`, `onClose`, `title`.
 
 ## Context, Hooks va Trang thai
 - `contexts/AuthContext.js`: Cung cap `AuthProvider` va hook `useAuthContext`.
-- `hooks/useAuth.js`: Quan ly trang thai dang nhap (user, token) thong qua `authService`. Hien chua duoc gan vao `App` nhung san sang su dung khi tich hop backend.
+- `hooks/useAuth.js`: Quan ly trang thai dang nhap thong qua `authService` (dang mock localStorage).
 
 ## Dinh tuyen
-- Thu muc `routes/` chia route theo vai tro (`studentRoutes`, `staffRoutes`, `adminRoutes`) va su dung cac layout tuong ung.
-- Hien tai cac trang noi dung trong routes la placeholder (`div`) de doi bang component that khi san sang.
-- Co the ket hop cac mang routes nay vao React Router V6 trong `App.jsx` hoac mot thanh phan routing rieng.
+- Thu muc `routes/` chua cac mang route (student/staff/admin) truyen vao `<Routes>` trong `App.jsx`.
+- Moi route la mot layout (StudentLayout/StaffLayout/AdminLayout) boc `<Layout>` va render `<Outlet />`.
+- `menuConfig.js` khai bao duong dan (`path`) de `Sidebar` dieu huong thang toi cac page (vd `/staff/dashboard`, `/student/student-affairs`).
+- Route staff da gan `StaffDashboard` moi tao; student route su dung `Dashboard`, `StudentAffairs`, `ProfilePanel` va placeholder cho cac trang chua xong.
 
 ## Dich vu API
-- `services/api.js`: Tao `axios` client chung, set `baseURL` tu `REACT_APP_API_URL`, chen interceptor de dinh kem bearer token va xu ly 401.
-- `services/auth.js`: Xu ly login/logout, luu token va role vao `localStorage`, cung cap helper `isAuthenticated`.
-- `services/student.js`, `staff.js`, `admin.js`: Dong goi cac endpoint dac thu tung vai tro (profile, requests, dashboard, reports...).
-- `services/index.js`: Re-export de import ngan gon (`import { studentService } from '../services'`).
+- `services/api.js`: Tao axios client chung, set `baseURL` va interceptor token/401.
+- `services/auth.js`: Xu ly login/logout, luu token + role trong localStorage.
+- `services/student.js`, `staff.js`, `admin.js`: Gom cac API dac thu tung vai tro (profile, requests, dashboard...).
+- `services/index.js`: Re-export de import ngan gon.
 
 ## Constants va Utils
-- `constants/menuConfig.js`: Cau hinh menu theo vai tro, bao gom icon Unicode, label va submenu.
-- `constants/roles.js`, `constants/permissions.js`: Dinh nghia role va quyen (co the dung cho guard sau nay).
-- `utils/index.js`: Tap hop ham xu ly dinh dang ngay, tien, validate email/phone, debounce...
+- `constants/menuConfig.js`: Cau hinh menu + path theo tung vai tro.
+- `constants/roles.js`, `constants/permissions.js`: Dinh nghia role va quyen.
+- `utils/index.js`: Ham tien ich (formatDate, formatCurrency, isValidEmail...).
 
 ## Styles
-- Moi component/layout co file `.css` cung ten, giup scope ro dang.
-- CSS tong cho ung dung nam trong `App.css` va `index.css`.
-- Co the xem `components/student/dashboard/Dashboard.css` va `components/common/Layout/Layout.css` de tham khao pattern style.
+- Moi component/layout co file `.css` cung ten.
+- `App.css` + `index.css` chua style tong.
+- Sidebar + Layout su dung gradient va responsive (thu gon sidebar duoi 768px).
 
-## Huong mo rong de xuat
-- Giai doan tiep: bo sung React Router vao `App.jsx` de phuc vu nhieu vai tro, su dung cac route config san co.
-- Bao boc `App` bang `AuthProvider` va su dung `useAuthContext` de hien thi thong tin nguoi dung that.
-- Ket noi cac service toi backend, thay the mock data trong `Dashboard.jsx` bang API that.
-- Chuan hoa lai ten file/tab (dang co cung luc dung component `StudentLayout` o `components` va `layouts`; can thong nhat khi codebase on dinh).
-
----
-
-Mo hinh nay giup team de dang dinh danh vi tri canchinh sua, them trang moi, hoac tich hop API ma khong lam xao tron cac nhom chuc nang hien co.
-
+## Huong mo rong
+- Ket noi cac service toi backend, thay mock data trong dashboard bang API that.
+- Bo sung cac man hinh staff/admin khac (requests, reports, settings...) theo cau truc da co.
+- Tich hop `AuthProvider` de dieu huong theo quyen truy cap va tinh nang dang nhap.
+- Viet test UI hoac unit test cho cac hook/service khi can.
