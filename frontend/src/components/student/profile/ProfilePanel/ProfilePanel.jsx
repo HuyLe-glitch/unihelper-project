@@ -1,7 +1,12 @@
 import React from 'react';
 import './ProfilePanel.css';
+//import { useNavigate } from 'react-router-dom';
+//import { useAuthContext } from '../../../../contexts/AuthContext';
 
 const ProfilePanel = () => {
+  //const navigate = useNavigate();
+  //const { logout } = useAuthContext();
+
   return (
     <div className="profile-sidebar">
       <div className="profile-panel">
@@ -46,6 +51,12 @@ const ProfilePanel = () => {
           
           <div className="profile-actions">
             <button className="logout-btn" onClick={() => console.log('Đăng xuất')}>
+              {/*<button
+              className="logout-btn"
+              onClick={() => {
+                logout();
+                navigate('/choose-role');
+              }}*/}
               <span className="logout-icon">🚪</span>
               Đăng xuất
             </button>

@@ -122,12 +122,12 @@ export const MENU_CONFIGS = {
       type: 'single',
       path: '/admin/system-settings',
     },
-    {
+    /*{
       id: 'chat',
       icon: '💬',
       label: 'Chat',
       type: 'single',
       path: '/admin/chat',
-    },
+    },*/
   ],
 };

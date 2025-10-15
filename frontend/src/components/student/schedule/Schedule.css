@@ -1,0 +1,348 @@
+/* Schedule Component Styles */
+.schedule-container {
+    padding: 24px;
+    background: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  .schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .schedule-title {
+    margin: 0;
+    color: #1f2937;
+    font-size: 28px;
+    font-weight: 600;
+  }
+  
+  .create-request-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  }
+  
+  .create-request-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+  }
+  
+  .btn-icon {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* Tabs */
+  .tabs-container {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tab-btn {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .tab-btn.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  }
+  
+  .tab-btn:hover:not(.active) {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  
+  /* History Section */
+  .history-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .section-header h2 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  .display-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #c2c6cf;
+  }
+  
+  .display-controls input {
+    width: 60px;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .search-controls {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .search-input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 200px;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .search-btn {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .search-btn:hover {
+    background: #2563eb;
+  }
+  
+  /* Table */
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .history-table th {
+    background: #f9fafb;
+    color: #374151;
+    font-weight: 600;
+    padding: 16px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+  }
+  
+  .history-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .history-table th.sortable:hover {
+    background: #f3f4f6;
+  }
+  
+  .sort-icon {
+    margin-left: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+  }
+  
+  .history-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+  }
+  
+  .history-table tbody tr:hover {
+    background: #f9fafb;
+  }
+  
+  .action-btn {
+    padding: 6px 12px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .action-btn:hover {
+    background: #4b5563;
+  }
+  
+  .no-data {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 48px;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .status-approved {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  
+  .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  
+  .status-review {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  .status-default {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .pagination-info {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  
+  .pagination-controls {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .pagination-btn {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .pagination-btn:hover:not(:disabled) {
+    background: #e5e7eb;
+  }
+  
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .schedule-container {
+      padding: 16px;
+    }
+    
+    .schedule-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: stretch;
+    }
+    
+    .section-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: stretch;
+    }
+    
+    .controls {
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .search-controls {
+      flex-direction: column;
+    }
+    
+    .search-input {
+      min-width: auto;
+    }
+    
+    .pagination {
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
