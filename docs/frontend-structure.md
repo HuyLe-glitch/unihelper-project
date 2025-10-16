@@ -36,7 +36,8 @@ frontend/
 - `components/common/Layout`: Layout dung chung, nhan prop `userRole` va hien `Sidebar` tuong ung, noi dung chinh la children (thuong la `<Outlet />`).
 - `components/common/Sidebar`: Doc `MENU_CONFIGS` de render menu theo vai tro, ho tro submenu "Gui yeu cau" va highlight theo URL hien tai bang `NavLink`.
 - `components/student/dashboard`: Dashboard sinh vien gom thong ke yeu cau, modal danh sach va `ProfilePanel`.
-- `components/staff/dashboard`: Dashboard nhan vien voi cac panel CTSV, KTX, thong tin phong ban, tra cuu va lich su xu ly.
+- `components/staff/dashboard`: Dashboard nhan vien hien thi tong quan, thong ke va tac vu nhanh.
+- `components/staff/cts`, `components/staff/ttx`, `components/staff/history`, `components/staff/department`: Cac trang rieng phuc vu yeu cau CTSV, yeu cau TTX, lich su xu ly va thong tin phong ban.
 - `components/student/profile/ProfilePanel`: Panel thong tin ca nhan co san.
 - `components/common/Modal`: Modal dung chung voi props `isOpen`, `onClose`, `title`.
 
@@ -48,7 +49,7 @@ frontend/
 - Thu muc `routes/` chua cac mang route (student/staff/admin) truyen vao `<Routes>` trong `App.jsx`.
 - Moi route la mot layout (StudentLayout/StaffLayout/AdminLayout) boc `<Layout>` va render `<Outlet />`.
 - `menuConfig.js` khai bao duong dan (`path`) de `Sidebar` dieu huong thang toi cac page (vd `/staff/dashboard`, `/student/student-affairs`).
-- Route staff da gan `StaffDashboard` moi tao; student route su dung `Dashboard`, `StudentAffairs`, `ProfilePanel` va placeholder cho cac trang chua xong.
+- Route staff gom `StaffDashboard`, trang yeu cau CTSV (`/staff/cts-requests`), yeu cau TTX (`/staff/ttx-requests`), lich su xu ly (`/staff/history`) va phong ban (`/staff/department`); student route su dung `Dashboard`, `StudentAffairs`, `ProfilePanel` va placeholder cho cac trang chua xong.
 
 ## Dich vu API
 - `services/api.js`: Tao axios client chung, set `baseURL` va interceptor token/401.
