@@ -1,12 +1,15 @@
-import React from 'react';
+﻿import React from 'react';
 import { StaffLayout } from '../layouts';
-import { StaffDashboard } from '../components/staff';
+import {
+  StaffDashboard,
+  StaffCtsvRequests,
+  StaffTtxRequests,
+  StaffHistory,
+  StaffDepartment,
+} from '../components/staff';
 
-// Placeholder components (will be replaced with actual components)
-const RequestManagement = () => <div>Staff Request Management</div>;
-const StudentManagement = () => <div>Staff Student Management</div>;
+// Placeholder components (sáº½ thay báº±ng implement thá»±c táº¿)
 const Reports = () => <div>Staff Reports</div>;
-const Chat = () => <div>Staff Chat</div>;
 const Settings = () => <div>Staff Settings</div>;
 
 export const staffRoutes = [
@@ -16,11 +19,13 @@ export const staffRoutes = [
     children: [
       { path: '', element: <StaffDashboard /> },
       { path: 'dashboard', element: <StaffDashboard /> },
-      { path: 'requests', element: <RequestManagement /> },
-      { path: 'students', element: <StudentManagement /> },
+      { path: 'cts-requests', element: <StaffCtsvRequests /> },
+      { path: 'ktx-requests', element: <StaffTtxRequests /> },
+      { path: 'history', element: <StaffHistory /> },
+      { path: 'department', element: <StaffDepartment /> },
       { path: 'reports', element: <Reports /> },
-      { path: 'chat', element: <Chat /> },
       { path: 'settings', element: <Settings /> },
     ],
   },
 ];
+

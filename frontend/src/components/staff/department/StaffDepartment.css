@@ -1,0 +1,12 @@
+.responsibility-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #10375c;
+}
+
+.responsibility-list li::marker {
+  color: #2563eb;
+}

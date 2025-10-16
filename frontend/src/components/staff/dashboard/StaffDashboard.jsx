@@ -1,189 +1,166 @@
 import React, { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import './StaffDashboard.css';
+import { CTSV_REQUESTS, TTX_REQUESTS } from '../mockData';
+
+const STATUS_LABELS = {
+  processing: 'Đang xử lý',
+  approved: 'Đã duyệt',
+  'needs-update': 'Cần bổ sung',
+  'pending-confirmation': 'Chờ xác nhận',
+  assigned: 'Đã xếp phòng',
+  rejected: 'Từ chối',
+};
 
 const StaffDashboard = () => {
-  // Mock data - replace with API data when backend is ready
-  const certificationRequests = useMemo(
-    () => [
-      { id: 'CTS-2301', student: 'Nguyễn Văn An', status: 'Đang xử lý', submittedAt: '2024-10-12' },
-      { id: 'CTS-2298', student: 'Trần Thị Bình', status: 'Đã duyệt', submittedAt: '2024-10-11' },
-      { id: 'CTS-2295', student: 'Lê Hoàng Nam', status: 'Bổ sung hồ sơ', submittedAt: '2024-10-10' },
-    ],
-    [],
-  );
+  const stats = useMemo(() => {
+    const ctsvProcessing = CTSV_REQUESTS.filter((item) => item.status === 'processing').length;
+    const ttxProcessing = TTX_REQUESTS.filter((item) => item.status === 'processing').length;
+    const totalToday = CTSV_REQUESTS.concat(TTX_REQUESTS).filter(
+      (item) => item.submittedAt === '2024-10-12',
+    ).length;
 
-  const dormitoryRequests = useMemo(
-    () => [
-      { id: 'KTX-1045', student: 'Phạm Thảo Vy', room: 'A3-204', status: 'Chờ xác nhận', submittedAt: '2024-10-12' },
-      { id: 'KTX-1039', student: 'Hoàng Minh Quân', room: 'B1-108', status: 'Đã xếp phòng', submittedAt: '2024-10-09' },
-      { id: 'KTX-1032', student: 'Võ Đức Huy', room: '-', status: 'Từ chối', submittedAt: '2024-10-07' },
-    ],
-    [],
-  );
+    return {
+      totalCtsv: CTSV_REQUESTS.length,
+      totalTtx: TTX_REQUESTS.length,
+      ctsvProcessing,
+      ttxProcessing,
+      totalToday,
+    };
+  }, []);
 
-  const departmentInfo = useMemo(
-    () => ({
-      name: 'Phòng Công tác Sinh viên',
-      advisor: 'ThS. Trần Thanh Tùng',
-      email: 'ctsv@unihelper.edu.vn',
-      phone: '(028) 377 550 301',
-      workingHours: 'Thứ 2 - Thứ 6, 8:00 - 16:30',
-      address: 'Tầng 2, Nhà Điều hành',
-    }),
-    [],
-  );
+  const quickLinks = [
+    {
+      title: 'Yêu cầu CTSV',
+      description: 'Tra cứu, duyệt chứng nhận',
+      to: '/staff/cts-requests',
+      icon: '📑',
+    },
+    {
+      title: 'Yêu cầu KTX',
+      description: 'Quản lý ký túc xá',
+      to: '/staff/ktx-requests',
+      icon: '🏠',
+    },
+    {
+      title: 'Lịch sử xử lý',
+      description: 'Theo dõi hoạt động gần đây',
+      to: '/staff/history',
+      icon: '🕓',
+    },
+    {
+      title: 'Phòng ban',
+      description: 'Thông tin liên hệ nội bộ',
+      to: '/staff/department',
+      icon: '🏢',
+    },
+  ];
 
-  const historyData = useMemo(
-    () => [
-      { id: 'HIS-2201', type: 'CTS', action: 'Đã duyệt chứng nhận CTSV', staff: 'Lê Thị Nhàn', time: '12/10/2024 15:30' },
-      { id: 'HIS-2198', type: 'KTX', action: 'Từ chối yêu cầu KTX', staff: 'Đỗ Minh Thu', time: '12/10/2024 09:45' },
-      { id: 'HIS-2194', type: 'CTS', action: 'Yêu cầu bổ sung hồ sơ CTSV', staff: 'Trần Văn Hùng', time: '11/10/2024 16:20' },
-      { id: 'HIS-2188', type: 'KTX', action: 'Đã xếp phòng KTX', staff: 'Phạm Nhật Anh', time: '10/10/2024 14:05' },
-    ],
+  const recentItems = useMemo(
+    () =>
+      CTSV_REQUESTS.slice(0, 3).map((item) => ({
+        ...item,
+        type: 'CTS',
+      })),
     [],
   );
 
   return (
     <div className="staff-dashboard">
-      <header className="staff-dashboard__header">
-        <div>
-          <h1>Dashboard nhân viên</h1>
-          <p>Theo dõi và xử lý yêu cầu sinh viên trong ngày</p>
-        </div>
-        <div className="staff-dashboard__header-actions">
-          <button type="button" className="btn primary">Tạo thông báo</button>
-          <button type="button" className="btn ghost">Báo cáo nhanh</button>
-        </div>
-      </header>
+      <section className="search-wrapper">
+        <form className="search-inline">
+          <div className="search-control icon">
+            <span className="search-icon">🔍</span>
+            <input type="text" placeholder="Tìm kiếm yêu cầu, sinh viên..." />
+          </div>
+          <div className="search-control select">
+            <label htmlFor="search-type" className="sr-only">
+              Loại tra cứu
+            </label>
+            <select id="search-type" defaultValue="all">
+              <option value="all">Tất cả</option>
+              <option value="cts">Yêu cầu CTSV</option>
+              <option value="ktx">Yêu cầu KTX</option>
+              <option value="history">Lịch sử xử lý</option>
+            </select>
+          </div>
+          <button type="button" className="btn primary">
+            Tra cứu
+          </button>
+        </form>
+      </section>
 
-      <section className="staff-dashboard__grid">
-        <article className="panel">
+      <section className="stats-and-recent">
+        <div className="stats-row">
+          <div className="stats-cards-row">
+            <div className="stat-card highlight">
+              <div className="stat-icon">📑</div>
+              <div className="stat-details">
+                <p className="stat-label">Yêu cầu CTSV</p>
+                <p className="stat-number">{stats.totalCtsv}</p>
+                <span className="stat-meta">{stats.ctsvProcessing} đang xử lý</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">🏠</div>
+              <div className="stat-details">
+                <p className="stat-label">Yêu cầu KTX</p>
+                <p className="stat-number">{stats.totalTtx}</p>
+                <span className="stat-meta">{stats.ttxProcessing} đang xử lý</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">📝</div>
+              <div className="stat-details">
+                <p className="stat-label">Phát sinh trong ngày</p>
+                <p className="stat-number">{stats.totalToday}</p>
+                <span className="stat-meta">Ngày 12/10/2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <article className="panel stats-row__panel">
           <div className="panel__heading">
-            <h2>Yêu cầu chứng nhận CTSV</h2>
-            <span className="badge">{certificationRequests.length}</span>
+            <h2>Yêu cầu CTSV gần đây</h2>
+            <Link to="/staff/cts-requests" className="panel__link">
+              Xem tất cả
+            </Link>
           </div>
           <ul className="item-list">
-            {certificationRequests.map((request) => (
-              <li key={request.id} className="item-list__item">
+            {recentItems.map((item) => (
+              <li key={item.id} className="item-list__item">
                 <div>
-                  <p className="item-list__title">{request.student}</p>
-                  <p className="item-list__meta">Mã yêu cầu: {request.id}</p>
+                  <p className="item-list__title">{item.student}</p>
+                  <p className="item-list__meta">
+                    {item.id} • {STATUS_LABELS[item.status] || item.status}
+                  </p>
                 </div>
                 <div className="item-list__status">
-                  <span className="status-chip">{request.status}</span>
-                  <span className="item-list__date">{request.submittedAt}</span>
+                  <span className="item-list__date">{item.submittedAt}</span>
                 </div>
               </li>
             ))}
           </ul>
-          <button type="button" className="panel__action">Xem tất cả yêu cầu CTSV</button>
         </article>
+      </section>
 
-        <article className="panel">
-          <div className="panel__heading">
-            <h2>Yêu cầu KTX</h2>
-            <span className="badge badge--secondary">{dormitoryRequests.length}</span>
-          </div>
-          <ul className="item-list">
-            {dormitoryRequests.map((request) => (
-              <li key={request.id} className="item-list__item">
-                <div>
-                  <p className="item-list__title">{request.student}</p>
-                  <p className="item-list__meta">Phòng đề xuất: {request.room || 'Đang cập nhật'}</p>
-                </div>
-                <div className="item-list__status">
-                  <span className="status-chip">{request.status}</span>
-                  <span className="item-list__date">{request.submittedAt}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <button type="button" className="panel__action panel__action--secondary">Xem danh sách KTX</button>
-        </article>
-
-        <article className="panel panel--info">
-          <h2>Thông tin phòng ban</h2>
-          <div className="department-info">
-            <div className="department-info__row">
-              <span>Phòng ban</span>
-              <strong>{departmentInfo.name}</strong>
-            </div>
-            <div className="department-info__row">
-              <span>Phụ trách</span>
-              <strong>{departmentInfo.advisor}</strong>
-            </div>
-            <div className="department-info__row">
-              <span>Email</span>
-              <a href={`mailto:${departmentInfo.email}`}>{departmentInfo.email}</a>
-            </div>
-            <div className="department-info__row">
-              <span>Điện thoại</span>
-              <a href={`tel:${departmentInfo.phone}`}>{departmentInfo.phone}</a>
-            </div>
-            <div className="department-info__row">
-              <span>Giờ làm việc</span>
-              <strong>{departmentInfo.workingHours}</strong>
-            </div>
-            <div className="department-info__row">
-              <span>Địa điểm</span>
-              <strong>{departmentInfo.address}</strong>
-            </div>
-          </div>
-        </article>
-
-        <article className="panel panel--search">
-          <h2>Tra cứu nhanh</h2>
-          <p className="panel__description">Tìm kiếm yêu cầu, sinh viên hoặc lịch sử xử lý</p>
-          <form className="quick-search">
-            <div className="form-group">
-              <label htmlFor="search-term">Từ khóa</label>
-              <input id="search-term" type="text" placeholder="Nhập MSSV, mã yêu cầu..." />
-            </div>
-            <div className="form-group">
-              <label htmlFor="search-type">Loại</label>
-              <select id="search-type">
-                <option value="all">Tất cả</option>
-                <option value="cts">Yêu cầu CTSV</option>
-                <option value="ktx">Yêu cầu KTX</option>
-                <option value="history">Lịch sử xử lý</option>
-              </select>
-            </div>
-            <button type="button" className="btn primary block">Tra cứu</button>
-          </form>
-        </article>
-
-        <article className="panel panel--history">
-          <div className="panel__heading">
-            <h2>Lịch sử xử lý</h2>
-            <span className="history-count">{historyData.length} hoạt động gần đây</span>
-          </div>
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>Mã</th>
-                <th>Loại</th>
-                <th>Hoạt động</th>
-                <th>Nhân viên</th>
-                <th>Thời gian</th>
-              </tr>
-            </thead>
-            <tbody>
-              {historyData.map((entry) => (
-                <tr key={entry.id}>
-                  <td>{entry.id}</td>
-                  <td>
-                    <span className={`history-tag history-tag--${entry.type.toLowerCase()}`}>
-                      {entry.type}
-                    </span>
-                  </td>
-                  <td>{entry.action}</td>
-                  <td>{entry.staff}</td>
-                  <td>{entry.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </article>
+      <section className="panel panel--links">
+        <h2>Tác vụ nhanh</h2>
+        <div className="quick-links">
+          {quickLinks.map((link) => (
+            <Link key={link.title} to={link.to} className="quick-link-card">
+              <div className="quick-link-icon">{link.icon}</div>
+              <div className="quick-link-content">
+                <p className="quick-link-title">{link.title}</p>
+                <p className="quick-link-description">{link.description}</p>
+              </div>
+              <span className="quick-link-arrow">→</span>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
