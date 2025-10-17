@@ -34,7 +34,7 @@ const StudentAffairs = () => {
 
   const certificateTypes = [
     'Bổ sung hồ sơ cá nhân',
-    'Nghỉa vụ quân sự',
+    'Nghĩa vụ quân sự',
     'Bổ sung hồ sơ chế độ chính sách',
     'Thẻ sinh viên',
     'Xin phúc khảo điểm'
