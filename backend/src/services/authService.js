@@ -14,14 +14,14 @@ class AuthService {
       throw new AppError('Email và password là bắt buộc', 400);
     }
 
-    // Tìm user theo email
+    // Tìm user theo email (có password để validate)
     const user = await userRepository.findByEmail(email);
     if (!user) {
       throw new AppError('Email hoặc password không đúng', 401);
     }
 
-    // Kiểm tra password
-    const isPasswordMatch = await user.matchPassword(password);
+    // Kiểm tra password sử dụng userRepository
+    const isPasswordMatch = await userRepository.validatePassword(user, password);
     if (!isPasswordMatch) {
       throw new AppError('Email hoặc password không đúng', 401);
     }
@@ -110,19 +110,19 @@ class AuthService {
       throw new AppError('Password mới phải có ít nhất 6 ký tự', 400);
     }
 
-    // Tìm user
-    const user = await userRepository.findById(userId);
+    // Tìm user với password để validate
+    const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
       throw new AppError('Không tìm thấy user', 404);
     }
 
     // Kiểm tra password hiện tại
-    const isCurrentPasswordMatch = await user.matchPassword(currentPassword);
+    const isCurrentPasswordMatch = await userRepository.validatePassword(user, currentPassword);
     if (!isCurrentPasswordMatch) {
       throw new AppError('Password hiện tại không đúng', 400);
     }
 
-    // Cập nhật password mới
+    // Cập nhật password mới (repository sẽ tự động hash)
     await userRepository.update(userId, { password: newPassword });
 
     return {

@@ -2,31 +2,74 @@ const User = require('../models/User');
 const Student = require('../models/Student');
 const Staff = require('../models/Staff');
 const Admin = require('../models/Admin');
+const bcrypt = require('bcryptjs');
 
 /**
  * User Repository - Data Access Layer
  * Xử lý tất cả các thao tác database liên quan đến User
  */
 class UserRepository {
-  // Tìm user theo email
+  // Helper method để loại bỏ password khỏi user object
+  sanitizeUser(user) {
+    if (!user) return null;
+    const userObject = user.toObject ? user.toObject() : user;
+    const { password, ...sanitizedUser } = userObject;
+    return sanitizedUser;
+  }
+
+  // Helper method để loại bỏ password khỏi array of users
+  sanitizeUsers(users) {
+    return users.map(user => this.sanitizeUser(user));
+  }
+
+  // Hash password helper
+  async hashPassword(password) {
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+    return await bcrypt.hash(password, saltRounds);
+  }
+
+  // Compare password helper
+  async comparePassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  // Tìm user theo email - trả về có password để validate
   async findByEmail(email) {
     return await User.findOne({ email });
   }
 
-  // Tìm user theo ID
+  // Tìm user theo ID - trả về không có password
   async findById(id) {
+    const user = await User.findById(id);
+    return this.sanitizeUser(user);
+  }
+
+  // Tìm user theo ID với password (cho validation)
+  async findByIdWithPassword(id) {
     return await User.findById(id);
   }
 
-  // Tạo user mới
+  // Tạo user mới với password đã hash
   async create(userData) {
+    // Hash password trước khi lưu
+    if (userData.password) {
+      userData.password = await this.hashPassword(userData.password);
+    }
+
     const user = new User(userData);
-    return await user.save();
+    const savedUser = await user.save();
+    return this.sanitizeUser(savedUser);
   }
 
   // Cập nhật user
   async update(id, updateData) {
-    return await User.findByIdAndUpdate(id, updateData, { new: true });
+    // Hash password nếu có cập nhật password
+    if (updateData.password) {
+      updateData.password = await this.hashPassword(updateData.password);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+    return this.sanitizeUser(updatedUser);
   }
 
   // Xóa user
@@ -34,11 +77,10 @@ class UserRepository {
     return await User.findByIdAndDelete(id);
   }
 
-  // Lấy tất cả users với pagination
+  // Lấy tất cả users với pagination - không có password
   async findAll(page = 1, limit = 10, filters = {}) {
     const skip = (page - 1) * limit;
     const users = await User.find(filters)
-      .select('-password')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -46,7 +88,7 @@ class UserRepository {
     const total = await User.countDocuments(filters);
 
     return {
-      users,
+      users: this.sanitizeUsers(users),
       total,
       page,
       totalPages: Math.ceil(total / limit)
@@ -71,7 +113,10 @@ class UserRepository {
         return null;
     }
 
-    return await profileModel.findOne({ user: userId }).populate('user', '-password');
+    return await profileModel.findOne({ user: userId }).populate({
+      path: 'user',
+      select: '-password' // Exclude password from populate
+    });
   }
 
   // Tạo profile theo role
@@ -123,6 +168,11 @@ class UserRepository {
       updateData,
       { new: true }
     ).populate('user', '-password');
+  }
+
+  // Xác thực password
+  async validatePassword(user, plainPassword) {
+    return await this.comparePassword(plainPassword, user.password);
   }
 
   // Kiểm tra email đã tồn tại
