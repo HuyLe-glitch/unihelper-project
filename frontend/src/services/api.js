@@ -42,19 +42,19 @@ apiClient.interceptors.response.use(
       console.error('Network Error: Unable to reach the server');
       // You could dispatch to a global error state here
     }
-    
+
     // Authentication errors
     else if (error.response.status === 401) {
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }
-    
+
     // Server errors
     else if (error.response.status >= 500) {
       console.error('Server Error:', error.response.data);
       // You could show a server error notification
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -62,30 +62,30 @@ apiClient.interceptors.response.use(
 // Add retry logic for failed requests
 apiClient.interceptors.response.use(undefined, async (err) => {
   const { config, message } = err;
-  
+
   // Only retry on network errors or 5xx errors, not on 4xx client errors
-  if (!config || !config.retry || message.includes('timeout') || 
+  if (!config || !config.retry || message.includes('timeout') ||
       (err.response && err.response.status < 500)) {
     return Promise.reject(err);
   }
-  
+
   // Set default retry count if not set
   config.retry = config.retry || 3;
   config.retryCount = config.retryCount || 0;
-  
+
   // Check if we've maxed out the retries
   if (config.retryCount >= config.retry) {
     return Promise.reject(err);
   }
-  
+
   // Increase the retry count
   config.retryCount += 1;
-  
+
   // Create new promise to handle retry
   const backoff = new Promise((resolve) => {
     setTimeout(() => resolve(), config.retryDelay || 1000);
   });
-  
+
   // Return the promise with retry
   await backoff;
   return apiClient(config);

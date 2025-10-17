@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const globalErrorHandler = require('./middleware/errorHandler');
+const { AppError } = require('./utils/appError');
 
 // Load environment variables
 dotenv.config();
@@ -21,8 +23,8 @@ app.use(
 );
 
 // --- Middleware setup ---
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // --- Import routes ---
 const authRoutes = require('./routes/authRoutes');
@@ -36,13 +38,20 @@ app.use('/api/certificates', certificateRoutes);
 
 // --- Health check route ---
 app.get('/', (req, res) => {
-  res.send('✅ UniHelper Backend Running');
+  res.status(200).json({
+    status: 'success',
+    message: '✅ UniHelper Backend Running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+  });
 });
 
-// --- Global error handler (optional but good practice) ---
-app.use((err, req, res, next) => {
-  console.error('🔥 Error:', err.stack);
-  res.status(500).json({ message: 'Internal Server Error' });
+// --- Handle undefined routes ---
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
+
+// --- Global error handling middleware ---
+app.use(globalErrorHandler);
 
 module.exports = app;

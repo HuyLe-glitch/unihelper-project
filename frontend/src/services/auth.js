@@ -1,9 +1,9 @@
 import { apiClient } from './api';
 
 // Set to false for production or when backend is ready
-const AUTH_BYPASS = true; 
+const AUTH_BYPASS = true;
 
-/* 
+/*
 Set AUTH_BYPASS = true for fake login (no network error).
 Set AUTH_BYPASS = false and run your backend for real login.
 */
@@ -32,7 +32,7 @@ export const authService = {
           throw new Error('Invalid email, password, or role');
         }
       }
-      
+
       // Real API call
       const response = await apiClient.post('/auth/login', credentials);
       if (response.data.token) {
@@ -54,7 +54,7 @@ export const authService = {
         // Simulate successful registration
         return { success: true, message: 'Registration successful' };
       }
-      
+
       const response = await apiClient.post('/auth/register', userData);
       return response.data;
     } catch (error) {
@@ -78,12 +78,12 @@ export const authService = {
         const userRole = localStorage.getItem('userRole') || 'admin';
         return { role: userRole, name: 'Dev User', email: `${userRole}@tdtu.edu.vn` };
       }
-      
+
       const user = localStorage.getItem('user');
       if (user) {
         return JSON.parse(user);
       }
-      
+
       const response = await apiClient.get('/auth/me');
       localStorage.setItem('user', JSON.stringify(response.data));
       return response.data;
@@ -97,7 +97,7 @@ export const authService = {
   verifyToken: async () => {
     try {
       if (AUTH_BYPASS) return true;
-      
+
       const response = await apiClient.get('/auth/verify');
       return response.data;
     } catch (error) {
@@ -118,14 +118,14 @@ export const authService = {
     if (AUTH_BYPASS) return localStorage.getItem('userRole') || 'admin';
     return localStorage.getItem('userRole');
   },
-  
+
   // Reset password request
   requestPasswordReset: async (email) => {
     try {
       if (AUTH_BYPASS) {
         return { success: true, message: 'Password reset email sent' };
       }
-      
+
       const response = await apiClient.post('/auth/reset-password-request', { email });
       return response.data;
     } catch (error) {
@@ -133,14 +133,14 @@ export const authService = {
       throw error;
     }
   },
-  
+
   // Reset password with token
   resetPassword: async (token, newPassword) => {
     try {
       if (AUTH_BYPASS) {
         return { success: true, message: 'Password reset successful' };
       }
-      
+
       const response = await apiClient.post('/auth/reset-password', { token, newPassword });
       return response.data;
     } catch (error) {
