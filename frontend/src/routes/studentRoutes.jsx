@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudentLayout } from '../layouts';
-import { Dashboard as StudentDashboard, StudentAffairs, ProfilePanel, Schedule, Dormitory } from '../components/student';
+import { Dashboard as StudentDashboard, StudentAffairs, ProfilePanel, HistoryAffair, HistoryDormitory , Dormitory } from '../components/student';
 
 import RequireAuth from './RequireAuth.jsx';
 
@@ -25,7 +25,9 @@ export const studentRoutes = [
       { path: 'student-affairs', element: <StudentAffairs /> },
       { path: 'dormitory', element: <Dormitory /> },
       { path: 'chat', element: <Chat /> },
-      { path: 'schedule', element: <Schedule /> },
+      /*{ path: 'schedule', element: <Schedule /> },*/
+      { path: 'history-affair', element: <HistoryAffair  /> },
+      { path: 'history-dormitory', element: <HistoryDormitory /> },
       { path: 'settings', element: <Settings /> },
     ],
   },

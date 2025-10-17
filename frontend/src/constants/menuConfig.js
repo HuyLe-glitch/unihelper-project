@@ -28,14 +28,18 @@ export const MENU_CONFIGS = {
     {
       id: 'schedule',
       icon: '📅',
-      label: 'Schedule',
-      type: 'single',
-      path: '/student/schedule',
+      label: 'Lịch sử yêu cầu',
+      type: 'expandable',   //Change to expandable if children are added
+      //path: '/student/schedule',
+      children: [
+        { id: 'history-affair', label: 'Lịch sử CTSV', path: '/student/history-affair' },
+        { id: 'history-dormitory', label: 'Lịch sử KTX', path: '/student/history-dormitory' },
+      ],
     },
     {
       id: 'settings',
       icon: '⚙️',
-      label: 'Settings',
+      label: 'Cài đặt',
       type: 'single',
       path: '/student/settings',
     },

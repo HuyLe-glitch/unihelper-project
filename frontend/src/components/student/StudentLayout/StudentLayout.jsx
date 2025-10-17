@@ -49,7 +49,7 @@ const StudentLayout = () => {
         return (
           <div className="page-content">
             <h1>Schedule</h1>
-            <p>Lịch học của sinh viên</p>
+            <p>Lịch sử yêu cầu sinh viên</p>
           </div>
         );
       case 'settings':
