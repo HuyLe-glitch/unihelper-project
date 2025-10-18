@@ -6,6 +6,14 @@ const { catchAsync } = require('../utils/appError');
  * Xử lý HTTP requests/responses cho Authentication
  */
 class AuthController {
+  // Add this method to your AuthController class
+  loginStudent = catchAsync(async (req, res) => {
+    const { studentId, password } = req.body;
+    const result = await authService.loginWithStudentId(studentId, password);
+
+    res.status(200).json(result);
+  });
+
   // Đăng nhập
   login = catchAsync(async (req, res) => {
     const { email, password } = req.body;

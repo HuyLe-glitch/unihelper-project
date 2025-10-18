@@ -53,3 +53,7 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+
+# Ignore temporary JS files
+test-api.js
+debug-passwords.js

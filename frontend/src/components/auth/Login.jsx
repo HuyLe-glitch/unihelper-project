@@ -1,23 +1,20 @@
-// frontend/src/pages/Login.jsx 
 import {useState,useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-//import {loginWithEmailPassword} from '../services/auth';        // No longer exists
 import {useAuthContext} from '../../contexts/AuthContext';
 import LoginRoleSelector from './LoginRoleSelector';
-//import RequireAuth from '../../routes/RequireAuth';
 import './Login.css';
 
 export default function Login(){
     const { login } = useAuthContext();
     const [email, setEmail] = useState('');
+    const [studentId, setStudentId] = useState('');
     const [password, setPassword] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [selectedRole, setSelectedRole] = useState(null);
     const navigate = useNavigate();
-    //const [loginMode, setLoginMode] = useState('role-selection'); // 'role-selection' or 'login'
+
     useEffect(() => {
-        // Try to get role from localStorage
         const role = localStorage.getItem('selectedRole');
         if (role) setSelectedRole(role);
     }, []);
@@ -27,11 +24,21 @@ export default function Login(){
         setError('');
         setSubmitting(true);
         try {
-          // pass what your auth service expects; include role if needed
-          await login({ email, password, role: selectedRole });
-          // optionally redirect here by role
-          if (selectedRole === 'admin') navigate('/admin/dashboard');
-          else if (selectedRole === 'staff') navigate('/staff/dashboard');
+          const credentials = { password, role: selectedRole };
+          
+          if (selectedRole === 'student') {
+            credentials.studentId = studentId;
+          } else {
+            credentials.email = email;
+          }
+          
+          const result = await login(credentials);
+          
+          // Use the normalized role from auth service
+          const userRole = result.user.role; // Already lowercase from auth.js
+          
+          if (userRole === 'admin') navigate('/admin/dashboard');
+          else if (userRole === 'staff') navigate('/staff/dashboard');
           else navigate('/student/dashboard');
         } catch (err) {
           setError(err.message || 'Login failed');
@@ -40,29 +47,21 @@ export default function Login(){
         }
     }
 
-    // Selection handlers
-    /*const handleRoleSelect = (role) => {
-        setSelectedRole(role);
-        setLoginMode('login');
-    };*/
-
     const handleBackToRoleSelection = () => {
         setSelectedRole(null);
         localStorage.removeItem('selectedRole');
-        navigate('/choose-role'); // or navigate('/') as the root
-
+        navigate('/choose-role');
     };
 
-    // Get role display name and placeholder
     const getRoleInfo = () => {
         switch(selectedRole) {
             case 'admin':
-                return { title: 'Admin Login', placeholder: 'admin@tdtu.edu.vn' };
+                return { title: 'Admin Login', placeholder: 'admin@tdtu.edu.vn', inputType: 'email', label: 'Email' };
             case 'staff':
-                return { title: 'Staff Login', placeholder: 'staff@tdtu.edu.vn' };
+                return { title: 'Staff Login', placeholder: 'staff@tdtu.edu.vn', inputType: 'email', label: 'Email' };
             case 'student':
             default:
-                return { title: 'Student Login', placeholder: 'student@tdtu.edu.vn' };
+                return { title: 'Student Login', placeholder: 'Enter your Student ID', inputType: 'text', label: 'Student ID' };
         }
     };
 
@@ -70,7 +69,6 @@ export default function Login(){
 
     return (
         <div className="login-container">
-            {/* Add the role selection*/}
             {!selectedRole ? (
                 <div className="role-select-wrapper">
                     <LoginRoleSelector />
@@ -89,18 +87,17 @@ export default function Login(){
                 <h2 className="login-title">
                     {roleInfo.title}
                 </h2>
-                
                 </div>
 
                 {error && <div className="error-message">{error}</div>}
                 <div className="form-fields">
                     <label className="form-label">
-                        <span>Email</span>
+                        <span>{roleInfo.label}</span>
                         <input
-                            type="email"
+                            type={roleInfo.inputType}
                             required
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
+                            value={selectedRole === 'student' ? studentId : email}
+                            onChange={e => selectedRole === 'student' ? setStudentId(e.target.value) : setEmail(e.target.value)}
                             placeholder={roleInfo.placeholder}
                             className="form-input"
                         />
