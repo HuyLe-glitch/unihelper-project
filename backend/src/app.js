@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const globalErrorHandler = require('./middleware/errorHandler');
 const { AppError } = require('./utils/appError');
+const dormitoryRoutes = require('./routes/dormitoryRoutes');
+
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +37,7 @@ const certificateRoutes = require('./routes/certificateRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/dormitory', dormitoryRoutes);
 
 // --- Health check route ---
 app.get('/', (req, res) => {

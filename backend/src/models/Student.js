@@ -44,6 +44,14 @@ const studentSchema = new mongoose.Schema({
   dateOfBirth: {
     type: Date
   },
+  class: {
+    type: String,
+    trim: true
+  },
+  course: {
+    type: String,
+    trim: true
+  },
   enrollmentDate: {
     type: Date,
     default: Date.now
@@ -58,8 +66,8 @@ const studentSchema = new mongoose.Schema({
 });
 
 // Indexes
-studentSchema.index({ studentId: 1 });
-studentSchema.index({ user: 1 });
+//studentSchema.index({ studentId: 1 });
+//studentSchema.index({ user: 1 });
 studentSchema.index({ faculty: 1, major: 1 });
 
 module.exports = mongoose.model('Student', studentSchema);

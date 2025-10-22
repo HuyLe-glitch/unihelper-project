@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Dbs schema for User
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -44,7 +45,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Index for performance
-userSchema.index({ email: 1 });
+//userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

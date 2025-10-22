@@ -46,8 +46,8 @@ const staffSchema = new mongoose.Schema({
 });
 
 // Indexes
-staffSchema.index({ staffId: 1 });
-staffSchema.index({ user: 1 });
+//staffSchema.index({ staffId: 1 });
+//staffSchema.index({ user: 1 });
 staffSchema.index({ department: 1 });
 staffSchema.index({ staffType: 1 });
 

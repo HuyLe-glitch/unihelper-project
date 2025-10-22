@@ -55,7 +55,10 @@ async function createTestUsers() {
         studentId: '522H0030', // Case-sensitive in database
         major: 'Computer Science',
         faculty: 'Information Technology',
-        academicYear: '2024'
+        academicYear: '2024',
+        dateOfBirth: new Date('2002-03-15'),
+        class: 'CNTT02-K20',
+        course: 'K20 (2020-2024)'
       });
         await student.save();
         console.log('Created student profile - Login with: 522H0030');

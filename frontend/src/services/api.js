@@ -45,6 +45,7 @@ apiClient.interceptors.response.use(
 
     // Authentication errors
     else if (error.response.status === 401) {
+      window.alert('Sai tên đăng nhập hoặc mật khẩu! Vui lòng kiểm tra và đăng nhập lại!');
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }

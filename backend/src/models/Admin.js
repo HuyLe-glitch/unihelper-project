@@ -34,7 +34,7 @@ const adminSchema = new mongoose.Schema({
 });
 
 // Indexes
-adminSchema.index({ adminId: 1 });
-adminSchema.index({ user: 1 });
+//adminSchema.index({ adminId: 1 });
+//adminSchema.index({ user: 1 });
 
 module.exports = mongoose.model('Admin', adminSchema);
