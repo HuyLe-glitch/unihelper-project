@@ -6,7 +6,7 @@ import { apiClient } from '../../../services/api';
 const HistoryDormitory = () => {
   const navigate = useNavigate();
 
-  const [dormitoryHistory, setDormitoryHistory] = useState([]);
+  const [dormitoryHistory, setDormitoryHistory] = useState([]); // current page items
   const [searchFilters, setSearchFilters] = useState({
     studentCode: '',
     fullName: '',
@@ -15,7 +15,7 @@ const HistoryDormitory = () => {
     requestDate: '',
     status: ''
   });
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5); // default 5 per page
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -55,59 +55,60 @@ const HistoryDormitory = () => {
     }
   };
 
-  const mapServerItemToUI = (it) => ({
-    id: it._id || it.id,
-    studentCode:
-      it.student?.studentCode ||
-      it.student?.code ||
-      it.student?.student_id ||
-      it.student?.username ||
-      '',
-    fullName:
-      it.student?.fullName ||
-      it.student?.name ||
-      [it.student?.firstName, it.student?.lastName].filter(Boolean).join(' ') ||
-      '',
-    category: it.category || '',
-    deviceName: it.deviceName || '',
-    description: it.description || '',
-    requestDate: formatDate(it.requestDate || it.createdAt),
-    confirmDate: formatDate(it.confirmDate),
-    status: it.status || 'Pending'
-  });
+  const mapServerItemToUI = (it) => {
+    // Get current user data from localStorage (like ProfilePanel.jsx)
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const profileData = storedUser.profile || {};
+    
+    return {
+      id: it._id || it.id,
+      studentCode: profileData.studentId || storedUser.profile?.studentId || '',
+      fullName: storedUser.name || profileData.user?.name || '',
+      category: it.category || '',
+      deviceName: it.deviceName || '',
+      description: it.description || '',
+      requestDate: formatDate(it.requestDate || it.createdAt),
+      confirmDate: formatDate(it.confirmDate),
+      status: it.status || 'Pending'
+    };
+  };
 
-  const fetchRequests = useCallback(async (page = 1, limit = 10) => {
+
+  const fetchRequests = useCallback(async (page = 1, limit = 5) => {
     setLoading(true);
     setError(null);
     try {
       const res = await apiClient.get('/dormitory/requests/my', {
         params: { page, limit }
       });
-      // support responses shaped as { success, data, meta } or direct array
       const payload = res?.data;
       let items = [];
-      if (payload === undefined || payload === null) {
+
+      if (!payload) {
         items = [];
       } else if (Array.isArray(payload)) {
         items = payload;
       } else if (payload.data && Array.isArray(payload.data)) {
         items = payload.data;
-        if (payload.meta && typeof payload.meta.total === 'number') setTotalRows(payload.meta.total);
       } else if (payload.success && Array.isArray(payload.data)) {
         items = payload.data;
-        if (payload.meta && typeof payload.meta.total === 'number') setTotalRows(payload.meta.total);
       } else {
-        // fallback: try to read payload.data.results
         items = payload.data || [];
       }
 
       const mapped = items.map(mapServerItemToUI);
       setDormitoryHistory(mapped);
-      if (!totalRows) {
-        // try to infer total if provided in meta
-        const totalFromMeta = payload?.meta?.total || payload?.meta?.count || payload?.total;
-        if (typeof totalFromMeta === 'number') setTotalRows(totalFromMeta);
-        else setTotalRows(mapped.length);
+
+      const totalFromMeta = payload?.meta?.total || payload?.meta?.count || payload?.total;
+      if (typeof totalFromMeta === 'number') {
+        setTotalRows(totalFromMeta);
+      } else {
+        // fallback: estimate totalRows (use current page count if unknown)
+        setTotalRows(prev => {
+          // if we already had a total keep it, otherwise guess as page * limit when items full else mapped.length
+          if (prev && prev > 0) return prev;
+          return mapped.length === limit ? page * limit : ( (page - 1) * limit + mapped.length );
+        });
       }
     } catch (err) {
       console.error('fetchRequests error', err);
@@ -117,14 +118,15 @@ const HistoryDormitory = () => {
     } finally {
       setLoading(false);
     }
-  }, [totalRows]);
+  }, []);
 
+  // Fetch when page or pageSize changes (server-side pagination)
   useEffect(() => {
     fetchRequests(currentPage, pageSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize]);
 
-  // client-side filters (applied after server fetch)
+  // client-side filtering applied to current page items
   const filteredHistory = dormitoryHistory.filter(item => {
     return (
       item.studentCode.toLowerCase().includes(searchFilters.studentCode.toLowerCase()) &&
@@ -138,8 +140,8 @@ const HistoryDormitory = () => {
 
   const totalPages = Math.max(1, Math.ceil((totalRows || filteredHistory.length) / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedHistory = filteredHistory.slice(0, pageSize); // server paging already applied; keep client slice minimal
+  const endIndex = startIndex + filteredHistory.length; // number shown on this page
+  const paginatedHistory = filteredHistory; // current page items (already from server)
 
   return (
     <div className="schedule-container">
@@ -177,7 +179,6 @@ const HistoryDormitory = () => {
               placeholder="Tìm kiếm..."
               className="global-search-input"
               onChange={(e) => {
-                // global search: apply to studentCode/fullName/deviceName/category concatenated
                 const q = e.target.value || '';
                 setSearchFilters(prev => ({
                   ...prev,
@@ -190,7 +191,7 @@ const HistoryDormitory = () => {
             />
             <button
               className="search-btn-global"
-              onClick={() => fetchRequests(1, pageSize)}
+              onClick={() => { setCurrentPage(1); fetchRequests(1, pageSize); }}
               disabled={loading}
             >
               Tìm kiếm
@@ -204,7 +205,7 @@ const HistoryDormitory = () => {
               <tr>
                 <th>Thao tác</th>
                 <th>STT</th>
-                <th>Mã học viên</th>
+                <th>Mã số sinh viên</th>
                 <th>Họ tên</th>
                 <th>Danh mục</th>
                 <th>Tên thiết bị</th>
@@ -253,9 +254,10 @@ const HistoryDormitory = () => {
 
         <div className="pagination">
           <span className="pagination-info">
-            Hiển thị {Math.min(startIndex + 1, totalRows || 0)} đến {Math.min(endIndex, totalRows || filteredHistory.length)} trong {totalRows || filteredHistory.length} dòng dữ liệu
+            Hiển thị {totalRows === 0 ? 0 : startIndex + 1} đến {Math.min(startIndex + pageSize, totalRows)} trong {totalRows} dòng dữ liệu
           </span>
           <div className="pagination-controls">
+            <span className="page-info">Trang {currentPage} / {totalPages}</span>
             <button
               className="pagination-btn"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -266,7 +268,7 @@ const HistoryDormitory = () => {
             <button
               className="pagination-btn"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages || loading}
+              disabled={currentPage >= totalPages || loading}
             >
               Trang kế tiếp
             </button>

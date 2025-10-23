@@ -1,5 +1,5 @@
 const DormitoryRequest = require('../models/DormitoryRequest');
-
+//Sus
 class DormitoryRepository {
   async createMany(requests = []) {
     if (!Array.isArray(requests) || requests.length === 0) return [];

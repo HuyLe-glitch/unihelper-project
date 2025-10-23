@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const dormitoryRequestSchema = new mongoose.Schema({
     student: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
+        ref: 'Student', 
         required: true 
     },
     category: { 
