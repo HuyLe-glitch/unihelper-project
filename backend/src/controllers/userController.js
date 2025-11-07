@@ -6,6 +6,16 @@ const { catchAsync } = require('../utils/appError');
  * Xử lý HTTP requests/responses cho User Management
  */
 class UserController {
+
+  // Tạo user mới
+  createUser = catchAsync(async (req, res) => {
+    // expect validated body: { name, email, password, role, ...profileFields }
+    const payload = req.body;
+    const result = await userService.createUser(payload);
+    // result should be { success: true, data: { id, name, email, role, profileId } } or similar
+    res.status(201).json(result);
+  });
+
   // Lấy danh sách users
   getUsers = catchAsync(async (req, res) => {
     const { page = 1, limit = 10, role } = req.query;

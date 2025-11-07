@@ -47,4 +47,7 @@ router.put('/:id/profile', restrictTo('ADMIN'), idValidation.validateObjectId, u
 // POST /api/users/:id/profile - Tạo profile cho user (Admin only)
 router.post('/:id/profile', restrictTo('ADMIN'), idValidation.validateObjectId, userController.createUserProfile);
 
+// Tao user mới (Admin only)
+router.post('/', restrictTo('ADMIN'), userValidation.createUser, userController.createUser);
+
 module.exports = router;

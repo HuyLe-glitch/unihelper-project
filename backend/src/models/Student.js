@@ -14,14 +14,9 @@ const studentSchema = new mongoose.Schema({
     trim: true
   },
   major: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  faculty: {
-    type: String,
-    required: true,
-    trim: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Major',
+    required: true
   },
   academicYear: {
     type: String,
@@ -37,20 +32,22 @@ const studentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  address: {
+  className: {
     type: String,
+    required: true,
     trim: true
+  },
+  address: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Address'
+  },
+  citizen: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Citizen'
   },
   dateOfBirth: {
-    type: Date
-  },
-  class: {
-    type: String,
-    trim: true
-  },
-  course: {
-    type: String,
-    trim: true
+    type: Date,
+    required: true
   },
   enrollmentDate: {
     type: Date,
@@ -61,13 +58,20 @@ const studentSchema = new mongoose.Schema({
     enum: ['ACTIVE', 'INACTIVE', 'GRADUATED', 'SUSPENDED'],
     default: 'ACTIVE'
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 // Indexes
-//studentSchema.index({ studentId: 1 });
-//studentSchema.index({ user: 1 });
-studentSchema.index({ faculty: 1, major: 1 });
+studentSchema.index({ major: 1, status: 1 });
+
+// Virtual populate
+studentSchema.virtual('userInfo', {
+  ref: 'User',
+  localField: 'user',
+  foreignField: '_id',
+  justOne: true
+});
+
+studentSchema.set('toJSON', { virtuals: true });
+studentSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Student', studentSchema);

@@ -6,6 +6,9 @@ const { protect, restrictTo } = require('../middleware/authMiddleware');
 // Protect all dormitory routes
 router.use(protect);
 
+// Add routes for managing categories
+router.get('/categories', dormitoryController.getCategories);
+
 // Student creates one or more dormitory requests
 router.post('/requests', restrictTo('STUDENT'), dormitoryController.createDormitoryRequests);
 
@@ -17,5 +20,8 @@ router.get('/requests/:id', restrictTo('STUDENT', 'STAFF', 'ADMIN'), dormitoryCo
 
 // Update status (staff/admin)
 router.patch('/requests/:id/status', restrictTo('STAFF', 'ADMIN'), dormitoryController.updateRequestStatus);
+
+// DELETE /api/auth/dormitory/requests/:id - Xóa yêu cầu KTX
+router.delete('/requests/:id', restrictTo('STUDENT', 'STAFF', 'ADMIN'), dormitoryController.deleteDormitoryRequest);
 
 module.exports = router;

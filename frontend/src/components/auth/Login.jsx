@@ -92,7 +92,9 @@ export default function Login(){
                 {error && <div className="error-message">{error}</div>}
                 <div className="form-fields">
                     <label className="form-label">
-                        <span>{roleInfo.label}</span>
+                        <span className="label-text">                  
+                            {roleInfo.label}  
+                        </span>   
                         <input
                             type={roleInfo.inputType}
                             required
@@ -103,7 +105,9 @@ export default function Login(){
                         />
                     </label>
                     <label className="form-label">
-                        <span>Password</span>
+                        <span className="label-text">
+                            Password 
+                        </span>
                         <input
                             type="password"
                             required

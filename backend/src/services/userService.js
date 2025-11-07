@@ -1,11 +1,105 @@
 const userRepository = require('../repositories/userRepository');
 const { AppError } = require('../utils/appError');
+const Student = require('../models/Student');
+const Staff = require('../models/Staff');
+const Address = require('../models/Address');
+const Citizen = require('../models/Citizen');
+const Department = require('../models/Department');
+const StaffRole = require('../models/StaffRole');
+const mongoose = require('mongoose');
 
 /**
  * User Service - Business Logic Layer
  * Xử lý logic nghiệp vụ liên quan đến User Management
  */
 class UserService {
+  // Create new user (admin)
+  async createUser(payload = {}) {
+    try {
+      const { name, email, password, role = 'STUDENT', ...profile } = payload;
+
+      if (!name || !email || !password) {
+        throw new AppError('Missing required fields: name, email, password', 400);
+      }
+
+      const emailNorm = String(email).toLowerCase();
+
+      const exists = await userRepository.findByEmail(emailNorm);
+      if (exists) throw new AppError('Email đã được sử dụng', 400);
+
+      // Tạo user (KHÔNG dùng session)
+      const User = require('../models/User');
+      const createdUser = await User.create({ name, email: emailNorm, password, role });
+
+      // Nếu là Student hoặc Staff → tạo profile
+      let createdProfile = null;
+      if (role === 'STUDENT' || role === 'STAFF') {
+        if (role === 'STUDENT') {
+          const requiredFields = ['studentId', 'major', 'academicYear', 'faculty', 'dateOfBirth'];
+          const missing = requiredFields.filter(f => !profile || !profile[f]);
+          if (missing.length) {
+            throw new AppError(`Missing student fields: ${missing.join(', ')}`, 400);
+          }
+
+          // Tạo Student (KHÔNG dùng session)
+          createdProfile = await Student.create({ user: createdUser._id, ...profile });
+
+        } else {
+          // STAFF BRANCH
+          const requiredFields = ['staffId', 'staffType'];
+          const missing = requiredFields.filter(f => !profile[f]);
+          if (missing.length) {
+            throw new AppError(`Missing staff fields: ${missing.join(', ')}`, 400);
+          }
+
+          // Xử lý department
+          if (profile.department && typeof profile.department === 'string') {
+            const deptDoc = await Department.findOne({
+              name: profile.department,
+              staffType: profile.staffType
+            });
+
+            if (deptDoc) {
+              profile.department = deptDoc._id;
+            } else {
+              // Tạo department mới
+              const newDept = await Department.create({
+                name: profile.department,
+                staffType: profile.staffType
+              });
+              profile.department = newDept._id;
+            }
+          }
+
+          // Tạo Staff (KHÔNG dùng session)
+          createdProfile = await Staff.create({ user: createdUser._id, ...profile });
+
+          // Thêm staff vào department
+          if (profile.department) {
+            await Department.findByIdAndUpdate(
+              profile.department,
+              { $addToSet: { staffMembers: createdProfile._id } }
+            );
+          }
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Tạo user thành công',
+        data: {
+          id: createdUser._id,
+          name: createdUser.name,
+          email: createdUser.email,
+          role: createdUser.role,
+          profileId: createdProfile ? createdProfile._id : null
+        }
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Lấy danh sách users với phân trang và filter
   async getUsers(page = 1, limit = 10, filters = {}) {
     // Validation

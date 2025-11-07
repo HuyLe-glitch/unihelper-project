@@ -106,25 +106,46 @@ export const MENU_CONFIGS = {
       path: '/admin/dashboard',
     },
     {
-      id: 'users',
+      id: 'student-management',
       icon: '👤',
-      label: 'Quản lý người dùng',
+      label: 'Quản lý sinh viên',
       type: 'single',
-      path: '/admin/users',
+      path: '/admin/student-management/student-settings',
     },
-    {
-      id: 'requests',
-      icon: '📋',
-      label: 'Tất cả yêu cầu',
-      type: 'single',
-      path: '/admin/requests',
-    },
+    /*{
+      id: 'user-management',
+      icon: '👤',
+      label: 'Quản lý sinh viên',
+      type: 'expandable',
+      children:[
+        { id: 'add-user', label: 'Thêm người dùng', path: '/admin/user-management/add-user' },
+        { id: 'user-settings', label: 'Cài đặt người dùng', path: '/admin/user-management/user-settings' },
+      ]
+    },*/
     {
       id: 'reports',
       icon: '📈',
       label: 'Báo cáo hệ thống',
       type: 'single',
-      path: '/admin/reports',
+      path: '/admin/reports/requests',
+    },
+    /*{
+      id: 'reports-requests',
+      icon: '📈',
+      label: 'Báo cáo hệ thống',
+      type: 'expandable',
+      children: [
+        { id: 'reports-requests', label: 'Báo cáo yêu cầu CTSV KTX', path: '/admin/reports/requests' },
+        { id: 'reports-users', label: 'Báo cáo yêu cầu KTX ', path: '/admin/reports/users' },
+        { id: 'reports-activities', label: 'Báo cáo hoạt động', path: '/admin/reports/activities' },
+      ],
+    },*/
+    {
+      id: 'department-management',
+      icon: '🏢',
+      label: 'Quản lý phòng ban',
+      type: 'single',
+      path: '/admin/department-management',
     },
     {
       id: 'system-settings',

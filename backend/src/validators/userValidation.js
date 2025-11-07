@@ -48,6 +48,68 @@ const authValidation = {
  * Validation rules cho User Management
  */
 const userValidation = {
+  // Validation for creating a new user (Admin)
+  // Validation for creating a new user (Admin)
+  createUser: [
+    body('name')
+      .notEmpty()
+      .withMessage('Tên là bắt buộc')
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Tên phải từ 2-50 ký tự')
+      .trim(),
+    body('email')
+      .notEmpty()
+      .withMessage('Email là bắt buộc')
+      .isEmail()
+      .withMessage('Email không hợp lệ')
+      .normalizeEmail(),
+    body('password')
+      .notEmpty()
+      .withMessage('Password là bắt buộc')
+      .isLength({ min: 6 })
+      .withMessage('Password phải có ít nhất 6 ký tự'),
+    body('role')
+      .optional()
+      .isIn(['STUDENT', 'STAFF'])
+      .withMessage('Role không hợp lệ'),
+
+    // Nếu vai trò là STUDENT yêu cầu các trường profile của sinh viên
+    body('studentId')
+      .if(body('role').equals('STUDENT'))
+      .notEmpty()
+      .withMessage('studentId là bắt buộc cho STUDENT')
+      .trim(),
+    body('major')
+      .if(body('role').equals('STUDENT'))
+      .notEmpty()
+      .withMessage('major là bắt buộc cho STUDENT')
+      .trim(),
+    body('faculty')
+      .if(body('role').equals('STUDENT'))
+      .notEmpty()
+      .withMessage('faculty là bắt buộc cho STUDENT')
+      .trim(),
+    body('academicYear')
+      .if(body('role').equals('STUDENT'))
+      .notEmpty()
+      .withMessage('academicYear là bắt buộc cho STUDENT')
+      .trim(),
+
+    // Nếu vai trò là STAFF yêu cầu các trường profile của nhân viên
+    body('staffId')
+      .if(body('role').equals('STAFF'))
+      .notEmpty()
+      .withMessage('staffId là bắt buộc cho STAFF')
+      .trim(),
+    body('department')
+      .if(body('role').equals('STAFF'))
+      .notEmpty()
+      .withMessage('department là bắt buộc cho STAFF')
+      .trim(),
+
+    handleValidationErrors
+  ],
+
   // Validation cho cập nhật user
   updateUser: [
     body('name')

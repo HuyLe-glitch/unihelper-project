@@ -6,9 +6,11 @@ class DormitoryRepository {
     return DormitoryRequest.insertMany(requests);
   }
 
+    // Update findByStudent method to populate category
   async findByStudent(studentId, { skip = 0, limit = 50, filters = {} } = {}) {
     const query = { student: studentId, ...filters };
     return DormitoryRequest.find(query)
+      .populate('category', 'name') // Add this line
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -16,8 +18,13 @@ class DormitoryRepository {
       .exec();
   }
 
+  // Update findById method
   async findById(id) {
-    return DormitoryRequest.findById(id).populate('student').lean().exec();
+    return DormitoryRequest.findById(id)
+      .populate('student')
+      .populate('category', 'name') // Add this line
+      .lean()
+      .exec();
   }
 
   async updateStatus(id, status, updaterId = null) {

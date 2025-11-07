@@ -20,6 +20,38 @@ const HistoryDormitory = () => {
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState(null);
+
+  // Handle delete request
+  const handleDeleteClick = (requestId) => {
+    setDeleteRequestId(requestId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+  try {
+    const response = await apiClient.delete(`/dormitory/requests/${deleteRequestId}`);
+    
+    if (response.data.success) {
+      // Remove item from local state instead of refetching
+      setDormitoryHistory(prev => prev.filter(item => item.id !== deleteRequestId));
+      setShowDeleteModal(false);
+      setDeleteRequestId(null);
+      
+      // Show success message (optional)
+      console.log('Request deleted successfully');
+    }
+  } catch (error) {
+    console.error('Delete failed:', error);
+    setError('Failed to delete request: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeleteRequestId(null);
+  };
 
   const handleCreateRequest = () => {
     navigate('/student/dormitory');
@@ -203,7 +235,6 @@ const HistoryDormitory = () => {
           <table className="history-table">
             <thead>
               <tr>
-                <th>Thao tác</th>
                 <th>STT</th>
                 <th>Mã số sinh viên</th>
                 <th>Họ tên</th>
@@ -213,6 +244,7 @@ const HistoryDormitory = () => {
                 <th>Ngày yêu cầu</th>
                 <th>Xác nhận sửa chữa</th>
                 <th>Trạng thái</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -227,9 +259,6 @@ const HistoryDormitory = () => {
               ) : paginatedHistory.length > 0 ? (
                 paginatedHistory.map((item, index) => (
                   <tr key={item.id || index}>
-                    <td>
-                      <button className="action-btn">Xem</button>
-                    </td>
                     <td>{startIndex + index + 1}</td>
                     <td>{item.studentCode}</td>
                     <td>{item.fullName}</td>
@@ -239,6 +268,18 @@ const HistoryDormitory = () => {
                     <td>{item.requestDate}</td>
                     <td>{item.confirmDate || '-'}</td>
                     <td>{getStatusBadge(item.status)}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="action-btn">Xem</button>
+                        <button 
+                          className="action-btn delete-btn" 
+                          onClick={() => handleDeleteClick(item.id)}
+                          style={{ backgroundColor: '#dc3545', color: 'white' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -275,6 +316,22 @@ const HistoryDormitory = () => {
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h3>Xác nhận xóa</h3>
+          <p>Bạn có chắc chắn muốn xóa yêu cầu này không?</p>
+          <div className="modal-actions">
+            <button className="modal-btn cancel-btn" onClick={handleDeleteCancel}>
+              Hủy
+            </button>
+            <button className="modal-btn delete-btn" onClick={handleDeleteConfirm}>
+              Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 };
