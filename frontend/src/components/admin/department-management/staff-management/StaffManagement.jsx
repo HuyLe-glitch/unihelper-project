@@ -12,11 +12,48 @@ export default function StaffManagement() {
     staffType: "CTSV",
   };
 
-  // ⚙️ Fake data danh sách staff
+  // ⚙️ Fake data danh sách departments (để chuyển phòng ban)
+  const allDepartments = [
+    { id: 1, name: "Phòng Công tác Sinh viên", staffType: "CTSV" },
+    { id: 2, name: "Phòng Học vụ", staffType: "CTSV" },
+    { id: 3, name: "Ký túc xá Khu A", staffType: "KTX" },
+    { id: 4, name: "Ký túc xá Khu B", staffType: "KTX" },
+  ];
+
+  // ⚙️ Fake data danh sách staff với trạng thái mới
   const [staffs, setStaffs] = useState([
-    { id: 1, name: "Nguyễn Văn A", email: "nguyenvana@tdtu.edu.vn", role: "Trưởng phòng", status: "active" },
-    { id: 2, name: "Trần Thị B", email: "tranthib@tdtu.edu.vn", role: "Nhân viên hỗ trợ", status: "active" },
-    { id: 3, name: "Lê Văn C", email: "levanc@tdtu.edu.vn", role: "Thư ký sinh viên", status: "inactive" },
+    { 
+      id: 1, 
+      name: "Nguyễn Văn A", 
+      email: "nguyenvana@tdtu.edu.vn", 
+      role: "Trưởng phòng", 
+      status: "ACTIVE",
+      departmentId: 1
+    },
+    { 
+      id: 2, 
+      name: "Trần Thị B", 
+      email: "tranthib@tdtu.edu.vn", 
+      role: "Nhân viên hỗ trợ", 
+      status: "ACTIVE",
+      departmentId: 1
+    },
+    { 
+      id: 3, 
+      name: "Lê Văn C", 
+      email: "levanc@tdtu.edu.vn", 
+      role: "Thư ký sinh viên", 
+      status: "ON_LEAVE",
+      departmentId: 1
+    },
+    { 
+      id: 4, 
+      name: "Phạm Thị D", 
+      email: "phamthid@tdtu.edu.vn", 
+      role: "Nhân viên hỗ trợ", 
+      status: "RETIRED",
+      departmentId: 1
+    },
   ]);
 
   // ⚙️ Fake data các role khả dụng (sẽ lấy từ StaffRole trong DB sau)
@@ -27,35 +64,90 @@ export default function StaffManagement() {
     "Chuyên viên tư vấn",
   ];
 
+  // ⚙️ Danh sách trạng thái staff
+  const staffStatuses = [
+    { value: 'ACTIVE', label: 'Đang làm việc' },
+    { value: 'INACTIVE', label: 'Không hoạt động' },
+    { value: 'RETIRED', label: 'Đã nghỉ hưu' },
+    { value: 'ON_LEAVE', label: 'Đang nghỉ phép' },
+    { value: 'TERMINATED', label: 'Đã thôi việc' },
+  ];
+
   // ⚙️ State cho popup phân quyền
   const [showModal, setShowModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [newRole, setNewRole] = useState("");
+  const [newDepartmentId, setNewDepartmentId] = useState(""); // null = giữ nguyên phòng ban
 
   // 👉 Khi admin nhấn "Phân quyền"
   const handleAssignRole = (staff) => {
     setSelectedStaff(staff);
     setNewRole(staff.role);
+    setNewDepartmentId(""); // Mặc định là null (không chuyển phòng)
     setShowModal(true);
+  };
+
+  // Navigate to Add Staff page
+  const handleAddStaff = () => {
+    navigate('/admin/department-management/add-staff', {
+      state: { department }
+    });
   };
 
   // 👉 Lưu thay đổi role
   const handleSaveRole = (e) => {
     e.preventDefault();
-    if (!newRole.trim()) return alert("Vui lòng chọn vai trò hợp lệ");
+    
+    // Validation: Role không được để trống
+    if (!newRole.trim()) {
+      return alert("❌ Vui lòng chọn vai trò hợp lệ");
+    }
+
+    // Mock logic update
+    const updatedStaff = {
+      ...selectedStaff,
+      role: newRole,
+      departmentId: newDepartmentId ? parseInt(newDepartmentId) : selectedStaff.departmentId
+    };
 
     setStaffs(
       staffs.map((s) =>
-        s.id === selectedStaff.id ? { ...s, role: newRole } : s
+        s.id === selectedStaff.id ? updatedStaff : s
       )
     );
-    alert(`✅ Đã cập nhật quyền cho ${selectedStaff.name} thành: ${newRole}`);
+
+    // Thông báo kết quả
+    if (newDepartmentId) {
+      const newDept = allDepartments.find(d => d.id === parseInt(newDepartmentId));
+      alert(`✅ Đã cập nhật:\n- Vai trò: ${newRole}\n- Chuyển sang: ${newDept.name}`);
+    } else {
+      alert(`✅ Đã cập nhật vai trò cho ${selectedStaff.name} thành: ${newRole}\n(Giữ nguyên phòng ban hiện tại)`);
+    }
+    
     setShowModal(false);
+  };
+
+  // 👉 Get status label
+  const getStatusLabel = (status) => {
+    const statusObj = staffStatuses.find(s => s.value === status);
+    return statusObj ? statusObj.label : status;
+  };
+
+  // 👉 Get status class
+  const getStatusClass = (status) => {
+    const statusMap = {
+      'ACTIVE': 'status-active',
+      'INACTIVE': 'status-inactive',
+      'RETIRED': 'status-retired',
+      'ON_LEAVE': 'status-leave',
+      'TERMINATED': 'status-terminated',
+    };
+    return statusMap[status] || 'status-inactive';
   };
 
   // 👉 Back button functionality
   const handleBack = () => {
-    navigate('/admin/department-management'); // Navigate back to department list
+    navigate('/admin/department-management');
   };
 
   return (
@@ -66,7 +158,6 @@ export default function StaffManagement() {
           <button className="back-btn" onClick={handleBack}>
             ← Quay lại
           </button>
-          
           <div className="header-text">
             <h1>Quản lý nhân viên</h1>
             <p>
@@ -76,11 +167,10 @@ export default function StaffManagement() {
               </strong>
             </p>
           </div>
-
-          <button className="add-btn" onClick={() => setShowAddModal(true)}>
-            + Thêm nhân viên
-          </button>
         </div>
+        <button className="add-staff-btn" onClick={handleAddStaff}>
+          + Thêm nhân viên
+        </button>
       </div>
 
       {/* DANH SÁCH STAFF */}
@@ -105,8 +195,8 @@ export default function StaffManagement() {
                   <td>{staff.email}</td>
                   <td>{staff.role}</td>
                   <td>
-                    <span className={`status-badge ${staff.status === 'active' ? 'status-active' : 'status-inactive'}`}>
-                      {staff.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                    <span className={`status-badge ${getStatusClass(staff.status)}`}>
+                      {getStatusLabel(staff.status)}
                     </span>
                   </td>
                   <td>
@@ -136,17 +226,51 @@ export default function StaffManagement() {
             </div>
 
             <form onSubmit={handleSaveRole} className="modal-form">
-              <label>Chọn chức vụ mới:</label>
+              <label>
+                Chọn chức vụ mới: <span className="required">*</span>
+              </label>
               <select
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
+                required
               >
+                <option value="">-- Chọn vai trò --</option>
                 {availableRoles.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </select>
+
+              <label>
+                Chuyển phòng ban (tùy chọn):
+              </label>
+              <select
+                value={newDepartmentId}
+                onChange={(e) => setNewDepartmentId(e.target.value)}
+              >
+                <option value="">-- Giữ nguyên phòng ban hiện tại --</option>
+                {allDepartments
+                  .filter(d => d.id !== selectedStaff.departmentId)
+                  .map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name} ({dept.staffType})
+                    </option>
+                  ))}
+              </select>
+
+              {newDepartmentId && (
+                <div className="info-box">
+                  ℹ️ Nhân viên sẽ được chuyển sang phòng ban mới
+                </div>
+              )}
+
+              <div className="current-info">
+                <p><strong>Thông tin hiện tại:</strong></p>
+                <p>• Vai trò: {selectedStaff.role}</p>
+                <p>• Phòng ban: {allDepartments.find(d => d.id === selectedStaff.departmentId)?.name}</p>
+                <p>• Trạng thái: {getStatusLabel(selectedStaff.status)}</p>
+              </div>
 
               <div className="modal-actions">
                 <button type="submit" className="save-btn">

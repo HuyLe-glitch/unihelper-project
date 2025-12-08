@@ -41,8 +41,7 @@ const departmentRoutes = require('./routes/departmentRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const majorRoutes = require('./routes/majorRoutes');
-const addressRoutes = require('./routes/addressRoutes');
-const citizenRoutes = require('./routes/citizenRoutes');
+
 
 // --- Mount routes ---
 app.use('/api/auth', authRoutes);
@@ -58,8 +57,7 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/faculties', facultyRoutes);
 app.use('/api/majors', majorRoutes);
-app.use('/api/addresses', addressRoutes);
-app.use('/api/citizens', citizenRoutes);
+
 
 // --- Health check route ---
 app.get('/', (req, res) => {

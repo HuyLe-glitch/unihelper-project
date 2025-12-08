@@ -2,10 +2,7 @@ const userRepository = require('../repositories/userRepository');
 const { AppError } = require('../utils/appError');
 const Student = require('../models/Student');
 const Staff = require('../models/Staff');
-const Address = require('../models/Address');
-const Citizen = require('../models/Citizen');
 const Department = require('../models/Department');
-const StaffRole = require('../models/StaffRole');
 const mongoose = require('mongoose');
 
 /**
@@ -13,92 +10,155 @@ const mongoose = require('mongoose');
  * Xử lý logic nghiệp vụ liên quan đến User Management
  */
 class UserService {
-  // Create new user (admin)
+  // New createUser method
   async createUser(payload = {}) {
     try {
-      const { name, email, password, role = 'STUDENT', ...profile } = payload;
+      const { email, password, role = 'ADMIN' } = payload;
 
+      // Only admin creation is allowed here
+      if (role !== 'ADMIN') {
+        throw new AppError('Use studentService or staffService to create this role', 400);
+      }
+
+      if (!email || !password) {
+        throw new AppError('Missing required fields: email, password', 400);
+      }
+
+      const emailNorm = email.toLowerCase().trim();
+
+      const exists = await userRepository.findByEmail(emailNorm);
+      if (exists) throw new AppError('Email đã được sử dụng', 400);
+
+      const createdUser = await User.create({
+        email: emailNorm,
+        password,
+        role: 'ADMIN',
+        isActive: true
+      });
+
+      const obj = createdUser.toObject();
+      delete obj.password;
+
+      return {
+        success: true,
+        message: 'Admin created',
+        data: obj
+      };
+    } catch (err) {
+      throw err instanceof AppError ? err : new AppError(err.message, 500);
+    }
+  }
+
+  // Create new user (admin)
+  /*async createUser(payload = {}) {
+    try {
+      const { name, email, password, role = 'STUDENT' } = payload;
+
+      // Build profile from either payload.profile or top-level known keys
+      let profile = {};
+      if (payload.profile && typeof payload.profile === 'object') {
+        profile = { ...payload.profile };
+      } else {
+        const keys = [
+          'studentId', 'major', 'academicYear', 'className', 'dateOfBirth',
+          'phone', 'address', 'citizenId', 'enrollmentDate',
+          'staffId', 'staffType', 'department', 'staffRole', 'status'
+        ];
+        for (const k of keys) {
+          if (Object.prototype.hasOwnProperty.call(payload, k)) profile[k] = payload[k];
+        }
+      }
+
+      // Basic required fields
       if (!name || !email || !password) {
         throw new AppError('Missing required fields: name, email, password', 400);
       }
 
       const emailNorm = String(email).toLowerCase();
 
+      // Check email uniqueness
       const exists = await userRepository.findByEmail(emailNorm);
       if (exists) throw new AppError('Email đã được sử dụng', 400);
 
-      // Tạo user (KHÔNG dùng session)
+      // Create user
       const User = require('../models/User');
       const createdUser = await User.create({ name, email: emailNorm, password, role });
 
-      // Nếu là Student hoặc Staff → tạo profile
+      // Create profile if role requires it
       let createdProfile = null;
-      if (role === 'STUDENT' || role === 'STAFF') {
-        if (role === 'STUDENT') {
-          const requiredFields = ['studentId', 'major', 'academicYear', 'faculty', 'dateOfBirth'];
-          const missing = requiredFields.filter(f => !profile || !profile[f]);
-          if (missing.length) {
-            throw new AppError(`Missing student fields: ${missing.join(', ')}`, 400);
-          }
-
-          // Tạo Student (KHÔNG dùng session)
-          createdProfile = await Student.create({ user: createdUser._id, ...profile });
-
-        } else {
-          // STAFF BRANCH
-          const requiredFields = ['staffId', 'staffType'];
-          const missing = requiredFields.filter(f => !profile[f]);
-          if (missing.length) {
-            throw new AppError(`Missing staff fields: ${missing.join(', ')}`, 400);
-          }
-
-          // Xử lý department
-          if (profile.department && typeof profile.department === 'string') {
-            const deptDoc = await Department.findOne({
-              name: profile.department,
-              staffType: profile.staffType
-            });
-
-            if (deptDoc) {
-              profile.department = deptDoc._id;
-            } else {
-              // Tạo department mới
-              const newDept = await Department.create({
-                name: profile.department,
-                staffType: profile.staffType
-              });
-              profile.department = newDept._id;
-            }
-          }
-
-          // Tạo Staff (KHÔNG dùng session)
-          createdProfile = await Staff.create({ user: createdUser._id, ...profile });
-
-          // Thêm staff vào department
-          if (profile.department) {
-            await Department.findByIdAndUpdate(
-              profile.department,
-              { $addToSet: { staffMembers: createdProfile._id } }
-            );
-          }
+      if (role === 'STUDENT') {
+        // validate required student profile fields
+        const requiredFields = ['studentId', 'major', 'academicYear', 'className', 'dateOfBirth'];
+        const missing = requiredFields.filter(f => {
+          const v = profile[f];
+          return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
+        });
+        if (missing.length) {
+          // rollback user creation (best-effort)
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError(`Missing student fields: ${missing.join(', ')}`, 400);
         }
+
+        // ensure user doesn't already have student profile
+        const existingStudent = await Student.findOne({ user: createdUser._id });
+        if (existingStudent) {
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError('Student profile already exists for this user', 400);
+        }
+
+        // Ensure major id/exists is not strictly enforced here (studentService may handle), but try to be helpful
+        // create student profile
+        createdProfile = await Student.create({ user: createdUser._id, ...profile });
+      } else if (role === 'STAFF') {
+        // validate required staff profile fields
+        const requiredFields = ['staffId', 'staffType', 'department'];
+        const missing = requiredFields.filter(f => {
+          const v = profile[f];
+          return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
+        });
+        if (missing.length) {
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError(`Missing staff fields: ${missing.join(', ')}`, 400);
+        }
+
+        // verify department exists
+        if (!mongoose.Types.ObjectId.isValid(String(profile.department))) {
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError('Invalid department id', 400);
+        }
+        const dept = await Department.findById(profile.department);
+        if (!dept) {
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError('Department not found', 404);
+        }
+
+        // ensure staffId uniqueness
+        const existingStaff = await Staff.findOne({ staffId: profile.staffId });
+        if (existingStaff) {
+          await User.findByIdAndDelete(createdUser._id).catch(() => { });
+          throw new AppError('Staff ID already exists', 400);
+        }
+
+        createdProfile = await Staff.create({ user: createdUser._id, ...profile });
       }
+
+      // remove sensitive fields before returning
+      const userObj = createdUser.toObject ? createdUser.toObject() : createdUser;
+      if (userObj.password) delete userObj.password;
 
       return {
         success: true,
-        message: 'Tạo user thành công',
+        message: 'User created',
         data: {
-          id: createdUser._id,
-          name: createdUser.name,
-          email: createdUser.email,
-          role: createdUser.role,
-          profileId: createdProfile ? createdProfile._id : null
+          user: userObj,
+          profile: createdProfile
         }
       };
     } catch (error) {
-      throw error;
+      if (error instanceof AppError) throw error;
+      throw new AppError(error.message || 'Internal server error', 500);
     }
-  }
+  } */
 
   // Lấy danh sách users với phân trang và filter
   async getUsers(page = 1, limit = 10, filters = {}) {
@@ -166,8 +226,13 @@ class UserService {
       }
     }
 
+    // Tạo object chỉ chứa các field cần update
+    const dataToUpdate = {};
+    if (name) dataToUpdate.name = name;
+    if (email) dataToUpdate.email = email;
+
     // Cập nhật user
-    const updatedUser = await userRepository.update(userId, { name, email });
+    const updatedUser = await userRepository.update(userId, dataToUpdate);
 
     return {
       success: true,
@@ -232,12 +297,12 @@ class UserService {
       throw new AppError('Không tìm thấy user', 404);
     }
 
-    // Xóa user
-    await userRepository.delete(userId);
+    // Xóa user và profile liên quan
+    await userRepository.deleteWithProfile(userId);
 
     return {
       success: true,
-      message: 'Xóa user thành công'
+      message: 'Xóa user và profile liên quan thành công'
     };
   }
 

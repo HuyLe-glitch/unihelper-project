@@ -58,6 +58,23 @@
   transform: translateX(0);
 }
 
+.add-staff-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-staff-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
 /* TABLE */
 .staff-list table {
   width: 100%;
@@ -127,6 +144,21 @@
 .status-inactive {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.status-retired {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-leave {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-terminated {
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .no-staff {
@@ -330,23 +362,4 @@
   }
 }
 
-/* HEADER BUTTONS */
-.staff-actions {
-  display: flex;
-  gap: 10px;
-}
 
-.add-btn {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: 0.2s ease-in-out;
-}
-
-.add-btn:hover {
-  background-color: #1d4ed8;
-}

@@ -106,11 +106,11 @@ export const MENU_CONFIGS = {
       path: '/admin/dashboard',
     },
     {
-      id: 'student-management',
+      id: 'faculty-management',
       icon: '👤',
-      label: 'Quản lý sinh viên',
+      label: 'Quản lý Khoa và sinh viên',
       type: 'single',
-      path: '/admin/student-management/student-settings',
+      path: '/admin/faculty-management',
     },
     /*{
       id: 'user-management',

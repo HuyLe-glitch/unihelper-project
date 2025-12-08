@@ -6,15 +6,13 @@ const dormitoryRequestSchema = new mongoose.Schema({
         ref: 'Student',
         required: true
     },
-    category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'DormitoryCategory',
-        required: true
-    },
-    deviceName: {
-        type: String,
-        required: true
-    },
+    category: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'DormitoryCategory',
+            required: true
+        },
+    ],
     description: {
         type: String
     },

@@ -57,3 +57,5 @@ build/
 # Ignore temporary JS files
 test-api.js
 debug-passwords.js
+
+scripts/

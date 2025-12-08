@@ -64,9 +64,20 @@
 /* Bộ Lọc */
 .filter-section {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .filter-section label {
@@ -78,6 +89,39 @@
   border-radius: 5px;
   padding: 6px 10px;
   cursor: pointer;
+}
+
+/* Stats Info */
+.stats-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat-item {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.stat-item strong {
+  font-size: 1.1rem;
+  margin-left: 4px;
+}
+
+.stat-item.active {
+  color: #059669;
+}
+
+.stat-item.active strong {
+  color: #047857;
+}
+
+.stat-item.total {
+  color: #2563eb;
+}
+
+.stat-item.total strong {
+  color: #1e40af;
 }
 
 /* DANH SÁCH PHÒNG BAN */
@@ -247,6 +291,64 @@
 
 .modal-form select {
   cursor: pointer;
+}
+
+/* Department Checkbox List */
+.department-checkbox-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.checkbox-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.checkbox-label {
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+  flex: 1;
+}
+
+.dept-type {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.selected-count {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 .modal-actions {

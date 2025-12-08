@@ -5,33 +5,19 @@ import './AddStudent.css';
 const AddStudent = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    // Thông tin cơ bản
-    name: '',
     email: '',
+    fullName: '',
     studentId: '',
-    phone: '',
-    dateOfBirth: '',
-    
-    // Thông tin học tập
     major: '',
     academicYear: '',
     className: '',
-    gpa: '',
-    enrollmentDate: new Date().toISOString().split('T')[0],
-    status: 'ACTIVE',
-    
-    // Địa chỉ
-    currentAddress: '',
-    permanentAddress: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    
-    // Thông tin công dân
     citizenId: '',
-    nationality: 'Việt Nam',
-    ethnicity: 'Kinh',
-    religion: ''
+    address: '',
+    dateOfBirth: '',
+    phone: '',
+    enrollmentDate: new Date().toISOString().split('T')[0],
+    gpa: '',
+    status: 'ACTIVE'
   });
 
   const [errors, setErrors] = useState({});
@@ -53,7 +39,7 @@ const AddStudent = () => {
     const newErrors = {};
     
     // Validate thông tin cơ bản
-    if (!formData.name.trim()) newErrors.name = 'Họ tên là bắt buộc';
+    if (!formData.fullName.trim()) newErrors.fullName = 'Họ tên là bắt buộc';
     if (!formData.email.trim()) newErrors.email = 'Email là bắt buộc';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
       newErrors.email = 'Email không hợp lệ';
@@ -64,10 +50,6 @@ const AddStudent = () => {
     if (!formData.major) newErrors.major = 'Chuyên ngành là bắt buộc';
     if (!formData.academicYear.trim()) newErrors.academicYear = 'Niên khóa là bắt buộc';
     if (!formData.className.trim()) newErrors.className = 'Lớp là bắt buộc';
-    
-    // Validate địa chỉ
-    if (!formData.currentAddress.trim()) newErrors.currentAddress = 'Địa chỉ hiện tại là bắt buộc';
-    if (!formData.permanentAddress.trim()) newErrors.permanentAddress = 'Địa chỉ thường trú là bắt buộc';
     
     return newErrors;
   };
@@ -83,6 +65,7 @@ const AddStudent = () => {
 
     setSubmitting(true);
     try {
+      // Gọi API tạo sinh viên
       await new Promise(resolve => setTimeout(resolve, 1200));
       console.log('Form submitted:', formData);
       alert('Thêm sinh viên thành công!');
@@ -116,13 +99,13 @@ const AddStudent = () => {
             <label>Họ và tên <span className="required">*</span></label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
-              className={errors.name ? 'error' : ''}
+              className={errors.fullName ? 'error' : ''}
               placeholder="Nguyễn Văn A"
             />
-            {errors.name && <span className="error-text">{errors.name}</span>}
+            {errors.fullName && <span className="error-text">{errors.fullName}</span>}
           </div>
 
           <div className="form-group">
@@ -185,36 +168,14 @@ const AddStudent = () => {
             />
           </div>
 
-          <div className="form-group">
-            <label>Quốc tịch</label>
+          <div className="form-group full-width">
+            <label>Địa chỉ</label>
             <input
               type="text"
-              name="nationality"
-              value={formData.nationality}
+              name="address"
+              value={formData.address}
               onChange={handleChange}
-              placeholder="Việt Nam"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Dân tộc</label>
-            <input
-              type="text"
-              name="ethnicity"
-              value={formData.ethnicity}
-              onChange={handleChange}
-              placeholder="Kinh"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tôn giáo</label>
-            <input
-              type="text"
-              name="religion"
-              value={formData.religion}
-              onChange={handleChange}
-              placeholder="Không"
+              placeholder="123 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM"
             />
           </div>
         </div>
@@ -302,69 +263,6 @@ const AddStudent = () => {
               <option value="GRADUATED">Đã tốt nghiệp</option>
               <option value="SUSPENDED">Đình chỉ</option>
             </select>
-          </div>
-        </div>
-
-        {/* Địa chỉ */}
-        <div className="section-title">🏠 Địa chỉ</div>
-        <div className="form-grid">
-          <div className="form-group full-width">
-            <label>Địa chỉ hiện tại <span className="required">*</span></label>
-            <input
-              type="text"
-              name="currentAddress"
-              value={formData.currentAddress}
-              onChange={handleChange}
-              className={errors.currentAddress ? 'error' : ''}
-              placeholder="123 Nguyễn Văn Cừ, Phường 4, Quận 5"
-            />
-            {errors.currentAddress && <span className="error-text">{errors.currentAddress}</span>}
-          </div>
-
-          <div className="form-group full-width">
-            <label>Địa chỉ thường trú <span className="required">*</span></label>
-            <input
-              type="text"
-              name="permanentAddress"
-              value={formData.permanentAddress}
-              onChange={handleChange}
-              className={errors.permanentAddress ? 'error' : ''}
-              placeholder="456 Lê Lai, Xã Tân Hòa, Huyện Châu Thành"
-            />
-            {errors.permanentAddress && <span className="error-text">{errors.permanentAddress}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Thành phố</label>
-            <input
-              type="text"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              placeholder="Thành phố Hồ Chí Minh"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Tỉnh/Thành phố</label>
-            <input
-              type="text"
-              name="province"
-              value={formData.province}
-              onChange={handleChange}
-              placeholder="Hồ Chí Minh"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Mã bưu chính</label>
-            <input
-              type="text"
-              name="postalCode"
-              value={formData.postalCode}
-              onChange={handleChange}
-              placeholder="700000"
-            />
           </div>
         </div>
 

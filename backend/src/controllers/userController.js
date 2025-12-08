@@ -7,13 +7,15 @@ const { catchAsync } = require('../utils/appError');
  */
 class UserController {
 
-  // Tạo user mới
+  // Only for ADMIN creation
   createUser = catchAsync(async (req, res) => {
-    // expect validated body: { name, email, password, role, ...profileFields }
-    const payload = req.body;
-    const result = await userService.createUser(payload);
-    // result should be { success: true, data: { id, name, email, role, profileId } } or similar
-    res.status(201).json(result);
+    const result = await userService.createUser(req.body);
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'User created successfully',
+      data: result.data
+    });
   });
 
   // Lấy danh sách users

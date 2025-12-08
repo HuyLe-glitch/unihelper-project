@@ -8,33 +8,70 @@ export default function DepartmentManagement() {
   // Bộ lọc StaffType
   const [selectedType, setSelectedType] = useState("CTSV");
 
-  // Fake data mô phỏng danh sách phòng ban
+  // Fake data mô phỏng danh sách phòng ban (với description và isActive)
   const [departments, setDepartments] = useState([
-    { id: 1, name: "Phòng Công tác Sinh viên", staffType: "CTSV" },
-    { id: 2, name: "Phòng Học vụ", staffType: "CTSV" },
-    { id: 3, name: "Ký túc xá Khu A", staffType: "KTX" },
-    { id: 4, name: "Ký túc xá Khu B", staffType: "KTX" },
+    { 
+      id: 1, 
+      name: "Phòng Công tác Sinh viên", 
+      staffType: "CTSV",
+      description: "Quản lý các hoạt động và hỗ trợ sinh viên",
+      isActive: true
+    },
+    { 
+      id: 2, 
+      name: "Phòng Học vụ", 
+      staffType: "CTSV",
+      description: "Quản lý học tập, thi cử và chương trình đào tạo",
+      isActive: true
+    },
+    { 
+      id: 3, 
+      name: "Ký túc xá Khu A", 
+      staffType: "KTX",
+      description: "Quản lý ký túc xá khu A - 500 chỗ ở",
+      isActive: true
+    },
+    { 
+      id: 4, 
+      name: "Ký túc xá Khu B", 
+      staffType: "KTX",
+      description: "Quản lý ký túc xá khu B - 300 chỗ ở",
+      isActive: false
+    },
   ]);
 
   // Fake data staff roles
   const [staffRoles, setStaffRoles] = useState([
-    { id: 1, roleName: "Trưởng phòng", departmentId: 1 },
-    { id: 2, roleName: "Nhân viên hỗ trợ", departmentId: 1 },
-    { id: 3, roleName: "Quản lý KTX", departmentId: 3 },
+    { id: 1, roleName: "Trưởng phòng", departmentIds: [1] },
+    { id: 2, roleName: "Nhân viên hỗ trợ", departmentIds: [1, 2] },
+    { id: 3, roleName: "Quản lý KTX", departmentIds: [3, 4] },
   ]);
 
   // State cho form thêm phòng ban
   const [showDeptModal, setShowDeptModal] = useState(false);
-  const [newDept, setNewDept] = useState({ name: "", staffType: "CTSV" });
+  const [newDept, setNewDept] = useState({ 
+    name: "", 
+    staffType: "CTSV",
+    description: "",
+    isActive: true
+  });
+
+  // State cho form chỉnh sửa phòng ban
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDept, setEditingDept] = useState(null);
 
   // State cho form thêm staff role
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [newRole, setNewRole] = useState({ roleName: "", departmentId: "" });
+  const [newRole, setNewRole] = useState({ roleName: "", departmentIds: [] });
 
   // Lọc department theo staffType
   const filteredDepartments = departments.filter(
     (dept) => dept.staffType === selectedType
   );
+
+  // Đếm số phòng ban active
+  const activeCount = filteredDepartments.filter(dept => dept.isActive).length;
+  const totalCount = filteredDepartments.length;
 
   // Thêm phòng ban mới
   const handleAddDepartment = (e) => {
@@ -45,35 +82,85 @@ export default function DepartmentManagement() {
       id: departments.length + 1,
       name: newDept.name.trim(),
       staffType: newDept.staffType,
+      description: newDept.description.trim(),
+      isActive: newDept.isActive,
     };
 
     setDepartments([...departments, newDepartment]);
     setShowDeptModal(false);
-    setNewDept({ name: "", staffType: "CTSV" });
+    setNewDept({ name: "", staffType: "CTSV", description: "", isActive: true });
+  };
+
+  // Mở form chỉnh sửa phòng ban
+  const handleEditDepartment = (e, dept) => {
+    e.stopPropagation(); // Ngăn click vào card
+    setEditingDept({ ...dept });
+    setShowEditModal(true);
+  };
+
+  // Lưu chỉnh sửa phòng ban
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (!editingDept.name.trim()) return alert("Tên phòng ban không được để trống");
+
+    setDepartments(departments.map(dept => 
+      dept.id === editingDept.id ? editingDept : dept
+    ));
+    
+    alert(`✅ Đã cập nhật thông tin phòng ban "${editingDept.name}"`);
+    setShowEditModal(false);
+    setEditingDept(null);
+  };
+
+  // Toggle department selection
+  const handleToggleDepartment = (deptId) => {
+    setNewRole(prev => {
+      const isSelected = prev.departmentIds.includes(deptId);
+      if (isSelected) {
+        return {
+          ...prev,
+          departmentIds: prev.departmentIds.filter(id => id !== deptId)
+        };
+      } else {
+        return {
+          ...prev,
+          departmentIds: [...prev.departmentIds, deptId]
+        };
+      }
+    });
   };
 
   // Thêm staff role mới
   const handleAddStaffRole = (e) => {
     e.preventDefault();
     if (!newRole.roleName.trim()) return alert("Tên vai trò không được để trống");
-    if (!newRole.departmentId) return alert("Vui lòng chọn phòng ban");
+    if (newRole.departmentIds.length === 0) return alert("Vui lòng chọn ít nhất một phòng ban");
 
     const newStaffRole = {
       id: staffRoles.length + 1,
       roleName: newRole.roleName.trim(),
-      departmentId: parseInt(newRole.departmentId),
+      departmentIds: [...newRole.departmentIds],
     };
 
     setStaffRoles([...staffRoles, newStaffRole]);
-    alert(`✅ Đã thêm vai trò "${newStaffRole.roleName}" thành công!`);
+    
+    const selectedDeptNames = departments
+      .filter(d => newRole.departmentIds.includes(d.id))
+      .map(d => d.name)
+      .join(", ");
+    
+    alert(`✅ Đã thêm vai trò "${newStaffRole.roleName}" cho: ${selectedDeptNames}`);
     setShowRoleModal(false);
-    setNewRole({ roleName: "", departmentId: "" });
+    setNewRole({ roleName: "", departmentIds: [] });
   };
 
   // Xem chi tiết staff trong department
   const handleViewStaff = (dept) => {
+    if (!dept.isActive) {
+      return alert("Phòng ban này đang không hoạt động!");
+    }
     alert(`Đi đến danh sách nhân viên của ${dept.name}`);
-    navigate(`/admin/staff-management`);
+    navigate(`/admin/department-management/staff-management`);
   };
 
   return (
@@ -94,16 +181,26 @@ export default function DepartmentManagement() {
         </div>
       </div>
 
-      {/* BỘ LỌC */}
+      {/* BỘ LỌC VÀ THỐNG KÊ */}
       <div className="filter-section">
-        <label>Chọn loại phòng ban:</label>
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-        >
-          <option value="CTSV">CTSV</option>
-          <option value="KTX">KTX</option>
-        </select>
+        <div className="filter-left">
+          <label>Chọn loại phòng ban:</label>
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="CTSV">CTSV</option>
+            <option value="KTX">KTX</option>
+          </select>
+        </div>
+        <div className="stats-info">
+          <span className="stat-item active">
+            ✓ Đang hoạt động: <strong>{activeCount}</strong>
+          </span>
+          <span className="stat-item total">
+            Tổng: <strong>{totalCount}</strong>
+          </span>
+        </div>
       </div>
 
       {/* DANH SÁCH PHÒNG BAN */}
@@ -114,14 +211,28 @@ export default function DepartmentManagement() {
           filteredDepartments.map((dept) => (
             <div
               key={dept.id}
-              className="department-item"
+              className={`department-item ${!dept.isActive ? 'inactive' : ''}`}
               onClick={() => handleViewStaff(dept)}
             >
               <div className="dept-info">
-                <h3>{dept.name}</h3>
+                <div className="dept-header-row">
+                  <h3>{dept.name}</h3>
+                  <span className={`status-badge ${dept.isActive ? 'active' : 'inactive'}`}>
+                    {dept.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                  </span>
+                </div>
                 <p>Loại: {dept.staffType}</p>
+                <p className="dept-description">{dept.description}</p>
               </div>
-              <span className="view-staff-link">→ Xem nhân viên</span>
+              <div className="dept-actions">
+                <button 
+                  className="edit-btn"
+                  onClick={(e) => handleEditDepartment(e, dept)}
+                >
+                  ✏️ Chỉnh sửa
+                </button>
+                <span className="view-staff-link">→ Xem nhân viên</span>
+              </div>
             </div>
           ))
         )}
@@ -160,6 +271,28 @@ export default function DepartmentManagement() {
                 <option value="KTX">KTX</option>
               </select>
 
+              <label>Mô tả:</label>
+              <textarea
+                value={newDept.description}
+                onChange={(e) =>
+                  setNewDept({ ...newDept, description: e.target.value })
+                }
+                placeholder="Nhập mô tả phòng ban..."
+                rows="3"
+                className="textarea-input"
+              />
+
+              <label className="checkbox-label-inline">
+                <input
+                  type="checkbox"
+                  checked={newDept.isActive}
+                  onChange={(e) =>
+                    setNewDept({ ...newDept, isActive: e.target.checked })
+                  }
+                />
+                <span>Kích hoạt phòng ban</span>
+              </label>
+
               <div className="modal-actions">
                 <button type="submit" className="save-btn">
                   Lưu
@@ -168,6 +301,78 @@ export default function DepartmentManagement() {
                   type="button"
                   className="cancel-btn"
                   onClick={() => setShowDeptModal(false)}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP CHỈNH SỬA PHÒNG BAN */}
+      {showEditModal && editingDept && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Chỉnh sửa Phòng ban</h2>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="modal-form">
+              <label>Tên phòng ban:</label>
+              <input
+                type="text"
+                value={editingDept.name}
+                onChange={(e) =>
+                  setEditingDept({ ...editingDept, name: e.target.value })
+                }
+                placeholder="Nhập tên phòng ban..."
+              />
+
+              <label>Loại phòng ban:</label>
+              <select
+                value={editingDept.staffType}
+                onChange={(e) =>
+                  setEditingDept({ ...editingDept, staffType: e.target.value })
+                }
+              >
+                <option value="CTSV">CTSV</option>
+                <option value="KTX">KTX</option>
+              </select>
+
+              <label>Mô tả:</label>
+              <textarea
+                value={editingDept.description}
+                onChange={(e) =>
+                  setEditingDept({ ...editingDept, description: e.target.value })
+                }
+                placeholder="Nhập mô tả phòng ban..."
+                rows="3"
+                className="textarea-input"
+              />
+
+              <label className="checkbox-label-inline">
+                <input
+                  type="checkbox"
+                  checked={editingDept.isActive}
+                  onChange={(e) =>
+                    setEditingDept({ ...editingDept, isActive: e.target.checked })
+                  }
+                />
+                <span>{editingDept.isActive ? 'Đang hoạt động' : 'Không hoạt động'}</span>
+              </label>
+
+              <div className="modal-actions">
+                <button type="submit" className="save-btn">
+                  Lưu thay đổi
+                </button>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setShowEditModal(false)}
                 >
                   Hủy
                 </button>
@@ -199,20 +404,27 @@ export default function DepartmentManagement() {
                 placeholder="Ví dụ: Trưởng phòng, Nhân viên..."
               />
 
-              <label>Chọn phòng ban:</label>
-              <select
-                value={newRole.departmentId}
-                onChange={(e) =>
-                  setNewRole({ ...newRole, departmentId: e.target.value })
-                }
-              >
-                <option value="">-- Chọn phòng ban --</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name} ({dept.staffType})
-                  </option>
+              <label>Chọn phòng ban (có thể chọn nhiều):</label>
+              <div className="department-checkbox-list">
+                {departments.filter(d => d.isActive).map((dept) => (
+                  <label key={dept.id} className="checkbox-item">
+                    <input
+                      type="checkbox"
+                      checked={newRole.departmentIds.includes(dept.id)}
+                      onChange={() => handleToggleDepartment(dept.id)}
+                    />
+                    <span className="checkbox-label">
+                      {dept.name} <span className="dept-type">({dept.staffType})</span>
+                    </span>
+                  </label>
                 ))}
-              </select>
+              </div>
+
+              {newRole.departmentIds.length > 0 && (
+                <div className="selected-count">
+                  Đã chọn: {newRole.departmentIds.length} phòng ban
+                </div>
+              )}
 
               <div className="modal-actions">
                 <button type="submit" className="save-btn">

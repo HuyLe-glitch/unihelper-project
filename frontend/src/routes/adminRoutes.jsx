@@ -5,8 +5,8 @@ import { AdminLayout } from '../layouts';
 import  { AdminDashboard } from '../components/admin';
 import RequireAuth from './RequireAuth.jsx';
 import { ReportsRequests } from '../components/admin/reports';
-import  { StudentSetting, AddStudent } from '../components/admin/student-management';
-import { DepartmentManagement, StaffManagement } from '../components/admin/department-management';
+import  { FacultyManagement, StudentManagement, AddStudent } from '../components/admin/faculty-management';
+import { DepartmentManagement, StaffManagement, AddStaff } from '../components/admin/department-management';
 //import { StaffManagement } from '../components/admin/department-management'; 
 
 // Placeholder components (will be replaced with actual components)
@@ -36,11 +36,13 @@ export const adminRoutes = [
       { path: 'dashboard', element: <AdminDashboard /> },
 
       //{ path: 'user-management', element: <UserManagement /> },
-      { path: 'student-management/student-settings', element: <StudentSetting /> },
-      { path: 'student-management/add-student', element: <AddStudent /> },
+      { path: 'faculty-management', element: <FacultyManagement /> },
+      { path: 'faculty-management/student-management/:majorId', element: <StudentManagement /> },
+      { path: 'faculty-management/add-student', element: <AddStudent /> },
 
       { path: 'department-management', element: <DepartmentManagement /> },
-      { path: 'staff-management', element: <StaffManagement /> },
+      { path: 'department-management/staff-management', element: <StaffManagement /> },
+      { path: 'department-management/add-staff', element: <AddStaff /> },
 
       { path: 'system-settings', element: <SystemSettings /> },
 

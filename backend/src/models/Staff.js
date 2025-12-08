@@ -9,6 +9,12 @@ const staffSchema = new mongoose.Schema(
       trim: true,
     },
 
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 50
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -22,13 +28,6 @@ const staffSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Phòng ban cụ thể
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Department',
-      required: true,
-    },
-
     // Vai trò (trưởng phòng, nhân viên, …)
     staffRole: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,12 +35,28 @@ const staffSchema = new mongoose.Schema(
       required: false,
     },
 
+    department:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
+      required: true,
+    },
+
+    phone:{
+      type: String,
+      required: false,
+    },
+
     // Tình trạng làm việc
     status: {
       type: String,
-      enum: ['Active', 'Inactive'],
-      default: 'Active',
+      enum: ['ACTIVE', 'INACTIVE', 'RETIRED', 'ON_LEAVE', 'TERMINATED'],
+      default: 'ACTIVE',
     },
+    // Soft delete
+    isDeleted: { 
+      type: Boolean, 
+      default: false 
+    }
   },
   {
     timestamps: true,
@@ -50,6 +65,26 @@ const staffSchema = new mongoose.Schema(
 
 // Index để tìm nhanh staff theo loại hoặc department
 staffSchema.index({ staffType: 1, department: 1, staffId: 1 });
+
+
+staffSchema.pre('findOneAndDelete', async function() {
+  const staffId = this.getQuery()._id;
+  const staff = await this.model.findById(staffId);
+  
+  if (staff && staff.user) {
+    // Xóa User liên quan
+    await mongoose.model('User').findByIdAndDelete(staff.user);
+  }
+});
+
+staffSchema.pre('deleteOne', async function() {
+  const staff = await this.model.findOne(this.getQuery());
+  
+  if (staff && staff.user) {
+    // Xóa User liên quan
+    await mongoose.model('User').findByIdAndDelete(staff.user);
+  }
+});
 
 const Staff = mongoose.model('Staff', staffSchema);
 

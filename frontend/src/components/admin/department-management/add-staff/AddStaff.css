@@ -1,5 +1,5 @@
 /* Layout tổng */
-.add-student-container {
+.add-staff-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
@@ -39,7 +39,7 @@
 }
 
 /* Form */
-.add-student-form {
+.add-staff-form {
   background: white;
   padding: 2rem;
   border-radius: 10px;
@@ -92,6 +92,33 @@
   font-size: 1rem;
   transition: border-color 0.2s ease;
   background: white;
+  color: #1f2937;
+}
+
+/* Fix màu cho input date */
+.form-group input[type="date"] {
+  color: #1f2937;
+  color-scheme: light;
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.form-group input[type="date"]::-webkit-datetime-edit {
+  color: #1f2937;
+}
+
+.form-group input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  color: #1f2937;
+}
+
+.form-group input[type="date"]::-webkit-datetime-edit-text,
+.form-group input[type="date"]::-webkit-datetime-edit-month-field,
+.form-group input[type="date"]::-webkit-datetime-edit-day-field,
+.form-group input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #1f2937;
 }
 
 .form-group input:focus,
@@ -159,7 +186,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .add-student-container {
+  .add-staff-container {
     padding: 1rem;
   }
   
@@ -171,7 +198,7 @@
     grid-column: 1;
   }
   
-  .add-student-form {
+  .add-staff-form {
     padding: 1.5rem;
   }
   
