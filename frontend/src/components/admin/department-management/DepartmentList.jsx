@@ -172,9 +172,6 @@ export default function DepartmentList() {
           <p>Xem và quản lý danh sách các phòng ban thuộc hệ thống</p>
         </div>
         <div className="header-actions">
-          <button className="add-role-btn" onClick={() => setShowRoleModal(true)}>
-            + Thêm vai trò
-          </button>
           <button className="add-dept-btn" onClick={() => setShowDeptModal(true)}>
             + Thêm Phòng ban
           </button>
@@ -373,67 +370,6 @@ export default function DepartmentList() {
                   type="button"
                   className="cancel-btn"
                   onClick={() => setShowEditModal(false)}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* POPUP THÊM STAFF ROLE */}
-      {showRoleModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Thêm vai trò nhân viên</h2>
-              <button className="close-btn" onClick={() => setShowRoleModal(false)}>
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleAddStaffRole} className="modal-form">
-              <label>Tên vai trò:</label>
-              <input
-                type="text"
-                value={newRole.roleName}
-                onChange={(e) =>
-                  setNewRole({ ...newRole, roleName: e.target.value })
-                }
-                placeholder="Ví dụ: Trưởng phòng, Nhân viên..."
-              />
-
-              <label>Chọn phòng ban (có thể chọn nhiều):</label>
-              <div className="department-checkbox-list">
-                {departments.filter(d => d.isActive).map((dept) => (
-                  <label key={dept.id} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      checked={newRole.departmentIds.includes(dept.id)}
-                      onChange={() => handleToggleDepartment(dept.id)}
-                    />
-                    <span className="checkbox-label">
-                      {dept.name} <span className="dept-type">({dept.staffType})</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-
-              {newRole.departmentIds.length > 0 && (
-                <div className="selected-count">
-                  Đã chọn: {newRole.departmentIds.length} phòng ban
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button type="submit" className="save-btn">
-                  Lưu vai trò
-                </button>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setShowRoleModal(false)}
                 >
                   Hủy
                 </button>

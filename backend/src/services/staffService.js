@@ -191,28 +191,21 @@ class StaffService {
   }
 
   async updateStaff(id, payload = {}) {
-
     const {
       email,
       fullName,
       staffId,
-      staffType,
       department,
       staffRole,
       phone,
       status
     } = payload;
 
-    // 1) Load staff (populate current user, department, staffRole)
+    // 1) Load staff
     const staff = await Staff.findById(id).populate('user department staffRole');
     if (!staff) throw new AppError('Staff not found', 404);
 
-    // 2) Normalize department ids to string for comparisons
-    const currentDeptId = staff.department ? String(staff.department._id || staff.department) : null;
-    const incomingDeptId = department ? String(department) : null;
-    const effectiveDeptId = incomingDeptId || currentDeptId; // dept to validate against
-
-    // 3) Email update (unique)
+    // 2) Email update
     if (email) {
       const emailNorm = String(email).toLowerCase().trim();
       const existsEmail = await User.findOne({
@@ -223,36 +216,17 @@ class StaffService {
       await User.findByIdAndUpdate(staff.user._id, { email: emailNorm });
     }
 
-    // 4) Department validation (if provided)
+    // 3) Department validation và auto-update staffType
+    let newDept = null;
     if (department) {
       if (!mongoose.Types.ObjectId.isValid(String(department))) {
         throw new AppError('Invalid department id', 400);
       }
-      const deptExists = await Department.findById(department);
-      if (!deptExists) throw new AppError('Department not found', 404);
+      newDept = await Department.findById(department);
+      if (!newDept) throw new AppError('Department not found', 404);
     }
 
-    // 4.5) Validate staffType matches department.staffType
-    if (staffType || department) {
-      // Lấy department để validate
-      let deptToValidate;
-      if (department) {
-        deptToValidate = await Department.findById(department);
-      } else if (currentDeptId) {
-        deptToValidate = await Department.findById(currentDeptId);
-      }
-
-      if (deptToValidate) {
-        const effectiveStaffType = staffType || staff.staffType;
-        if (deptToValidate.staffType !== effectiveStaffType) {
-          throw new AppError(
-            `Phòng ban "${deptToValidate.name}" thuộc loại ${deptToValidate.staffType}, không khớp với staffType: ${effectiveStaffType}`,
-            400
-          );
-        }
-      }
-    }
-    // 5) StaffRole validation (if provided) - must belong to effectiveDeptId
+    // 4) StaffRole validation
     if (staffRole) {
       if (!mongoose.Types.ObjectId.isValid(String(staffRole))) {
         throw new AppError('Invalid staffRole id', 400);
@@ -260,46 +234,48 @@ class StaffService {
       const role = await StaffRole.findById(staffRole);
       if (!role) throw new AppError('StaffRole not found', 404);
 
-      // if we don't know department to validate against, require client to provide department
-      if (!effectiveDeptId) {
+      const deptToCheck = newDept || staff.department;
+      const deptId = deptToCheck ? String(deptToCheck._id || deptToCheck) : null;
+
+      if (!deptId) {
         throw new AppError('Department is required to validate staffRole', 400);
       }
 
       const allowedDepts = (role.departments || []).map(d => String(d));
-      if (!allowedDepts.includes(String(effectiveDeptId))) {
+      if (!allowedDepts.includes(deptId)) {
         throw new AppError(`StaffRole ${role.name} không thuộc phòng ban được chỉ định`, 400);
       }
     }
 
-    // 6) staffId uniqueness
+    // 5) staffId uniqueness
     if (staffId && staffId !== staff.staffId) {
       const existsStaffId = await Staff.findOne({ staffId, _id: { $ne: id } });
       if (existsStaffId) throw new AppError('staffId already exists', 400);
     }
 
-    // 7) If changing department (and not changing role), ensure current role still valid in new department
-    if (incomingDeptId && !staffRole && staff.staffRole) {
+    // 6) Validate current role with new department (nếu đổi department mà không đổi role)
+    if (newDept && !staffRole && staff.staffRole) {
       const currentRoleId = String(staff.staffRole._id || staff.staffRole);
       const currentRole = await StaffRole.findById(currentRoleId);
       const allowed = (currentRole?.departments || []).map(d => String(d));
-      if (!allowed.includes(String(incomingDeptId))) {
+      if (!allowed.includes(String(newDept._id))) {
         throw new AppError('Không thể chuyển phòng ban: staffRole hiện tại không hợp lệ với phòng ban mới', 400);
       }
     }
 
-    // 8) If changing both department and role, we already validated staffRole against incomingDeptId above.
-
-    // 9) Build update object (PATCH semantics)
+    // 7) Build update object
     const staffUpdate = {};
-    if (typeof fullName !== 'undefined') staffUpdate.fullName = fullName;
-    if (typeof staffId !== 'undefined') staffUpdate.staffId = staffId;
-    if (typeof staffType !== 'undefined') staffUpdate.staffType = staffType;
-    if (typeof department !== 'undefined') staffUpdate.department = department;
-    if (typeof staffRole !== 'undefined') staffUpdate.staffRole = staffRole;
-    if (typeof phone !== 'undefined') staffUpdate.phone = phone;
-    if (typeof status !== 'undefined') staffUpdate.status = status;
+    if (fullName) staffUpdate.fullName = fullName;
+    if (staffId) staffUpdate.staffId = staffId;
+    if (department) {
+      staffUpdate.department = department;
+      staffUpdate.staffType = newDept.staffType; // Auto-update staffType
+    }
+    if (staffRole) staffUpdate.staffRole = staffRole;
+    if (phone) staffUpdate.phone = phone;
+    if (status) staffUpdate.status = status;
 
-    // 10) Apply update and return populated doc
+    // 8) Apply update
     const updated = await Staff.findByIdAndUpdate(id, staffUpdate, {
       new: true,
       runValidators: true

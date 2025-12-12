@@ -159,7 +159,7 @@ export default function StaffList() {
             ← Quay lại
           </button>
           <div className="header-text">
-            <h1>Quản lý nhân viên</h1>
+            <h1>Quản lý nhân sự</h1>
             <p>
               Danh sách nhân viên thuộc{" "}
               <strong>
