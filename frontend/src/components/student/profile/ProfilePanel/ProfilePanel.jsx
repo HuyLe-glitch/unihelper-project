@@ -34,7 +34,7 @@ const ProfilePanel = () => {
         <div className="profile-content">
           <div className="profile-avatar-section">
             <div className="profile-avatar">
-              {profileData?.user?.name?.charAt(0)?.toUpperCase() || 'S'}
+              {profileData?.fullName?.charAt(0)?.toUpperCase() || 'S'}
             </div>
             <button className="edit-profile-btn">Chỉnh sửa</button>
           </div>
@@ -42,7 +42,7 @@ const ProfilePanel = () => {
           <div className="profile-info">
             <div className="info-group">
               <label>Họ và tên</label>
-              <span>{profileData?.user?.name || 'N/A'}</span>
+              <span>{profileData?.fullName || 'N/A'}</span>
             </div>
             
             <div className="info-group">

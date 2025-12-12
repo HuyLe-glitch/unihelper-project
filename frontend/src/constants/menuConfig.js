@@ -108,9 +108,13 @@ export const MENU_CONFIGS = {
     {
       id: 'faculty-management',
       icon: '👤',
-      label: 'Quản lý Khoa và sinh viên',
-      type: 'single',
-      path: '/admin/faculty-management',
+      label: 'Quản lý Sinh viên & Khoa',
+      type: 'expandable',
+      children: [
+        { id: 'faculty-management', label: 'Quản lý Khoa', path: '/admin/faculty-management' },
+        { id: 'major-management', label: 'Quản lý Chuyên ngành', path: '/admin/major-management' },
+        { id: 'student-management', label: 'Quản lý Sinh viên', path: '/admin/student-management' },
+      ],
     },
     /*{
       id: 'user-management',
@@ -129,29 +133,23 @@ export const MENU_CONFIGS = {
       type: 'single',
       path: '/admin/reports/requests',
     },
-    /*{
-      id: 'reports-requests',
-      icon: '📈',
-      label: 'Báo cáo hệ thống',
+    {
+      id: 'staff-related',
+      icon: '🏢',
+      label: 'Quản lý Nhân sự & Phòng ban',
       type: 'expandable',
       children: [
-        { id: 'reports-requests', label: 'Báo cáo yêu cầu CTSV KTX', path: '/admin/reports/requests' },
-        { id: 'reports-users', label: 'Báo cáo yêu cầu KTX ', path: '/admin/reports/users' },
-        { id: 'reports-activities', label: 'Báo cáo hoạt động', path: '/admin/reports/activities' },
+        { id: 'department-management', label: 'Quản lý Phòng ban', path: '/admin/department-management' },
+        { id: 'staff-management', label: 'Quản lý Nhân sự', path: '/admin/staff-management' },
+        { id: 'staffrole-management', label: 'Quản lý Vai trò Nhân sự', path: '/admin/staffrole-management' },
       ],
-    },*/
-    {
-      id: 'department-management',
-      icon: '🏢',
-      label: 'Quản lý phòng ban',
-      type: 'single',
-      path: '/admin/department-management',
     },
     {
       id: 'system-settings',
       icon: '🔧',
       label: 'Cài đặt hệ thống',
       type: 'single',
+      
       path: '/admin/system-settings',
     },
     /*{

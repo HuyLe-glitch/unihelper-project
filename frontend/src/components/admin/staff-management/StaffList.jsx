@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./StaffManagement.css";
+import "./StaffList.css";
 
-export default function StaffManagement() {
+export default function StaffList() {
   const navigate = useNavigate();
 
   // ⚙️ Giả lập dữ liệu phòng ban được chọn (ví dụ từ router param)

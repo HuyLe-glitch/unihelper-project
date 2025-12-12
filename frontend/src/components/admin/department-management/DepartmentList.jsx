@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./DepartmentManagement.css";
+import "./DepartmentList.css";
 
-export default function DepartmentManagement() {
+export default function DepartmentList() {
   const navigate = useNavigate();
 
   // Bộ lọc StaffType

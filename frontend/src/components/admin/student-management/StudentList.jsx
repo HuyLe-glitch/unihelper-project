@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import "./StudentManagement.css";
+import "./StudentList.css";
 
-export default function StudentManagement() {
+export default function StudentList() {
   const navigate = useNavigate();
   const location = useLocation();
   const { majorId } = useParams();
@@ -191,14 +191,18 @@ export default function StudentManagement() {
 
   // Navigate to Add Student page
   const handleAddStudent = () => {
-    navigate('/admin/faculty-management/add-student', {
+    navigate('add', {
       state: { major, faculty }
     });
   };
 
+  const handleEditStudent = () => {
+    navigate('edit');
+  }
+
   // Back to Faculty Management
   const handleBack = () => {
-    navigate('/admin/faculty-management');
+    navigate(-1);
   };
 
   // Thống kê
@@ -431,7 +435,7 @@ export default function StudentManagement() {
             </div>
 
             <div className="modal-actions">
-              <button className="edit-btn-modal">Chỉnh sửa</button>
+              <button className="edit-btn-modal" onClick={handleEditStudent}>Chỉnh sửa</button>
               <button className="cancel-btn" onClick={() => setShowDetailModal(false)}>
                 Đóng
               </button>

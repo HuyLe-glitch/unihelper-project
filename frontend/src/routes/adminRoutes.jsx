@@ -5,8 +5,15 @@ import { AdminLayout } from '../layouts';
 import  { AdminDashboard } from '../components/admin';
 import RequireAuth from './RequireAuth.jsx';
 import { ReportsRequests } from '../components/admin/reports';
-import  { FacultyManagement, StudentManagement, AddStudent } from '../components/admin/faculty-management';
-import { DepartmentManagement, StaffManagement, AddStaff } from '../components/admin/department-management';
+
+import  { FacultyList, AddFaculty, EditFaculty } from '../components/admin/faculty-management';
+import  { MajorList, AddMajor, EditMajor } from '../components/admin/major-management';
+import  { StudentList, AddStudent, EditStudent } from '../components/admin/student-management';
+
+import { StaffList, EditStaff, AddStaff } from '../components/admin/staff-management';
+import { StaffRoleList, EditStaffRole, AddStaffRole } from '../components/admin/staffrole-management';
+import { DepartmentList, EditDepartment, AddDepartment } from '../components/admin/department-management';
+
 //import { StaffManagement } from '../components/admin/department-management'; 
 
 // Placeholder components (will be replaced with actual components)
@@ -36,13 +43,35 @@ export const adminRoutes = [
       { path: 'dashboard', element: <AdminDashboard /> },
 
       //{ path: 'user-management', element: <UserManagement /> },
-      { path: 'faculty-management', element: <FacultyManagement /> },
-      { path: 'faculty-management/student-management/:majorId', element: <StudentManagement /> },
-      { path: 'faculty-management/add-student', element: <AddStudent /> },
+      // Faculty management
+      { path: 'faculty-management', element: <FacultyList /> },
+      { path: 'faculty-management/add', element: <AddFaculty /> },
+      { path: 'faculty-management/edit', element: <EditFaculty /> },
 
-      { path: 'department-management', element: <DepartmentManagement /> },
-      { path: 'department-management/staff-management', element: <StaffManagement /> },
-      { path: 'department-management/add-staff', element: <AddStaff /> },
+      // Major mangement
+      { path: 'major-management', element: <MajorList /> },
+      { path: 'major-management/add', element: <AddMajor /> },
+      { path: 'major-management/edit', element: <EditMajor /> },
+
+      // Student management
+      { path: 'student-management', element: <StudentList /> },
+      { path: 'student-management/add', element: <AddStudent /> },
+      { path: 'student-management/edit', element: <EditStudent /> },
+
+      // Staff management
+      { path: 'staff-management', element: <StaffList /> },
+      { path: 'staff-management/edit', element: <EditStaff /> },
+      { path: 'staff-management/add', element: <AddStaff /> },
+
+      // Staff Role management
+      { path: 'staffrole-management', element: <StaffRoleList /> },
+      { path: 'staffrole-management/edit', element: <EditStaffRole /> },
+      { path: 'staffrole-management/add', element: <AddStaffRole /> },
+
+      // Department management
+      { path: 'department-management', element: <DepartmentList /> },
+      { path: 'department-management/edit', element: <EditDepartment /> },
+      { path: 'department-management/add', element: <AddDepartment /> },
 
       { path: 'system-settings', element: <SystemSettings /> },
 
