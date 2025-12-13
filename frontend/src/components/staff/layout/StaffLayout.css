@@ -1,0 +1,44 @@
+/* Staff Layout */
+.staff-layout {
+  display: flex;
+  height: 100%;
+  background: #f5f7fa;
+  overflow: hidden; /* Prevent layout scroll */
+}
+
+.staff-main-content {
+  flex: 1;
+  background: #f5f7fa;
+  overflow-y: auto; /* ONLY main content scrolls */
+  overflow-x: hidden; /* Prevent horizontal scroll at main content level */
+  height: 100%; /* Use full height, not min-height */
+  transition: all 0.3s ease;
+  margin-left: 0;
+  /* Ensure scrollbar is at the edge */
+  position: relative;
+  min-width: 0; /* Important for flex children to shrink below content size */
+  max-width: 100%; /* Prevent overflow */
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar for main content */
+.staff-main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.staff-main-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.staff-main-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.staff-main-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* When sidebar is collapsed, main content automatically expands 
+   due to flex: 1 and sidebar width reduction */
+/* No additional styles needed - flexbox handles width adjustment automatically */
