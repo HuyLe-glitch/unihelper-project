@@ -2,60 +2,82 @@ import React, { useState, useMemo } from 'react';
 import { Modal } from '../../common';
 import './UserManagement.css';
 
+/**
+ * User Management Component
+ * 
+ * Lưu ý quan trọng:
+ * - Staff và Admin là tài khoản CỐ ĐỊNH, không thể tạo/xóa
+ * - Chỉ có thể xem thông tin Staff và Admin
+ * - Có thể quản lý (thêm/sửa/xóa) tài khoản Student
+ */
 const UserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
 
-  // Mock user data
+  // Mock user data - Staff và Admin là cố định
   const users = useMemo(() => [
+    // FIXED ACCOUNTS - Không thể xóa/tạo mới
     {
-      id: 'U001',
+      id: 'ADMIN001',
+      name: 'System Administrator',
+      email: 'admin@university.edu.vn',
+      role: 'admin',
+      status: 'active',
+      lastLogin: '2024-10-12 18:20',
+      department: 'IT Department',
+      isFixed: true, // Đánh dấu tài khoản cố định
+    },
+    {
+      id: 'CTSV001',
+      name: 'Nhân viên Công tác Sinh viên',
+      email: 'ctsv@university.edu.vn',
+      role: 'staff',
+      staffType: 'CTSV',
+      status: 'active',
+      lastLogin: '2024-10-12 16:45',
+      department: 'Phòng Công tác Sinh viên',
+      isFixed: true,
+    },
+    {
+      id: 'KTX001',
+      name: 'Nhân viên Ký túc xá',
+      email: 'ktx@university.edu.vn',
+      role: 'staff',
+      staffType: 'KTX',
+      status: 'active',
+      lastLogin: '2024-10-12 15:30',
+      department: 'Phòng Ký túc xá',
+      isFixed: true,
+    },
+    // STUDENT ACCOUNTS - Có thể quản lý
+    {
+      id: 'SV2024001',
       name: 'Nguyễn Văn An',
       email: 'an.nguyen@student.unihelper.edu.vn',
       role: 'student',
       status: 'active',
       lastLogin: '2024-10-12 14:30',
-      department: 'Computer Science',
-      studentId: 'SV2024001'
+      department: 'Công nghệ thông tin',
+      isFixed: false,
     },
     {
-      id: 'U002',
-      name: 'Trần Thị Lan',
-      email: 'lan.tran@staff.unihelper.edu.vn',
-      role: 'staff',
-      status: 'active',
-      lastLogin: '2024-10-12 16:45',
-      department: 'Student Affairs',
-      employeeId: 'NV2024001'
-    },
-    {
-      id: 'U003',
-      name: 'Lê Hoàng Minh',
-      email: 'minh.le@admin.unihelper.edu.vn',
-      role: 'admin',
-      status: 'active',
-      lastLogin: '2024-10-12 18:20',
-      department: 'IT Department',
-      employeeId: 'AD2024001'
-    },
-    {
-      id: 'U004',
+      id: 'SV2024002',
       name: 'Phạm Thảo Vy',
       email: 'vy.pham@student.unihelper.edu.vn',
       role: 'student',
       status: 'inactive',
       lastLogin: '2024-10-10 09:15',
-      department: 'Business Administration',
-      studentId: 'SV2024002'
-    }
+      department: 'Quản trị Kinh doanh',
+      isFixed: false,
+    },
   ], []);
 
-  const getRoleText = (role) => {
+  const getRoleText = (role, staffType) => {
     switch (role) {
       case 'student': return 'Sinh viên';
-      case 'staff': return 'Nhân viên';
+      case 'staff': return staffType === 'CTSV' ? 'NV CTSV' : 'NV KTX';
       case 'admin': return 'Quản trị viên';
       default: return role;
     }
@@ -97,7 +119,8 @@ const UserManagement = () => {
     staff: users.filter(u => u.role === 'staff').length,
     admins: users.filter(u => u.role === 'admin').length,
     active: users.filter(u => u.status === 'active').length,
-    inactive: users.filter(u => u.status === 'inactive').length
+    inactive: users.filter(u => u.status === 'inactive').length,
+    fixed: users.filter(u => u.isFixed).length,
   };
 
   return (
@@ -105,12 +128,20 @@ const UserManagement = () => {
       <div className="user-management__header">
         <div>
           <h1>Quản lý người dùng</h1>
-          <p>Quản lý tài khoản sinh viên, nhân viên và quản trị viên</p>
+          <p>Quản lý tài khoản sinh viên. Staff và Admin là tài khoản cố định.</p>
         </div>
         <div className="user-management__header-actions">
-          <button type="button" className="btn primary">Thêm người dùng</button>
-          <button type="button" className="btn ghost">Xuất danh sách</button>
-          <button type="button" className="btn secondary">Cài đặt quyền</button>
+          <button type="button" className="btn primary">➕ Thêm sinh viên</button>
+          <button type="button" className="btn ghost">📥 Xuất danh sách</button>
+        </div>
+      </div>
+
+      {/* Notice về tài khoản cố định */}
+      <div className="fixed-accounts-notice">
+        <span className="notice-icon">ℹ️</span>
+        <div className="notice-content">
+          <strong>Lưu ý:</strong> Hệ thống có {userStats.fixed} tài khoản cố định (1 Admin, 2 Staff). 
+          Các tài khoản này không thể xóa hoặc thay đổi vai trò.
         </div>
       </div>
 
@@ -133,29 +164,15 @@ const UserManagement = () => {
         <div className="stat-card stat-card--warning">
           <div className="stat-icon">👨‍💼</div>
           <div className="stat-content">
-            <h3>Nhân viên</h3>
+            <h3>Nhân viên (cố định)</h3>
             <div className="stat-number">{userStats.staff}</div>
           </div>
         </div>
         <div className="stat-card stat-card--danger">
           <div className="stat-icon">👑</div>
           <div className="stat-content">
-            <h3>Quản trị viên</h3>
+            <h3>Admin (cố định)</h3>
             <div className="stat-number">{userStats.admins}</div>
-          </div>
-        </div>
-        <div className="stat-card stat-card--info">
-          <div className="stat-icon">🟢</div>
-          <div className="stat-content">
-            <h3>Đang hoạt động</h3>
-            <div className="stat-number">{userStats.active}</div>
-          </div>
-        </div>
-        <div className="stat-card stat-card--secondary">
-          <div className="stat-icon">🔴</div>
-          <div className="stat-content">
-            <h3>Không hoạt động</h3>
-            <div className="stat-number">{userStats.inactive}</div>
           </div>
         </div>
       </section>
@@ -205,13 +222,20 @@ const UserManagement = () => {
           </thead>
           <tbody>
             {filteredUsers.map(user => (
-              <tr key={user.id} onClick={() => handleUserClick(user)}>
-                <td>{user.id}</td>
+              <tr 
+                key={user.id} 
+                onClick={() => handleUserClick(user)}
+                className={user.isFixed ? 'fixed-user-row' : ''}
+              >
+                <td>
+                  {user.id}
+                  {user.isFixed && <span className="fixed-badge" title="Tài khoản cố định">🔒</span>}
+                </td>
                 <td>{user.name}</td>
                 <td>{user.email}</td>
                 <td>
                   <span className={`role-badge ${getRoleClass(user.role)}`}>
-                    {getRoleText(user.role)}
+                    {getRoleText(user.role, user.staffType)}
                   </span>
                 </td>
                 <td>
@@ -222,8 +246,14 @@ const UserManagement = () => {
                 <td>{user.department}</td>
                 <td>{user.lastLogin}</td>
                 <td>
-                  <button className="btn-small primary">Chỉnh sửa</button>
-                  <button className="btn-small danger">Khóa</button>
+                  {user.isFixed ? (
+                    <span className="action-disabled">Không thể chỉnh sửa</span>
+                  ) : (
+                    <>
+                      <button className="btn-small primary">Chỉnh sửa</button>
+                      <button className="btn-small danger">Khóa</button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
@@ -240,6 +270,12 @@ const UserManagement = () => {
       >
         {selectedUser && (
           <div className="user-detail-modal">
+            {selectedUser.isFixed && (
+              <div className="fixed-account-alert">
+                🔒 Đây là tài khoản cố định, không thể chỉnh sửa hoặc xóa
+              </div>
+            )}
+            
             <div className="user-detail-grid">
               <div className="user-detail-section">
                 <h3>Thông tin cơ bản</h3>
@@ -258,7 +294,7 @@ const UserManagement = () => {
                 <div className="detail-row">
                   <span>Vai trò:</span>
                   <span className={`role-badge ${getRoleClass(selectedUser.role)}`}>
-                    {getRoleText(selectedUser.role)}
+                    {getRoleText(selectedUser.role, selectedUser.staffType)}
                   </span>
                 </div>
               </div>
@@ -270,10 +306,6 @@ const UserManagement = () => {
                   <strong>{selectedUser.department}</strong>
                 </div>
                 <div className="detail-row">
-                  <span>Mã số:</span>
-                  <strong>{selectedUser.studentId || selectedUser.employeeId}</strong>
-                </div>
-                <div className="detail-row">
                   <span>Trạng thái:</span>
                   <span className={`status ${getStatusClass(selectedUser.status)}`}>
                     {selectedUser.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
@@ -283,14 +315,25 @@ const UserManagement = () => {
                   <span>Đăng nhập cuối:</span>
                   <strong>{selectedUser.lastLogin}</strong>
                 </div>
+                <div className="detail-row">
+                  <span>Loại tài khoản:</span>
+                  <strong>{selectedUser.isFixed ? 'Cố định' : 'Thông thường'}</strong>
+                </div>
               </div>
             </div>
             
             <div className="user-detail-actions">
-              <button className="btn primary">Chỉnh sửa thông tin</button>
-              <button className="btn secondary">Đặt lại mật khẩu</button>
-              <button className="btn warning">Thay đổi quyền</button>
-              <button className="btn danger">Khóa tài khoản</button>
+              {selectedUser.isFixed ? (
+                <p className="no-actions-text">
+                  Tài khoản cố định không thể chỉnh sửa
+                </p>
+              ) : (
+                <>
+                  <button className="btn primary">Chỉnh sửa thông tin</button>
+                  <button className="btn secondary">Đặt lại mật khẩu</button>
+                  <button className="btn danger">Khóa tài khoản</button>
+                </>
+              )}
             </div>
           </div>
         )}

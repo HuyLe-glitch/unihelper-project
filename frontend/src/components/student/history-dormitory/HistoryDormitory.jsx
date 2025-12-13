@@ -1,53 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../schedule/Schedule.css';
+import { apiClient } from '../../../services/api';
 
 const HistoryDormitory = () => {
   const navigate = useNavigate();
 
-  const [dormitoryHistory, setDormitoryHistory] = useState([
-    {
-      id: 1,
-      studentCode: '519H0237',
-      fullName: 'Nguyen Van A',
-      category: 'Đăng ký mới',
-      deviceName: 'Giường tầng',
-      requestDate: '2024-01-20',
-      confirmDate: '2024-01-22',
-      status: 'Approved'
-    },
-    {
-      id: 2,
-      studentCode: '519H0145',
-      fullName: 'Tran Thi B',
-      category: 'Gia hạn',
-      deviceName: 'Tủ quần áo',
-      requestDate: '2024-01-15',
-      confirmDate: '2024-01-18',
-      status: 'Under Review'
-    },
-    {
-      id: 3,
-      studentCode: '519H0298',
-      fullName: 'Le Van C',
-      category: 'Đăng ký mới',
-      deviceName: 'Bàn học',
-      requestDate: '2024-01-10',
-      confirmDate: '2024-01-12',
-      status: 'Rejected'
-    },
-    {
-      id: 4,
-      studentCode: '519H0321',
-      fullName: 'Pham Thi D',
-      category: 'Chuyển phòng',
-      deviceName: 'Giường đơn',
-      requestDate: '2024-01-05',
-      confirmDate: '2024-01-08',
-      status: 'Approved'
-    }
-  ]);
-
+  const [dormitoryHistory, setDormitoryHistory] = useState([]); // current page items
   const [searchFilters, setSearchFilters] = useState({
     studentCode: '',
     fullName: '',
@@ -56,8 +15,43 @@ const HistoryDormitory = () => {
     requestDate: '',
     status: ''
   });
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5); // default 5 per page
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalRows, setTotalRows] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState(null);
+
+  // Handle delete request
+  const handleDeleteClick = (requestId) => {
+    setDeleteRequestId(requestId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+  try {
+    const response = await apiClient.delete(`/dormitory/requests/${deleteRequestId}`);
+    
+    if (response.data.success) {
+      // Remove item from local state instead of refetching
+      setDormitoryHistory(prev => prev.filter(item => item.id !== deleteRequestId));
+      setShowDeleteModal(false);
+      setDeleteRequestId(null);
+      
+      // Show success message (optional)
+      console.log('Request deleted successfully');
+    }
+  } catch (error) {
+    console.error('Delete failed:', error);
+    setError('Failed to delete request: ' + (error.response?.data?.message || error.message));
+  }
+};
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeleteRequestId(null);
+  };
 
   const handleCreateRequest = () => {
     navigate('/student/dormitory');
@@ -70,7 +64,6 @@ const HistoryDormitory = () => {
       'Under Review': 'status-review',
       'Rejected': 'status-rejected'
     };
-    
     return (
       <span className={`status-badge ${statusClasses[status] || 'status-default'}`}>
         {status}
@@ -85,6 +78,87 @@ const HistoryDormitory = () => {
     }));
   };
 
+  const formatDate = (d) => {
+    if (!d) return '';
+    try {
+      return new Date(d).toISOString().slice(0, 10);
+    } catch {
+      return String(d);
+    }
+  };
+
+  const mapServerItemToUI = (it) => {
+    // Get current user data from localStorage (like ProfilePanel.jsx)
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const profileData = storedUser.profile || {};
+    
+    return {
+      id: it._id || it.id,
+      studentCode: profileData.studentId || storedUser.profile?.studentId || '',
+      fullName: storedUser.name || profileData.user?.name || '',
+      category: it.category || '',
+      deviceName: it.deviceName || '',
+      description: it.description || '',
+      requestDate: formatDate(it.requestDate || it.createdAt),
+      confirmDate: formatDate(it.confirmDate),
+      status: it.status || 'Pending'
+    };
+  };
+
+
+  const fetchRequests = useCallback(async (page = 1, limit = 5) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get('/dormitory/requests/my', {
+        params: { page, limit }
+      });
+      const payload = res?.data;
+      let items = [];
+
+      if (!payload) {
+        items = [];
+      } else if (Array.isArray(payload)) {
+        items = payload;
+      } else if (payload.data && Array.isArray(payload.data)) {
+        items = payload.data;
+      } else if (payload.success && Array.isArray(payload.data)) {
+        items = payload.data;
+      } else {
+        items = payload.data || [];
+      }
+
+      const mapped = items.map(mapServerItemToUI);
+      setDormitoryHistory(mapped);
+
+      const totalFromMeta = payload?.meta?.total || payload?.meta?.count || payload?.total;
+      if (typeof totalFromMeta === 'number') {
+        setTotalRows(totalFromMeta);
+      } else {
+        // fallback: estimate totalRows (use current page count if unknown)
+        setTotalRows(prev => {
+          // if we already had a total keep it, otherwise guess as page * limit when items full else mapped.length
+          if (prev && prev > 0) return prev;
+          return mapped.length === limit ? page * limit : ( (page - 1) * limit + mapped.length );
+        });
+      }
+    } catch (err) {
+      console.error('fetchRequests error', err);
+      setError(err?.response?.data?.message || err.message || 'Failed to load requests');
+      setDormitoryHistory([]);
+      setTotalRows(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch when page or pageSize changes (server-side pagination)
+  useEffect(() => {
+    fetchRequests(currentPage, pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
+
+  // client-side filtering applied to current page items
   const filteredHistory = dormitoryHistory.filter(item => {
     return (
       item.studentCode.toLowerCase().includes(searchFilters.studentCode.toLowerCase()) &&
@@ -96,16 +170,16 @@ const HistoryDormitory = () => {
     );
   });
 
-  const totalPages = Math.ceil(filteredHistory.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil((totalRows || filteredHistory.length) / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedHistory = filteredHistory.slice(startIndex, endIndex);
+  const endIndex = startIndex + filteredHistory.length; // number shown on this page
+  const paginatedHistory = filteredHistory; // current page items (already from server)
 
   return (
     <div className="schedule-container">
       <div className="schedule-header">
         <h1 className="schedule-title">Lịch sử yêu cầu xử lý sự cố</h1>
-        <button 
+        <button
           className="create-request-btn"
           onClick={handleCreateRequest}
         >
@@ -118,9 +192,9 @@ const HistoryDormitory = () => {
         <div className="top-controls">
           <div className="display-controls">
             <label>Hiển thị</label>
-            <select 
+            <select
               value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
               className="page-size-select"
             >
               <option value={5}>5</option>
@@ -132,12 +206,28 @@ const HistoryDormitory = () => {
             <span>dòng dữ liệu</span>
           </div>
           <div className="search-box">
-            <input 
+            <input
               type="text"
               placeholder="Tìm kiếm..."
               className="global-search-input"
+              onChange={(e) => {
+                const q = e.target.value || '';
+                setSearchFilters(prev => ({
+                  ...prev,
+                  studentCode: q,
+                  fullName: q,
+                  deviceName: q,
+                  category: q
+                }));
+              }}
             />
-            <button className="search-btn-global">Tìm kiếm</button>
+            <button
+              className="search-btn-global"
+              onClick={() => { setCurrentPage(1); fetchRequests(1, pageSize); }}
+              disabled={loading}
+            >
+              Tìm kiếm
+            </button>
           </div>
         </div>
 
@@ -145,9 +235,8 @@ const HistoryDormitory = () => {
           <table className="history-table">
             <thead>
               <tr>
-                <th>Thao tác</th>
                 <th>STT</th>
-                <th>Mã học viên</th>
+                <th>Mã số sinh viên</th>
                 <th>Họ tên</th>
                 <th>Danh mục</th>
                 <th>Tên thiết bị</th>
@@ -155,96 +244,42 @@ const HistoryDormitory = () => {
                 <th>Ngày yêu cầu</th>
                 <th>Xác nhận sửa chữa</th>
                 <th>Trạng thái</th>
-              </tr>
-              <tr className="filter-row">
-                <th></th>
-                <th></th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Mã"
-                    value={searchFilters.studentCode}
-                    onChange={(e) => handleFilterChange('studentCode', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Họ tên"
-                    value={searchFilters.fullName}
-                    onChange={(e) => handleFilterChange('fullName', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Danh mục"
-                    value={searchFilters.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Tên"
-                    value={searchFilters.deviceName}
-                    onChange={(e) => handleFilterChange('deviceName', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Mô tả"
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Ngày"
-                    value={searchFilters.requestDate}
-                    onChange={(e) => handleFilterChange('requestDate', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Xác nhận"
-                    className="column-filter"
-                  />
-                </th>
-                <th>
-                  <input 
-                    type="text"
-                    placeholder="Tìm theo Trạng thái"
-                    value={searchFilters.status}
-                    onChange={(e) => handleFilterChange('status', e.target.value)}
-                    className="column-filter"
-                  />
-                </th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {paginatedHistory.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="10" className="no-data">Loading...</td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan="10" className="no-data">Error: {error}</td>
+                </tr>
+              ) : paginatedHistory.length > 0 ? (
                 paginatedHistory.map((item, index) => (
-                  <tr key={item.id}>
-                    <td>
-                      <button className="action-btn">Xem</button>
-                    </td>
+                  <tr key={item.id || index}>
                     <td>{startIndex + index + 1}</td>
                     <td>{item.studentCode}</td>
                     <td>{item.fullName}</td>
                     <td>{item.category}</td>
                     <td>{item.deviceName}</td>
-                    <td>-</td>
+                    <td>{item.description || '-'}</td>
                     <td>{item.requestDate}</td>
-                    <td>{item.confirmDate}</td>
+                    <td>{item.confirmDate || '-'}</td>
                     <td>{getStatusBadge(item.status)}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="action-btn">Xem</button>
+                        <button 
+                          className="action-btn delete-btn" 
+                          onClick={() => handleDeleteClick(item.id)}
+                          style={{ backgroundColor: '#dc3545', color: 'white' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -260,26 +295,43 @@ const HistoryDormitory = () => {
 
         <div className="pagination">
           <span className="pagination-info">
-            Hiển thị {startIndex + 1} đến {Math.min(endIndex, filteredHistory.length)} trong {filteredHistory.length} dòng dữ liệu
+            Hiển thị {totalRows === 0 ? 0 : startIndex + 1} đến {Math.min(startIndex + pageSize, totalRows)} trong {totalRows} dòng dữ liệu
           </span>
           <div className="pagination-controls">
-            <button 
-              className="pagination-btn" 
+            <span className="page-info">Trang {currentPage} / {totalPages}</span>
+            <button
+              className="pagination-btn"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               Trang trước
             </button>
-            <button 
+            <button
               className="pagination-btn"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage >= totalPages || loading}
             >
               Trang kế tiếp
             </button>
           </div>
         </div>
       </div>
+      {showDeleteModal && (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h3>Xác nhận xóa</h3>
+          <p>Bạn có chắc chắn muốn xóa yêu cầu này không?</p>
+          <div className="modal-actions">
+            <button className="modal-btn cancel-btn" onClick={handleDeleteCancel}>
+              Hủy
+            </button>
+            <button className="modal-btn delete-btn" onClick={handleDeleteConfirm}>
+              Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 };

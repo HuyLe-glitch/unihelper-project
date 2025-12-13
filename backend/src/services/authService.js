@@ -1,12 +1,53 @@
 const userRepository = require('../repositories/userRepository');
 const jwt = require('jsonwebtoken');
 const { AppError } = require('../utils/appError');
+// Add this line after the existing imports
+const Student = require('../models/Student');
 
 /**
  * Auth Service - Business Logic Layer
  * Xử lý logic nghiệp vụ liên quan đến Authentication
  */
 class AuthService {
+
+  // Đăng nhập với Student ID
+  async loginWithStudentId(studentId, password) {
+    if (!studentId || !password) {
+      throw new AppError('Student ID và password là bắt buộc', 400);
+    }
+
+    // Find student by studentId (case insensitive)
+    const student = await Student.findOne({ 
+      studentId: { $regex: new RegExp(`^${studentId}$`, 'i') } 
+    }).populate('user');
+    
+    if (!student || !student.user) {
+      throw new AppError('Student ID hoặc password không đúng', 401);
+    }
+
+    const user = student.user;
+    const isPasswordMatch = await userRepository.validatePassword(user, password);
+    if (!isPasswordMatch) {
+      throw new AppError('Student ID hoặc password không đúng', 401);
+    }
+
+    const token = this.generateToken(user._id, user.role);
+
+    return {
+      success: true,
+      message: 'Đăng nhập thành công',
+      data: {
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          profile: student
+        }
+      }
+    };
+  }
   // Đăng nhập
   async login(email, password) {
     // Validation

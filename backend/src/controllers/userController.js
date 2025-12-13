@@ -6,6 +6,18 @@ const { catchAsync } = require('../utils/appError');
  * Xử lý HTTP requests/responses cho User Management
  */
 class UserController {
+
+  // Only for ADMIN creation
+  createUser = catchAsync(async (req, res) => {
+    const result = await userService.createUser(req.body);
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'User created successfully',
+      data: result.data
+    });
+  });
+
   // Lấy danh sách users
   getUsers = catchAsync(async (req, res) => {
     const { page = 1, limit = 10, role } = req.query;

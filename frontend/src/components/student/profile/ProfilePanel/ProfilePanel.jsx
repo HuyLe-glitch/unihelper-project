@@ -1,26 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './ProfilePanel.css';
-//import { useNavigate } from 'react-router-dom';
-//import { useAuthContext } from '../../../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../../../contexts/AuthContext';
 
 const ProfilePanel = () => {
-  //const navigate = useNavigate();
-  //const { logout } = useAuthContext();
+  const navigate = useNavigate();
+  const { logout, user } = useAuthContext();
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    // Get user data from context or localStorage
+    const userData = user || JSON.parse(localStorage.getItem('user') || '{}');
+    if (userData && userData.profile) {
+      setProfileData(userData.profile);
+    }
+    setLoading(false);
+  }, [user]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/choose-role');
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
   return (
     <div className="profile-sidebar">
       <div className="profile-panel">
         <h3>My Profile</h3>
         <div className="profile-content">
           <div className="profile-avatar-section">
-            <div className="profile-avatar">A</div>
+            <div className="profile-avatar">
+              {profileData?.fullName?.charAt(0)?.toUpperCase() || 'S'}
+            </div>
             <button className="edit-profile-btn">Chỉnh sửa</button>
           </div>
           
           <div className="profile-info">
             <div className="info-group">
               <label>Họ và tên</label>
-              <span>Alysia Nguyen</span>
+              <span>{profileData?.fullName || 'N/A'}</span>
             </div>
             
             <div className="info-group">
@@ -30,33 +52,35 @@ const ProfilePanel = () => {
             
             <div className="info-group">
               <label>MSSV</label>
-              <span>2051063001</span>
+              <span>{profileData?.studentId || 'N/A'}</span>
             </div>
             
             <div className="info-group">
-              <label>Lớp</label>
-              <span>CNTT02-K20</span>
+              <label>Ngành</label>
+              <span>{profileData?.major || 'N/A'}</span>
             </div>
             
             <div className="info-group">
-              <label>Khóa</label>
-              <span>K20 (2020-2024)</span>
+              <label>Khoa</label>
+              <span>{profileData?.faculty || 'N/A'}</span>
             </div>
             
+            <div className="info-group">
+              <label>Năm học</label>
+              <span>{profileData?.academicYear || 'N/A'}</span>
+            </div>
+
             <div className="info-group">
               <label>Email</label>
-              <span>alysia.nguyen@student.tdtu.edu.vn</span>
+              <span>{profileData?.user?.email || 'N/A'}</span>
             </div>
           </div>
           
           <div className="profile-actions">
-            <button className="logout-btn" onClick={() => console.log('Đăng xuất')}>
-              {/*<button
+            {/*<button className="logout-btn" onClick={() => console.log('Đăng xuất')}> */}
+              <button
               className="logout-btn"
-              onClick={() => {
-                logout();
-                navigate('/choose-role');
-              }}*/}
+              onClick= {handleLogout}>
               <span className="logout-icon">🚪</span>
               Đăng xuất
             </button>

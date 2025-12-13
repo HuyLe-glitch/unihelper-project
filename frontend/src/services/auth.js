@@ -1,54 +1,60 @@
 import { apiClient } from './api';
 
 // Set to false for production or when backend is ready
-const AUTH_BYPASS = true;
+const AUTH_BYPASS = false;
 
 /*
 Set AUTH_BYPASS = true for fake login (no network error).
 Set AUTH_BYPASS = false and run your backend for real login.
 */
-const FAKE_USERS = [
-  { email: 'student@tdtu.edu.vn', password: '123456', role: 'student' },
+/*const FAKE_USERS = [
+  { email: 'student@tdtu.edu.vn', password: '123456', role: 'student', studentId: '522h0030' },
+  { email: 'student2@tdtu.edu.vn', password: '123456', role: 'student', studentId: '2024001' },
   { email: 'staff@tdtu.edu.vn', password: '123456', role: 'staff' },
   { email: 'admin@tdtu.edu.vn', password: '123456', role: 'admin' },
-];
+];*/
+
 
 export const authService = {
-  // Login
+  // New Login 
   login: async (credentials) => {
     try {
-      if (AUTH_BYPASS) {
-        // Find a matching fake user
-        const user = FAKE_USERS.find(
-          u => u.email === credentials.email && u.password === credentials.password && u.role === credentials.role
-        );
-        if (user) {
-          localStorage.setItem('authToken', 'dev-token');
-          localStorage.setItem('userRole', user.role);
-          localStorage.setItem('user', JSON.stringify({ role: user.role, email: user.email }));
-          return { token: 'dev-token', user: { role: user.role, email: user.email } };
-        } else {
-          // Simulate API error
-          throw new Error('Invalid email, password, or role');
-        }
+      // Real API calls
+      let endpoint = '/auth/login';
+      let payload = { email: credentials.email, password: credentials.password };
+
+      // Use student ID login for students
+      if (credentials.role === 'student' && credentials.studentId) {
+        endpoint = '/auth/login/student';
+        payload = { studentId: credentials.studentId.toLowerCase(), password: credentials.password };
       }
 
-      // Real API call
-      const response = await apiClient.post('/auth/login', credentials);
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('userRole', response.data.user.role);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      const response = await apiClient.post(endpoint, payload);
+      
+      if (response.data.success && response.data.data.token) {
+        const user = response.data.data.user;
+        // Normalize role to lowercase for frontend
+        const normalizedRole = user.role.toLowerCase();
+        
+        localStorage.setItem('authToken', response.data.data.token);
+        localStorage.setItem('userRole', normalizedRole);
+        localStorage.setItem('user', JSON.stringify({...user, role: normalizedRole}));
+        
+        return {
+          ...response.data.data,
+          user: {...user, role: normalizedRole}
+        };
       }
-      return response.data;
+      
+      throw new Error('Login failed');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   },
 
-  // Register new user
-  register: async (userData) => {
+  // Register new user - not available 
+  /*register: async (userData) => {
     try {
       if (AUTH_BYPASS) {
         // Simulate successful registration
@@ -61,7 +67,7 @@ export const authService = {
       console.error('Registration error:', error);
       throw error;
     }
-  },
+  }, */
 
   // Logout
   logout: () => {
@@ -74,19 +80,19 @@ export const authService = {
   // Get current user
   getCurrentUser: async () => {
     try {
-      if (AUTH_BYPASS) {
-        const userRole = localStorage.getItem('userRole') || 'admin';
-        return { role: userRole, name: 'Dev User', email: `${userRole}@tdtu.edu.vn` };
-      }
-
       const user = localStorage.getItem('user');
       if (user) {
         return JSON.parse(user);
       }
 
       const response = await apiClient.get('/auth/me');
-      localStorage.setItem('user', JSON.stringify(response.data));
-      return response.data;
+      if (response.data.success) {
+        const userData = response.data.data;
+        const normalizedUser = {...userData, role: userData.role.toLowerCase()};
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+        return normalizedUser;
+      }
+      return null;
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
@@ -96,8 +102,6 @@ export const authService = {
   // Verify token is still valid
   verifyToken: async () => {
     try {
-      if (AUTH_BYPASS) return true;
-
       const response = await apiClient.get('/auth/verify');
       return response.data;
     } catch (error) {
@@ -109,23 +113,17 @@ export const authService = {
 
   // Check if user is authenticated
   isAuthenticated: () => {
-    if (AUTH_BYPASS) return true;
     return !!localStorage.getItem('authToken');
   },
 
   // Get user role
   getUserRole: () => {
-    if (AUTH_BYPASS) return localStorage.getItem('userRole') || 'admin';
     return localStorage.getItem('userRole');
   },
 
   // Reset password request
   requestPasswordReset: async (email) => {
     try {
-      if (AUTH_BYPASS) {
-        return { success: true, message: 'Password reset email sent' };
-      }
-
       const response = await apiClient.post('/auth/reset-password-request', { email });
       return response.data;
     } catch (error) {
@@ -137,10 +135,6 @@ export const authService = {
   // Reset password with token
   resetPassword: async (token, newPassword) => {
     try {
-      if (AUTH_BYPASS) {
-        return { success: true, message: 'Password reset successful' };
-      }
-
       const response = await apiClient.post('/auth/reset-password', { token, newPassword });
       return response.data;
     } catch (error) {

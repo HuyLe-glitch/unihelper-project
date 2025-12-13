@@ -1,0 +1,359 @@
+/* Staff Sidebar - No Header Version */
+.staff-sidebar {
+  width: 250px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow-y: auto; /* Sidebar can scroll independently */
+  overflow-x: hidden; /* Prevent horizontal scrollbar */
+  transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  box-sizing: border-box; /* Include padding and border in width calculation */
+  /* Remove custom scrollbar - use native */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent; /* Firefox */
+}
+
+.staff-sidebar::-webkit-scrollbar {
+  width: 6px; /* Chrome, Safari, Opera */
+}
+
+.staff-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.staff-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.staff-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+
+
+.staff-sidebar.collapsed {
+  width: 72px; /* Compact width - standard in many design systems */
+}
+
+.staff-sidebar.collapsed .staff-menu-item-text {
+  display: none;
+}
+
+.staff-sidebar.collapsed .staff-menu-item {
+  justify-content: center;
+  padding: 14px 0; /* Vertical padding only, centered horizontally */
+  margin: 4px 8px; /* Add small horizontal margin for better visual spacing */
+  border-radius: 8px; /* Rounded corners for better aesthetics */
+  box-sizing: border-box;
+  max-width: 100%; /* Ensure item doesn't exceed collapsed sidebar width */
+  overflow: hidden; /* Prevent overflow in collapsed state */
+}
+
+.staff-sidebar.collapsed .staff-menu-item:hover {
+  transform: translateX(0); /* Remove horizontal transform when collapsed */
+  background: rgba(255, 255, 255, 0.15); /* Slightly stronger hover effect */
+}
+
+.staff-sidebar.collapsed .staff-menu-item.active {
+  background: rgba(255, 255, 255, 0.25); /* Stronger active state when collapsed */
+  border-right: none; /* Remove right border when collapsed */
+  border-radius: 0 !important; /* Remove border radius for active items when collapsed */
+  margin: 2px 0 !important; /* Remove horizontal margin, keep only vertical */
+  width: 100% !important; /* Full width to fill sidebar */
+  padding: 14px 0; /* Keep vertical padding, remove horizontal */
+}
+
+.staff-sidebar.collapsed .staff-menu-item.active::before {
+  display: none; /* Hide left indicator when collapsed */
+}
+
+.staff-sidebar.collapsed .staff-menu-item-content {
+  justify-content: center; /* Center icon horizontally */
+  gap: 0; /* Remove gap since there's no text */
+}
+
+.staff-sidebar.collapsed .staff-menu-icon {
+  font-size: 20px; /* Slightly larger icons when collapsed for better visibility */
+  width: auto; /* Remove fixed width to allow natural sizing */
+}
+
+.staff-sidebar.collapsed .staff-expand-arrow {
+  display: none; /* Hide expand arrow when collapsed */
+}
+
+.staff-sidebar.collapsed .staff-submenu {
+  display: none;
+}
+
+.staff-sidebar-nav {
+  flex: 1;
+  padding: 16px 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; /* Prevent horizontal overflow in nav */
+  min-width: 0; /* Allow flex item to shrink below content size */
+}
+
+/* Remove padding when collapsed to allow active items to reach edges */
+.staff-sidebar.collapsed .staff-sidebar-nav {
+  padding: 16px 0; /* Keep vertical padding only */
+}
+
+.staff-menu-item-container {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent content overflow */
+}
+
+/* Ensure active item container fills width when collapsed */
+.staff-sidebar.collapsed .staff-menu-item-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Extra specificity for active items */
+.staff-sidebar.collapsed .staff-menu-item-container .staff-menu-item.active {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.staff-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 20px;
+  margin: 2px 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 14px;
+  box-sizing: border-box; /* Include padding in width calculation */
+  max-width: 100%; /* Prevent item from exceeding container width */
+  overflow: hidden; /* Hide any content that might overflow */
+}
+
+.staff-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(4px);
+  /* Transform is safe because parent container has overflow-x: hidden */
+  will-change: transform;
+}
+
+.staff-menu-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-right: 3px solid #ffd700;
+  font-weight: 600;
+  border-radius: 0 !important; /* Remove border radius for active items - make them square */
+}
+
+.staff-menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #ffd700;
+  border-radius: 0; /* Remove border radius from indicator */
+}
+
+.staff-menu-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink */
+  overflow: hidden; /* Prevent text overflow */
+}
+
+.staff-menu-icon {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.staff-menu-label {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow text */
+  text-overflow: ellipsis; /* Show ellipsis if text is too long */
+  max-width: 100%; /* Prevent label from exceeding container */
+}
+
+.staff-expand-arrow {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  transform-origin: center;
+}
+
+.staff-expand-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+/* Submenu Styles */
+.staff-submenu {
+  background: rgba(0, 0, 0, 0.1);
+  margin-left: 20px;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  width: calc(100% - 20px); /* Ensure submenu doesn't exceed container */
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent submenu overflow */
+}
+
+.staff-submenu-item {
+  display: block;
+  padding: 10px 20px 10px 32px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.staff-submenu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding-left: 36px;
+}
+
+.staff-submenu-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffd700;
+  font-weight: 600;
+  border-left: 2px solid #ffd700;
+  border-radius: 0; /* Remove border radius for active submenu items */
+}
+
+.staff-submenu-item.active::before {
+  content: '●';
+  position: absolute;
+  left: 16px;
+  color: #ffd700;
+  font-size: 8px;
+}
+
+.staff-submenu-label {
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .staff-sidebar {
+    width: 200px;
+  }
+  
+  .staff-menu-item {
+    padding: 10px 16px;
+  }
+  
+  .staff-menu-label {
+    font-size: 13px;
+  }
+  
+  .staff-submenu-item {
+    padding: 8px 16px 8px 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .staff-sidebar {
+    width: 64px; /* Use same collapsed width for consistency */
+    overflow: visible;
+  }
+  
+  .staff-sidebar:not(.collapsed) {
+    width: 200px; /* Slightly narrower on mobile when expanded */
+  }
+  
+  .staff-menu-label,
+  .staff-submenu {
+    display: none;
+  }
+  
+  .staff-menu-item {
+    justify-content: center;
+    padding: 14px 0;
+    margin: 4px 8px;
+    border-radius: 8px;
+  }
+  
+  .staff-expand-arrow {
+    display: none;
+  }
+  
+  .staff-menu-icon {
+    font-size: 20px;
+  }
+  
+  /* Show label on hover for mobile */
+  .staff-menu-item:hover .staff-menu-label {
+    display: block;
+    position: absolute;
+    left: 64px; /* Updated to match new collapsed width */
+    background: rgba(0, 0, 0, 0.9);
+    padding: 6px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 1000;
+    font-size: 12px;
+  }
+  
+  .staff-menu-item:hover .staff-menu-label::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Animation Effects */
+.staff-menu-item-container {
+  animation: fadeInSlide 0.3s ease forwards;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Enhanced Hover Effects */
+.staff-menu-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1));
+  transition: width 0.3s ease;
+}
+
+.staff-menu-item:hover::after {
+  width: 100%;
+}

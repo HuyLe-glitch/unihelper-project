@@ -1,0 +1,227 @@
+/* HistoryAffair - Sửa để giống ảnh 1 */
+
+/* Container chính - sử dụng TOÀN BỘ chiều rộng có sẵn */
+.schedule-container {
+  width: 100%;
+  padding: 20px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.history-section {
+  width: 100%;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Bảng chính - KÉO DÀI TOÀN BỘ CHIỀU RỘNG */
+.table-container {
+  width: 100%;
+  overflow-x: hidden; /* BỎ scroll ngang */
+}
+
+.history-table {
+  width: 100%;
+  /* BỎ min-width cố định để không bị overflow */
+  border-collapse: collapse;
+  background: white;
+  font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  table-layout: fixed; /* Quan trọng: để các cột chia đều */
+}
+
+/* Styling cho header và cells */
+.history-table th,
+.history-table td {
+  border: 1px solid #ddd;
+  padding: 15px 12px;
+  text-align: left;
+  vertical-align: top;
+  word-wrap: break-word; /* Cho phép text xuống dòng */
+  overflow-wrap: break-word;
+}
+
+.history-table th {
+  background-color: #4A90E2;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Width các cột - GIẢM KÍCH THƯỚC CỘT TÊN CHỨNG NHẬN */
+.history-table th:nth-child(1), .history-table td:nth-child(1) { width: 10%; }   /* Mã yêu cầu */
+.history-table th:nth-child(2), .history-table td:nth-child(2) { width: 13%; }  /* Loại chứng nhận */
+.history-table th:nth-child(3), .history-table td:nth-child(3) { width: 14%; }  /* Tên chứng nhận - GIẢM từ 18% xuống 14% */
+.history-table th:nth-child(4), .history-table td:nth-child(4) { width: 9%; }   /* Học kỳ xét */
+.history-table th:nth-child(5), .history-table td:nth-child(5) { width: 10%; }  /* Ngày yêu cầu */
+.history-table th:nth-child(6), .history-table td:nth-child(6) { width: 10%; }   /* Trạng thái */
+.history-table th:nth-child(7), .history-table td:nth-child(7) { width: 11%; }  /* Phản hồi lúc */
+.history-table th:nth-child(8), .history-table td:nth-child(8) { width: 15%; }  /* Lưu ý - TĂNG từ 15% lên 18% */
+.history-table th:nth-child(9), .history-table td:nth-child(9) { width: 10%; }   /* File đính kèm */
+.history-table th:nth-child(10), .history-table td:nth-child(10) { width: 9%; } /* Thao tác */
+
+/* Hover effect cho rows */
+.history-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.status-approved {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+/* Notes cell - KHÔNG CÓ SCROLL */
+.notes-cell {
+  word-wrap: break-word;
+}
+
+.notes-content {
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+  /* KHÔNG có max-height, overflow-y */
+}
+
+/* Action buttons */
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+}
+
+.action-btn.confirmed {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-btn.view {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* File cell */
+.file-cell {
+  text-align: center;
+}
+
+.file-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.file-name {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.file-name:hover {
+  text-decoration: underline;
+}
+
+/* Pagination */
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  background: white;
+  color: #495057;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Header tạo yêu cầu */
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.schedule-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.create-request-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-request-btn:hover {
+  background-color: #218838;
+}
+
+.btn-icon {
+  font-size: 16px;
+}

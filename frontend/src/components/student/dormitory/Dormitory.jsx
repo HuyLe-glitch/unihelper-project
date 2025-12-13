@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './Dormitory.css';
+import { apiClient } from '../../../services/api'; // adjust path as needed
+
 
 const Dormitory = () => {
   const [requestItems, setRequestItems] = useState([
@@ -35,24 +37,36 @@ const Dormitory = () => {
   };
 
   const addNewItem = () => {
-    const newId = Math.max(...requestItems.map(item => item.id)) + 1;
+    const newId = requestItems.length ? Math.max(...requestItems.map(item => item.id)) + 1 : 1;
     setRequestItems([...requestItems, { id: newId, category: '', description: '' }]);
   };
 
   const removeItem = (itemId) => {
     if (requestItems.length > 1) {
       setRequestItems(items => items.filter(item => item.id !== itemId));
+      // remove dropdown state for removed item
+      setShowCategoryDropdown(prev => {
+        const copy = { ...prev };
+        delete copy[itemId];
+        return copy;
+      });
     }
   };
 
   const toggleCategoryDropdown = (itemId) => {
-    setShowCategoryDropdown({
-      ...showCategoryDropdown,
-      [itemId]: !showCategoryDropdown[itemId]
-    });
+    setShowCategoryDropdown(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
   };
 
-  const handleSubmit = () => {
+  const resetForm = () => {
+    setRequestItems([{ id: 1, category: '', description: '' }]);
+    setShowCategoryDropdown({});
+  };
+
+  //FE handle submit
+  /*const handleSubmit = () => {
     // Validate that all items have both category and description
     const invalidItems = requestItems.filter(item => !item.category.trim() || !item.description.trim());
     
@@ -70,12 +84,41 @@ const Dormitory = () => {
     console.log('Submitting request:', validItems);
     // Here you would typically send the data to your API
     alert('Yêu cầu đã được gửi thành công!');
+  }; */
+
+  const handleSubmit = async () => {
+    const invalidItems = requestItems.filter(item => !item.category.trim() || !item.description.trim());
+    if (invalidItems.length > 0) {
+      alert('Vui lòng nhập đầy đủ danh mục và mô tả cho tất cả các yêu cầu');
+      return;
+    }
+    const validItems = requestItems.filter(item => item.category && item.description);
+    if (validItems.length === 0) {
+      alert('Vui lòng nhập ít nhất một yêu cầu hợp lệ');
+      return;
+    }
+
+    try {
+      await apiClient.post('/dormitory/requests', {
+        requests: validItems.map(item => ({
+          category: item.category,
+          deviceName: item.category, // or another field if you have deviceName separately
+          description: item.description
+        }))
+      });
+      alert('Yêu cầu đã được gửi thành công!');
+      // clear inputs and close dropdowns
+      resetForm();
+    } catch (err) {
+      console.error('Submit dormitory request failed:', err);
+      alert('Gửi yêu cầu thất bại!');
+    }
   };
 
   const handleClose = () => {
     if (window.confirm('Bạn có chắc muốn đóng? Dữ liệu chưa lưu sẽ bị mất.')) {
       // Reset form or navigate back
-      setRequestItems([{ id: 1, category: '', description: '' }]);
+      resetForm();
     }
   };
 

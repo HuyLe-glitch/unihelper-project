@@ -13,15 +13,16 @@ const studentSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  major: {
+  fullName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    maxlength: 50
   },
-  faculty: {
-    type: String,
-    required: true,
-    trim: true
+  major: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Major',
+    required: true
   },
   academicYear: {
     type: String,
@@ -37,12 +38,26 @@ const studentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  address: {
+  className: {
     type: String,
+    required: true,
     trim: true
   },
+  address: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  citizenId: {
+    type: String,
+    trim: true,
+    unique: true,
+    required: true,
+    sparse: true
+  },
   dateOfBirth: {
-    type: Date
+    type: Date,
+    required: true
   },
   enrollmentDate: {
     type: Date,
@@ -50,16 +65,48 @@ const studentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['ACTIVE', 'INACTIVE', 'GRADUATED', 'SUSPENDED'],
+    enum: ['ACTIVE', 'INACTIVE', 'GRADUATED', 'SUSPENDED','DROPPED','TEMPORARY_LEAVE'],
     default: 'ACTIVE'
+  },
+  // Soft delete
+  isDeleted: { 
+    type: Boolean, 
+    default: false 
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 // Indexes
-studentSchema.index({ studentId: 1 });
-studentSchema.index({ user: 1 });
-studentSchema.index({ faculty: 1, major: 1 });
+studentSchema.index({ major: 1, status: 1 });
+
+// Virtual populate
+studentSchema.virtual('userInfo', {
+  ref: 'User',
+  localField: 'user',
+  foreignField: '_id',
+  justOne: true
+});
+
+studentSchema.set('toJSON', { virtuals: true });
+studentSchema.set('toObject', { virtuals: true });
+
+// Thêm vào Student.js sau studentSchema definition
+studentSchema.pre('findOneAndDelete', async function() {
+    const studentId = this.getQuery()._id;
+    const student = await this.model.findById(studentId);
+    
+    if (student && student.user) {
+      // Xóa User liên quan
+      await mongoose.model('User').findByIdAndDelete(student.user);
+    }
+});
+
+studentSchema.pre('deleteOne', async function() {
+    const student = await this.model.findOne(this.getQuery());
+    
+    if (student && student.user) {
+      // Xóa User liên quan
+      await mongoose.model('User').findByIdAndDelete(student.user);
+    }
+});
 
 module.exports = mongoose.model('Student', studentSchema);
