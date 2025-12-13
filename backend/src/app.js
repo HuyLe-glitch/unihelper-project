@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const globalErrorHandler = require('./middleware/errorHandler');
 const { AppError } = require('./utils/appError');
 
+
 // Load environment variables
 dotenv.config();
 
@@ -30,11 +31,33 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const dormitoryRoutes = require('./routes/dormitoryRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+
+const staffRoutes = require('./routes/staffRoutes');
+const staffRoleRoutes = require('./routes/staffRoleRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
+
+const studentRoutes = require('./routes/studentRoutes');
+const facultyRoutes = require('./routes/facultyRoutes');
+const majorRoutes = require('./routes/majorRoutes');
+
 
 // --- Mount routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/dormitory', dormitoryRoutes);
+app.use('/api/reports', reportRoutes);
+
+app.use('/api/staff', staffRoutes);
+app.use('/api/staff-roles', staffRoleRoutes);
+app.use('/api/departments', departmentRoutes);
+
+app.use('/api/students', studentRoutes);
+app.use('/api/faculties', facultyRoutes);
+app.use('/api/majors', majorRoutes);
+
 
 // --- Health check route ---
 app.get('/', (req, res) => {
@@ -47,7 +70,7 @@ app.get('/', (req, res) => {
 });
 
 // --- Handle undefined routes ---
-app.all('*', (req, res, next) => {
+app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

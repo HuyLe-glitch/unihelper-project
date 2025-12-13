@@ -1,5 +1,16 @@
-// Menu configurations for different user roles
+/**
+ * Menu configurations for different user roles
+ * 
+ * HỆ THỐNG:
+ * - Nhiều tài khoản Student
+ * - 2 tài khoản Staff cố định (CTSV & KTX)
+ * - 1 tài khoản Admin cố định
+ */
+
 export const MENU_CONFIGS = {
+  // ============================================
+  // STUDENT MENU
+  // ============================================
   student: [
     {
       id: 'dashboard',
@@ -26,11 +37,10 @@ export const MENU_CONFIGS = {
       path: '/student/chat',
     },
     {
-      id: 'schedule',
+      id: 'history',
       icon: '📅',
       label: 'Lịch sử yêu cầu',
-      type: 'expandable',   //Change to expandable if children are added
-      //path: '/student/schedule',
+      type: 'expandable',
       children: [
         { id: 'history-affair', label: 'Lịch sử CTSV', path: '/student/history-affair' },
         { id: 'history-dormitory', label: 'Lịch sử KTX', path: '/student/history-dormitory' },
@@ -45,6 +55,10 @@ export const MENU_CONFIGS = {
     },
   ],
 
+  // ============================================
+  // STAFF MENU (Chung cho cả CTSV và KTX)
+  // Menu sẽ được filter dựa trên staffType khi render
+  // ============================================
   staff: [
     {
       id: 'dashboard',
@@ -54,18 +68,11 @@ export const MENU_CONFIGS = {
       path: '/staff/dashboard',
     },
     {
-      id: 'cts-requests',
-      icon: '📑',
-      label: 'Yêu cầu CTSV',
+      id: 'requests',
+      icon: '📋',
+      label: 'Yêu cầu cần xử lý',
       type: 'single',
-      path: '/staff/cts-requests',
-    },
-    {
-      id: 'ktx-requests',
-      icon: '🏠',
-      label: 'Yêu cầu KTX',
-      type: 'single',
-      path: '/staff/ktx-requests',
+      path: '/staff/requests',
     },
     {
       id: 'history',
@@ -75,28 +82,25 @@ export const MENU_CONFIGS = {
       path: '/staff/history',
     },
     {
-      id: 'department',
-      icon: '🏢',
-      label: 'Phòng ban',
-      type: 'single',
-      path: '/staff/department',
-    },
-    {
       id: 'reports',
       icon: '📈',
-      label: 'Báo cáo',
+      label: 'Thống kê',
       type: 'single',
       path: '/staff/reports',
     },
     {
       id: 'settings',
       icon: '⚙️',
-      label: 'Settings',
+      label: 'Cài đặt',
       type: 'single',
       path: '/staff/settings',
     },
   ],
 
+  // ============================================
+  // ADMIN MENU
+  // Không có quản lý staff vì staff là cố định
+  // ============================================
   admin: [
     {
       id: 'dashboard',
@@ -106,11 +110,11 @@ export const MENU_CONFIGS = {
       path: '/admin/dashboard',
     },
     {
-      id: 'users',
-      icon: '👤',
-      label: 'Quản lý người dùng',
+      id: 'students',
+      icon: '🎓',
+      label: 'Quản lý sinh viên',
       type: 'single',
-      path: '/admin/users',
+      path: '/admin/students',
     },
     {
       id: 'requests',
@@ -133,12 +137,35 @@ export const MENU_CONFIGS = {
       type: 'single',
       path: '/admin/system-settings',
     },
-    /*{
-      id: 'chat',
-      icon: '💬',
-      label: 'Chat',
-      type: 'single',
-      path: '/admin/chat',
-    },*/
   ],
+};
+
+// ============================================
+// STAFF TYPE LABELS
+// ============================================
+export const STAFF_TYPE_LABELS = {
+  CTSV: 'Công tác Sinh viên',
+  KTX: 'Ký túc xá',
+};
+
+// ============================================
+// FIXED ACCOUNTS INFO (for display)
+// ============================================
+export const FIXED_ACCOUNTS_INFO = {
+  STAFF_CTSV: {
+    staffType: 'CTSV',
+    label: 'Nhân viên CTSV',
+    department: 'Phòng Công tác Sinh viên',
+    description: 'Xử lý các yêu cầu liên quan đến công tác sinh viên',
+  },
+  STAFF_KTX: {
+    staffType: 'KTX',
+    label: 'Nhân viên KTX',
+    department: 'Phòng Ký túc xá',
+    description: 'Xử lý các yêu cầu liên quan đến ký túc xá',
+  },
+  ADMIN: {
+    label: 'Quản trị viên',
+    description: 'Quản lý toàn bộ hệ thống',
+  },
 };

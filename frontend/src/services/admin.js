@@ -15,29 +15,29 @@ export const adminService = {
 
   // User management
   getUsers: async (filters = {}) => {
-    const response = await apiClient.get('/admin/users', { params: filters });
+    const response = await apiClient.get('/admin/user-management/user-settings', { params: filters });
     return response.data;
   },
 
   getUserById: async (userId) => {
-    const response = await apiClient.get(`/admin/users/${userId}`);
+    const response = await apiClient.get(`/admin/user-management/user-settings/${userId}`);
     return response.data;
   },
 
   createUser: async (userData) => {
-    const response = await apiClient.post('/admin/users', userData);
+    const response = await apiClient.post('/admin/user-management/user-settings', userData);
     return response.data;
   },
 
   updateUser: async (userId, userData) => {
-    const response = await apiClient.put(`/admin/users/${userId}`, userData);
+    const response = await apiClient.put(`/admin/user-management/user-settings/${userId}`, userData);
     return response.data;
   },
 
   deleteUser: async (userId) => {
-    const response = await apiClient.delete(`/admin/users/${userId}`);
+    const response = await apiClient.delete(`/admin/user-management/user-settings/${userId}`);
     return response.data;
-  },
+  }, 
 
   // System settings
   getSettings: async () => {

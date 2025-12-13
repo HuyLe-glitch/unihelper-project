@@ -10,8 +10,11 @@ const router = express.Router();
  * Chỉ bao gồm login và các chức năng cần thiết
  */
 
+// Add this route BEFORE the existing routes
+router.post('/login/student', authController.loginStudent);
+
 // POST /api/auth/login - Đăng nhập
-router.post('/login', authValidation.login, authController.login);
+router.post('/login', authController.login);
 
 // GET /api/auth/me - Lấy thông tin user hiện tại (cần token)
 router.get('/me', protect, authController.getCurrentUser);

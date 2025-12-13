@@ -20,8 +20,8 @@ router.get('/types', certificateQueryValidation.getTypesQuery, certificateContro
 // POST /api/certificates/types - Tạo certificate type mới (Admin/Staff only)
 router.post('/types', restrictTo('ADMIN', 'STAFF'), certificateTypeValidation.createType, certificateController.createCertificateType);
 
-// PUT /api/certificates/types/:id - Cập nhật certificate type (Admin/Staff only)
-router.put('/types/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTypeValidation.updateType, certificateController.updateCertificateType);
+// patch /api/certificates/types/:id - Cập nhật certificate type (Admin/Staff only)
+router.patch('/types/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTypeValidation.updateType, certificateController.updateCertificateType);
 
 // DELETE /api/certificates/types/:id - Xóa certificate type (Admin only)
 router.delete('/types/:id', restrictTo('ADMIN'), idValidation.validateObjectId, certificateController.deleteCertificateType);
@@ -37,14 +37,14 @@ router.get('/templates/:id', idValidation.validateObjectId, certificateControlle
 // POST /api/certificates/templates - Tạo certificate template mới (Admin/Staff only)
 router.post('/templates', restrictTo('ADMIN', 'STAFF'), certificateTemplateValidation.createTemplate, certificateController.createCertificateTemplate);
 
-// PUT /api/certificates/templates/:id - Cập nhật certificate template (Admin/Staff only)
-router.put('/templates/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTemplateValidation.updateTemplate, certificateController.updateCertificateTemplate);
+// patch /api/certificates/templates/:id - Cập nhật certificate template (Admin/Staff only)
+router.patch('/templates/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTemplateValidation.updateTemplate, certificateController.updateCertificateTemplate);
 
 // DELETE /api/certificates/templates/:id - Xóa certificate template (Admin only)
 router.delete('/templates/:id', restrictTo('ADMIN'), idValidation.validateObjectId, certificateController.deleteCertificateTemplate);
 
-// PUT /api/certificates/templates/:id/toggle - Toggle trạng thái template (Admin/Staff only)
-router.put('/templates/:id/toggle', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateController.toggleTemplateStatus);
+// patch /api/certificates/templates/:id/toggle - Toggle trạng thái template (Admin/Staff only)
+router.patch('/templates/:id/toggle', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateController.toggleTemplateStatus);
 
 // =============== NESTED ROUTES ===============
 

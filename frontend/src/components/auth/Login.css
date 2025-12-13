@@ -1,150 +1,150 @@
-/* frontend/src/components/auth/Login.css */
+/* frontend/src/pages/Login.css */
 
 /* Container with centered form */
 .login-container {
-    min-height: 100vh;
-    width: 100vw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-    box-sizing: border-box;
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Login form card */
+.login-form {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
-  
-  /* Login form card */
-  .login-form {
-    width: 100%;
-    max-width: 420px;
-    padding: 40px;
-    border-radius: 16px;
-    background: #ffffff;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.4s ease-out;
-  }
-  
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Header styling */
-  .login-form h2 {
-    margin: 0;
-    margin-bottom: 8px;
-    color: #1a1a1a;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-  }
-  
-  /* Subtitle (optional - add below h2 if needed) */
-  .login-subtitle {
-    text-align: center;
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 24px;
-  }
-  
-  /* Error message styling */
-  .error-message {
-    color: #d32f2f;
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    background: #ffebee;
-    border-radius: 8px;
-    font-size: 14px;
-    border-left: 4px solid #d32f2f;
-    animation: shake 0.3s ease-in-out;
-  }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
-  }
-  
-  /* Form fields container */
-  .form-fields {
-    display: grid;
-    gap: 20px;
-  }
-  
-  /* Label styling */
-  .form-label {
-    display: grid;
-    gap: 8px;
-  }
-  
-  .form-label span {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    letter-spacing: 0.3px;
-  }
-  
-  /* Input field styling */
-  .form-input {
-    padding: 12px 16px;
-    border-radius: 10px;
-    border: 2px solid #e0e0e0;
-    font-size: 15px;
-    transition: all 0.3s ease;
-    background: #f9f9f9;
-    color: #1a1a1a;
-  
-  }
-  
-  .form-input:hover {
-    border-color: #c0c0c0;
-    background: #fff;
-  }
-  
-  .form-input:focus {
-    outline: none;
-    border-color: #667eea;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  }
-  
-  .form-input::placeholder {
-    color: #999;
-    font-size: 14px;
-  }
-  
-  /* Submit button styling */
-  .submit-button {
-    margin-top: 8px;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  }
-  
-  .submit-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-  }
-  
-  .submit-button:active:not(:disabled) {
+  to {
+    opacity: 1;
     transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
   }
-  
-  .submit-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
+}
+
+/* Header styling */
+.login-form h2 {
+  margin: 0;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Subtitle (optional - add below h2 if needed) */
+.login-subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Error message styling */
+.error-message {
+  color: #d32f2f;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #ffebee;
+  border-radius: 8px;
+  font-size: 14px;
+  border-left: 4px solid #d32f2f;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Form fields container */
+.form-fields {
+  display: grid;
+  gap: 20px;
+}
+
+/* Label styling */
+.form-label {
+  display: grid;
+  gap: 8px;
+}
+
+.form-label span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  letter-spacing: 0.3px;
+}
+
+/* Input field styling */
+.form-input {
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: #f9f9f9;
+  color: #1a1a1a;
+}
+
+.form-input:hover {
+  border-color: #c0c0c0;
+  background: #fff;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Submit button styling */
+.submit-button {
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+

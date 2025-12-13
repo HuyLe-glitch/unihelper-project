@@ -1,5 +1,14 @@
 const { validationResult } = require('express-validator');
+const Staff = require('../models/Staff');
+const { STAFF_TYPES } = require('../constants/modelConstants');
 
+/**
+ * Staff Middleware
+ * 
+ * Lưu ý: Hệ thống chỉ có 2 staff cố định:
+ * - Staff CTSV: Xử lý yêu cầu Công tác Sinh viên
+ * - Staff KTX: Xử lý yêu cầu Ký túc xá
+ */
 class StaffMiddleware {
 
   /**
@@ -8,13 +17,11 @@ class StaffMiddleware {
   logStaffActivity = (action) => {
     return (req, res, next) => {
       const timestamp = new Date().toISOString();
-      const userId = req.userData?.id; // Use .id
+      const userId = req.userData?.id;
+      const staffType = req.staffData?.staffType || 'UNKNOWN';
       const ip = req.ip || req.connection.remoteAddress;
       
-      console.log(`[${timestamp}] Staff ${action} - User: ${userId}, IP: ${ip}`);
-      
-      // Có thể lưu log vào database hoặc file
-      // TODO: Implement proper logging mechanism
+      console.log(`[${timestamp}] Staff[${staffType}] ${action} - User: ${userId}, IP: ${ip}`);
       
       next();
     };
@@ -45,18 +52,46 @@ class StaffMiddleware {
 
   /**
    * Middleware kiểm tra xem user có phải là staff không
+   * Đồng thời load thông tin staff vào request
    */
   ensureStaff = async (req, res, next) => {
     try {
-      const userId = req.userData.id; // Use .id instead of ._id
+      const userId = req.userData?.id;
       
       // Check if user role is STAFF
-      if (!req.userData.role || req.userData.role !== 'STAFF') {
+      if (!req.userData?.role || req.userData.role !== 'STAFF') {
         return res.status(403).json({
           status: false,
           message: 'Access denied. Staff privileges required.'
         });
       }
+
+      // Load staff data
+      const staff = await Staff.findOne({ user: userId }).populate('user', 'name email');
+      
+      if (!staff) {
+        return res.status(403).json({
+          status: false,
+          message: 'Staff profile not found.'
+        });
+      }
+
+      // Kiểm tra staff có active không
+      if (staff.status !== 'ACTIVE') {
+        return res.status(403).json({
+          status: false,
+          message: 'Staff account is not active.'
+        });
+      }
+
+      // Attach staff data to request
+      req.staffData = {
+        id: staff._id,
+        staffId: staff.staffId,
+        staffType: staff.staffType,
+        department: staff.department,
+        status: staff.status
+      };
       
       next();
     } catch (error) {
@@ -70,17 +105,34 @@ class StaffMiddleware {
 
   /**
    * Middleware kiểm tra staff type permissions
+   * Chỉ cho phép staff type được chỉ định
    */
   checkStaffTypePermission = (allowedTypes = []) => {
     return async (req, res, next) => {
       try {
-        // TODO: Get staff type from database based on userId
-        const staffType = req.userData.staffType; // Giả sử có trong JWT
+        const staffType = req.staffData?.staffType;
+        
+        if (!staffType) {
+          return res.status(403).json({
+            status: false,
+            message: 'Staff type not found in request.'
+          });
+        }
+
+        // Validate staff type
+        if (!Object.values(STAFF_TYPES).includes(staffType)) {
+          return res.status(403).json({
+            status: false,
+            message: 'Invalid staff type.'
+          });
+        }
         
         if (allowedTypes.length > 0 && !allowedTypes.includes(staffType)) {
           return res.status(403).json({
             status: false,
-            message: `Access denied. Required staff type: ${allowedTypes.join(' or ')}`
+            message: `Access denied. This action is only for: ${allowedTypes.join(' or ')} staff.`,
+            yourType: staffType,
+            requiredTypes: allowedTypes
           });
         }
         
@@ -96,13 +148,41 @@ class StaffMiddleware {
   };
 
   /**
+   * Middleware đảm bảo chỉ CTSV staff có thể truy cập
+   */
+  ensureCTSVStaff = async (req, res, next) => {
+    if (req.staffData?.staffType !== STAFF_TYPES.CTSV) {
+      return res.status(403).json({
+        status: false,
+        message: 'Access denied. CTSV staff only.'
+      });
+    }
+    next();
+  };
+
+  /**
+   * Middleware đảm bảo chỉ KTX staff có thể truy cập
+   */
+  ensureKTXStaff = async (req, res, next) => {
+    if (req.staffData?.staffType !== STAFF_TYPES.KTX) {
+      return res.status(403).json({
+        status: false,
+        message: 'Access denied. KTX staff only.'
+      });
+    }
+    next();
+  };
+
+  /**
    * Middleware rate limiting cho staff actions
    */
   rateLimitStaffActions = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
     const requests = new Map();
     
     return (req, res, next) => {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData?.id;
+      if (!userId) return next();
+
       const now = Date.now();
       const windowStart = now - windowMs;
       
@@ -168,6 +248,14 @@ class StaffMiddleware {
       
       if (!data.hasOwnProperty('timestamp')) {
         data.timestamp = new Date().toISOString();
+      }
+
+      // Add staff info to response if available
+      if (req.staffData && !data.staffInfo) {
+        data.staffInfo = {
+          staffType: req.staffData.staffType,
+          department: req.staffData.department
+        };
       }
       
       return originalJson.call(this, data);

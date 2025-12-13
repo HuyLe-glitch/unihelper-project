@@ -1,125 +1,212 @@
-import React, {useState,useMemo} from 'react';
-import{Modal} from '../../common';
+import React, { useState, useMemo } from 'react';
+import { Modal } from '../../common';
 import './AdminDashboard.css';
 
+/**
+ * Admin Dashboard
+ * 
+ * Hiển thị tổng quan hệ thống với:
+ * - Nhiều sinh viên
+ * - 2 staff cố định (CTSV & KTX)
+ * - 1 admin cố định
+ */
 const AdminDashboard = () => {
-    const [isModalOpen,setIsModalOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [modalTitle, setModalTitle] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
 
-    //Admin's stats
-    const adminStats = useMemo(() => ({
-        totalStudents: 2847,
-        totalStaff: 156,
-        pendingRequests: 89,
-        systemAlerts: 3,
-        activeUsers: 1243,
-        totalRequests: 1247
-    }), []);
+  // Admin's stats
+  const adminStats = useMemo(() => ({
+    totalStudents: 2847,
+    fixedStaff: 2,           // 2 staff cố định
+    pendingRequests: 89,
+    systemAlerts: 3,
+    activeUsers: 1243,
+    totalRequests: 1247
+  }), []);
 
-    //Comprehensive request data from all departments 
-    const allRequests = useMemo(() => [
-        {
-            id: 'REQ-001',
-            type: 'Student Certification',
-            department: 'Student Affairs',
-            student: 'Nguyễn Văn An',
-            staff: 'Trần Thị Lan',
-            status: 'processing',
-            priority: 'high',
-            submittedAt: '2024-10-12',
-            deadline: '2024-10-15'
-        },
-        {
-            id: 'REQ-002',
-            type: 'Dormitory Application',
-            department: 'Housing',
-            student: 'Lê Thị Bình',
-            staff: 'Phạm Văn Cường',
-            status: 'completed',
-            priority: 'medium',
-            submittedAt: '2024-10-11',
-            deadline: '2024-10-18' 
-        },{
-            id: 'REQ-003',
-            type: 'Grade Appeal',
-            department: 'Academic',
-            student: 'Hoàng Minh Nam',
-            staff: 'Đỗ Thị Hoa',
-            status: 'rejected',
-            priority: 'low',
-            submittedAt: '2024-10-10',
-            deadline: '2024-10-12'
-        }
-    ],[]);
+  // Fixed staff information
+  const fixedStaff = useMemo(() => [
+    {
+      id: 'CTSV001',
+      name: 'Nhân viên CTSV',
+      type: 'CTSV',
+      department: 'Phòng Công tác Sinh viên',
+      email: 'ctsv@university.edu.vn',
+      status: 'active',
+      pendingRequests: 45,
+      processedToday: 12
+    },
+    {
+      id: 'KTX001',
+      name: 'Nhân viên KTX',
+      type: 'KTX',
+      department: 'Phòng Ký túc xá',
+      email: 'ktx@university.edu.vn',
+      status: 'active',
+      pendingRequests: 23,
+      processedToday: 8
+    }
+  ], []);
 
-    //System performance metrics 
-    const systemMetrics = useMemo(() => ({
-        serverUptime: '99.9%',
-        responseTime: '245ms',
-        activeConnections: 1243,
-        storageUsed: '68%',
-        lastBackup: '2024-10-12 02:00'
-    }),[]);
+  // All requests overview
+  const allRequests = useMemo(() => [
+    {
+      id: 'REQ-001',
+      type: 'Xác nhận sinh viên',
+      category: 'CTSV',
+      student: 'Nguyễn Văn An',
+      staff: 'Nhân viên CTSV',
+      status: 'processing',
+      priority: 'high',
+      submittedAt: '2024-10-12',
+      deadline: '2024-10-15'
+    },
+    {
+      id: 'REQ-002',
+      type: 'Đăng ký KTX',
+      category: 'KTX',
+      student: 'Lê Thị Bình',
+      staff: 'Nhân viên KTX',
+      status: 'completed',
+      priority: 'medium',
+      submittedAt: '2024-10-11',
+      deadline: '2024-10-18'
+    },
+    {
+      id: 'REQ-003',
+      type: 'Xác nhận học phí',
+      category: 'CTSV',
+      student: 'Hoàng Minh Nam',
+      staff: 'Nhân viên CTSV',
+      status: 'pending',
+      priority: 'low',
+      submittedAt: '2024-10-10',
+      deadline: '2024-10-12'
+    },
+    {
+      id: 'REQ-004',
+      type: 'Trả phòng KTX',
+      category: 'KTX',
+      student: 'Trần Thị Hoa',
+      staff: 'Nhân viên KTX',
+      status: 'processing',
+      priority: 'high',
+      submittedAt: '2024-10-12',
+      deadline: '2024-10-14'
+    }
+  ], []);
 
-    //Department performance data
-    const departmentPerformance = useMemo(() => [
-        { name: 'Student Affairs', requests: 45, completion: '92%', avgTime: '2.3 days' },
-        { name: 'Housing', requests: 32, completion: '88%', avgTime: '1.8 days' },
-        { name: 'Academic', requests: 28, completion: '95%', avgTime: '3.1 days' },
-        { name: 'Financial', requests: 15, completion: '87%', avgTime: '2.7 days' }
-    ],[]);
+  // System metrics
+  const systemMetrics = useMemo(() => ({
+    serverUptime: '99.9%',
+    responseTime: '245ms',
+    activeConnections: 1243,
+    storageUsed: '68%',
+    lastBackup: '2024-10-12 02:00'
+  }), []);
 
-    const getStatusText = (status) => {
-        switch (status) {
-            case 'processing': return 'Đang xử lý';
-            case 'completed': return 'Đã hoàn thành';
-            case 'rejected': return 'Đã từ chối';
-            default: return status;
-        }
-    };
-    const getStatusClass = (status) => {
-        switch (status) {
-          case 'processing': return 'status-processing';
-          case 'completed': return 'status-completed';
-          case 'rejected': return 'status-rejected';
-          default: return '';
-        }
-    };
-    const getPriorityClass = (priority) => {
-        switch (priority) {
-          case 'high': return 'priority-high';
-          case 'medium': return 'priority-medium';
-          case 'low': return 'priority-low';
-          default: return '';
-        }
-    };
-    const handleCardClick = (category) => {
-        setSelectedCategory(category);
-        setModalTitle(`Quản lý ${category}`);
-        setIsModalOpen(true);
-    };
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedCategory('');
-        setModalTitle('');
-    };
-    const filteredRequests = selectedCategory ? 
-        allRequests.filter(req => req.department.toLowerCase().includes(selectedCategory.toLowerCase())) : 
-        allRequests;
-    return (
-        <div className="admin-dashboard">
-        <div className="admin-dashboard__header">
-            <div>
-            <h1>Admin Dashboard</h1>
-            <p>Tổng quan hệ thống và quản lý toàn trường</p>
-            </div>
-            <div className="admin-dashboard__header-actions">
-            <button type="button" className="btn primary">Tạo thông báo hệ thống</button>
-            <button type="button" className="btn ghost">Xuất báo cáo</button>
-            <button type="button" className="btn secondary">Cài đặt hệ thống</button>
-            </div>
+  // Department performance (chỉ 2 phòng ban)
+  const departmentPerformance = useMemo(() => [
+    { 
+      name: 'CTSV', 
+      fullName: 'Phòng Công tác Sinh viên',
+      requests: 45, 
+      completion: '92%', 
+      avgTime: '2.3 ngày',
+      staff: 'CTSV001'
+    },
+    { 
+      name: 'KTX', 
+      fullName: 'Phòng Ký túc xá',
+      requests: 32, 
+      completion: '88%', 
+      avgTime: '1.8 ngày',
+      staff: 'KTX001'
+    }
+  ], []);
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'pending': return 'Chờ xử lý';
+      case 'processing': return 'Đang xử lý';
+      case 'completed': return 'Đã hoàn thành';
+      case 'rejected': return 'Đã từ chối';
+      default: return status;
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'pending': return 'status-pending';
+      case 'processing': return 'status-processing';
+      case 'completed': return 'status-completed';
+      case 'rejected': return 'status-rejected';
+      default: return '';
+    }
+  };
+
+  const getPriorityClass = (priority) => {
+    switch (priority) {
+      case 'high': return 'priority-high';
+      case 'medium': return 'priority-medium';
+      case 'low': return 'priority-low';
+      default: return '';
+    }
+  };
+
+  const getCategoryClass = (category) => {
+    return category === 'CTSV' ? 'category-ctsv' : 'category-ktx';
+  };
+
+  const handleCardClick = (category) => {
+    setSelectedCategory(category);
+    setModalTitle(`Quản lý ${category}`);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCategory('');
+    setModalTitle('');
+  };
+
+  const filteredRequests = selectedCategory
+    ? allRequests.filter(req => 
+        req.category.toLowerCase().includes(selectedCategory.toLowerCase())
+      )
+    : allRequests;
+
+  return (
+    <div className="admin-dashboard">
+      <div className="admin-dashboard__header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p>Tổng quan hệ thống UniHelper</p>
         </div>
+        <div className="admin-dashboard__header-actions">
+          <button type="button" className="btn primary">📢 Tạo thông báo</button>
+          <button type="button" className="btn ghost">📊 Xuất báo cáo</button>
+        </div>
+      </div>
+
+      {/* System Info Banner */}
+      <div className="system-info-banner">
+        <div className="banner-item">
+          <span className="banner-icon">👑</span>
+          <span>1 Admin</span>
+        </div>
+        <div className="banner-divider">|</div>
+        <div className="banner-item">
+          <span className="banner-icon">👨‍💼</span>
+          <span>2 Staff cố định (CTSV & KTX)</span>
+        </div>
+        <div className="banner-divider">|</div>
+        <div className="banner-item">
+          <span className="banner-icon">🎓</span>
+          <span>{adminStats.totalStudents.toLocaleString()} Sinh viên</span>
+        </div>
+      </div>
 
       {/* Main Stats Grid */}
       <section className="admin-stats-grid">
@@ -127,21 +214,19 @@ const AdminDashboard = () => {
           className="stat-card stat-card--primary"
           onClick={() => handleCardClick('students')}
         >
-          <div className="stat-icon">👥</div>
+          <div className="stat-icon">🎓</div>
           <div className="stat-content">
             <h3>Tổng số sinh viên</h3>
             <div className="stat-number">{adminStats.totalStudents.toLocaleString()}</div>
           </div>
         </div>
 
-        <div 
-          className="stat-card stat-card--secondary"
-          onClick={() => handleCardClick('staff')}
-        >
+        <div className="stat-card stat-card--secondary">
           <div className="stat-icon">👨‍💼</div>
           <div className="stat-content">
-            <h3>Tổng số nhân viên</h3>
-            <div className="stat-number">{adminStats.totalStaff}</div>
+            <h3>Staff cố định</h3>
+            <div className="stat-number">{adminStats.fixedStaff}</div>
+            <small>CTSV & KTX</small>
           </div>
         </div>
 
@@ -156,56 +241,59 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div 
-          className="stat-card stat-card--danger"
-          onClick={() => handleCardClick('alerts')}
-        >
-          <div className="stat-icon">⚠️</div>
-          <div className="stat-content">
-            <h3>Cảnh báo hệ thống</h3>
-            <div className="stat-number">{adminStats.systemAlerts}</div>
-          </div>
-        </div>
-
-        <div 
-          className="stat-card stat-card--success"
-          onClick={() => handleCardClick('users')}
-        >
+        <div className="stat-card stat-card--success">
           <div className="stat-icon">🟢</div>
           <div className="stat-content">
-            <h3>Người dùng đang hoạt động</h3>
+            <h3>Người dùng online</h3>
             <div className="stat-number">{adminStats.activeUsers.toLocaleString()}</div>
           </div>
         </div>
+      </section>
 
-        <div 
-          className="stat-card stat-card--info"
-          onClick={() => handleCardClick('total')}
-        >
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
-            <h3>Tổng yêu cầu tháng</h3>
-            <div className="stat-number">{adminStats.totalRequests.toLocaleString()}</div>
-          </div>
+      {/* Fixed Staff Status */}
+      <section className="fixed-staff-section">
+        <h2>🔒 Nhân viên cố định</h2>
+        <div className="fixed-staff-grid">
+          {fixedStaff.map(staff => (
+            <div key={staff.id} className={`staff-card staff-card--${staff.type.toLowerCase()}`}>
+              <div className="staff-card-header">
+                <span className="staff-type-badge">{staff.type}</span>
+                <span className={`status-dot ${staff.status === 'active' ? 'active' : 'inactive'}`}></span>
+              </div>
+              <h3>{staff.name}</h3>
+              <p className="staff-department">{staff.department}</p>
+              <p className="staff-email">{staff.email}</p>
+              <div className="staff-stats">
+                <div className="staff-stat">
+                  <span className="stat-label">Chờ xử lý</span>
+                  <span className="stat-value warning">{staff.pendingRequests}</span>
+                </div>
+                <div className="staff-stat">
+                  <span className="stat-label">Đã xử lý hôm nay</span>
+                  <span className="stat-value success">{staff.processedToday}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
+
       {/* Main Content Grid */}
       <section className="admin-dashboard__grid">
         {/* All Requests Overview */}
         <article className="panel panel--large">
           <div className="panel__heading">
-            <h2>Tất cả yêu cầu hệ thống</h2>
+            <h2>Yêu cầu gần đây</h2>
             <span className="badge">{allRequests.length}</span>
           </div>
           <div className="requests-table-container">
             <table className="admin-requests-table">
               <thead>
                 <tr>
-                  <th>Mã yêu cầu</th>
+                  <th>Mã</th>
                   <th>Loại</th>
                   <th>Phòng ban</th>
                   <th>Sinh viên</th>
-                  <th>Nhân viên xử lý</th>
                   <th>Trạng thái</th>
                   <th>Độ ưu tiên</th>
                   <th>Hạn xử lý</th>
@@ -216,14 +304,17 @@ const AdminDashboard = () => {
                   <tr key={request.id}>
                     <td>{request.id}</td>
                     <td>{request.type}</td>
-                    <td>{request.department}</td>
+                    <td>
+                      <span className={`category-badge ${getCategoryClass(request.category)}`}>
+                        {request.category}
+                      </span>
+                    </td>
                     <td>{request.student}</td>
-                    <td>{request.staff}</td>
                     <td>
                       <span className={`status ${getStatusClass(request.status)}`}>
                         {getStatusText(request.status)}
                       </span>
-                      </td>
+                    </td>
                     <td>
                       <span className={`priority ${getPriorityClass(request.priority)}`}>
                         {request.priority}
@@ -270,7 +361,10 @@ const AdminDashboard = () => {
           <div className="department-performance">
             {departmentPerformance.map((dept, index) => (
               <div key={index} className="dept-performance-item">
-                <div className="dept-name">{dept.name}</div>
+                <div className="dept-header">
+                  <span className={`dept-badge ${dept.name.toLowerCase()}`}>{dept.name}</span>
+                  <span className="dept-name">{dept.fullName}</span>
+                </div>
                 <div className="dept-stats">
                   <span className="dept-requests">{dept.requests} yêu cầu</span>
                   <span className="dept-completion">{dept.completion}</span>
@@ -286,8 +380,8 @@ const AdminDashboard = () => {
           <h2>Thao tác nhanh</h2>
           <div className="quick-actions">
             <button type="button" className="action-btn action-btn--primary">
-              <span className="action-icon">👤</span>
-              Quản lý người dùng
+              <span className="action-icon">🎓</span>
+              Quản lý sinh viên
             </button>
             <button type="button" className="action-btn action-btn--secondary">
               <span className="action-icon">⚙️</span>
@@ -300,14 +394,6 @@ const AdminDashboard = () => {
             <button type="button" className="action-btn action-btn--warning">
               <span className="action-icon">🔔</span>
               Gửi thông báo
-            </button>
-            <button type="button" className="action-btn action-btn--danger">
-              <span className="action-icon">🚨</span>
-              Xem cảnh báo
-            </button>
-            <button type="button" className="action-btn action-btn--info">
-              <span className="action-icon">💾</span>
-              Sao lưu dữ liệu
             </button>
           </div>
         </article>
@@ -329,7 +415,7 @@ const AdminDashboard = () => {
                   <div key={request.id} className="modal-request-item">
                     <div className="request-info">
                       <h4>{request.id} - {request.type}</h4>
-                      <p>{request.student} - {request.department}</p>
+                      <p>{request.student} - {request.category}</p>
                     </div>
                     <div className="request-status">
                       <span className={`status ${getStatusClass(request.status)}`}>
@@ -344,7 +430,7 @@ const AdminDashboard = () => {
         )}
       </Modal>
     </div>
-    );
+  );
 };
 
 export default AdminDashboard;

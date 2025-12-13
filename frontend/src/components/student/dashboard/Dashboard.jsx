@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ProfilePanel } from '../profile';
 import { Modal } from '../../common';
 import './Dashboard.css';
@@ -7,6 +7,17 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [modalTitle, setModalTitle] = useState('');
+  const [userName, setUserName] = useState(''); //  thêm state cho tên
+
+  useEffect(() => {
+    // Get user data from localStorage (set by auth service)
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (storedUser && storedUser.name) {
+      setUserName(storedUser.name.split(' ')[0]);
+    } else {
+      setUserName('User'); // fallback
+    }
+  }, []);
 
   // Mock data - sau này sẽ lấy từ API
   const statsData = {
@@ -112,10 +123,10 @@ const Dashboard = () => {
               </div>
               
               <div className="account-box">
-                <div className="user-avatar">A</div>
+                <div className="user-avatar">{userName.charAt(0)}</div>
                 <div className="user-info">
                   <span className="welcome-text">Welcome back</span>
-                  <span className="user-name">Alysia</span>
+                  <span className="user-name">{userName}</span>
                 </div>
                 <div className="profile-link-icon">
                   <span className="link-arrow">→</span>

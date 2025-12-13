@@ -15,12 +15,21 @@ const staffRoleSchema = new mongoose.Schema(
     },
 
     // Cho phép role này dùng trong nhiều department
-    departments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Department',
-      },
-    ],
+    departments: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Department',
+          required: true,
+        }
+      ],
+      validate: {
+        validator: function(v) {
+          return Array.isArray(v) && v.length > 0;
+        },
+        message: 'StaffRole phải có ít nhất 1 phòng ban'
+      }
+    },
 
     isActive: {
       type: Boolean,

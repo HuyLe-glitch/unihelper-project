@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/userRepository');
 const { AppError, catchAsync } = require('../utils/appError');
-
+// THis file?
 /**
  * Middleware xác thực token
  * Kiểm tra JWT token và lưu thông tin user vào req.userData
@@ -31,8 +31,15 @@ exports.protect = catchAsync(async (req, res, next) => {
     throw new AppError('Xác thực token thất bại', 401);
   }
 
+  // Compatibility: token may carry id, _id, sub or nested user object
+  const userIdFromToken = decoded.id || decoded._id || decoded.sub || (decoded.user && (decoded.user.id || decoded.user._id));
+  if (!userIdFromToken) {
+    throw new AppError('Token payload không chứa user id', 401);
+  }
+
   // Kiểm tra user còn tồn tại không
-  const user = await userRepository.findById(decoded.id);
+  //const user = await userRepository.findById(decoded.id);
+  const user = await userRepository.findById(userIdFromToken);
   if (!user) {
     throw new AppError('User không tồn tại', 401);
   }
@@ -45,6 +52,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     role: user.role
   };
 
+  // compatibility alias for code expecting req.user
+  req.user = user;
   req.token = token;
   next();
 });

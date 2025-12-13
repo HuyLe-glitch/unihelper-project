@@ -63,18 +63,59 @@ class UserRepository {
 
   // Cập nhật user
   async update(id, updateData) {
+    // Kiểm tra updateData không rỗng
+    if (!updateData || Object.keys(updateData).length === 0) {
+      throw new Error('No data to update');
+    }
+
     // Hash password nếu có cập nhật password
     if (updateData.password) {
       updateData.password = await this.hashPassword(updateData.password);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+    // Kiểm tra user tồn tại trước khi update
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { 
+        new: true,
+        runValidators: true // Chạy validation
+      }
+    );
+    
+    if (!updatedUser) {
+      throw new Error('Failed to update user');
+    }
+
     return this.sanitizeUser(updatedUser);
   }
+  // Thêm vào UserRepository class
+  async deleteWithProfile(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-  // Xóa user
-  async delete(id) {
-    return await User.findByIdAndDelete(id);
+    // Xóa profile theo role trước
+    switch (user.role) {
+      case 'STUDENT':
+        await Student.findOneAndDelete({ user: userId });
+        break;
+      case 'STAFF':
+        await Staff.findOneAndDelete({ user: userId });
+        break;
+      case 'ADMIN':
+        await Admin.findOneAndDelete({ user: userId });
+        break;
+    }
+
+    // Sau đó xóa user
+    return await User.findByIdAndDelete(userId);
   }
 
   // Lấy tất cả users với pagination - không có password

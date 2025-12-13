@@ -1,0 +1,434 @@
+.department-container {
+  font-family: "Segoe UI", sans-serif;
+  padding: 30px 50px;
+  color: #1f2937;
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.department-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.department-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.department-header p {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.add-dept-btn,
+.add-role-btn {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.add-dept-btn {
+  background-color: #2563eb;
+  color: white;
+}
+
+.add-dept-btn:hover {
+  background-color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.add-role-btn {
+  background-color: #10b981;
+  color: white;
+}
+
+.add-role-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Bộ Lọc */
+.filter-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-section label {
+  font-weight: 500;
+}
+
+.filter-section select {
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+/* Stats Info */
+.stats-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat-item {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.stat-item strong {
+  font-size: 1.1rem;
+  margin-left: 4px;
+}
+
+.stat-item.active {
+  color: #059669;
+}
+
+.stat-item.active strong {
+  color: #047857;
+}
+
+.stat-item.total {
+  color: #2563eb;
+}
+
+.stat-item.total strong {
+  color: #1e40af;
+}
+
+/* DANH SÁCH PHÒNG BAN */
+.department-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.department-item {
+  background-color: white;
+  padding: 18px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.department-item:hover {
+  background-color: #f3f4f6;
+  transform: translateX(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.dept-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.dept-info p {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.view-staff-link {
+  color: #2563eb;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* NO DATA */
+.no-data {
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  color: #111827;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-form label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.modal-form input,
+.modal-form select {
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.modal-form input:focus,
+.modal-form select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modal-form select {
+  cursor: pointer;
+}
+
+/* Department Checkbox List */
+.department-checkbox-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.checkbox-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.checkbox-label {
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+  flex: 1;
+}
+
+.dept-type {
+  color: #6b7280;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.selected-count {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.save-btn:hover {
+  background-color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.cancel-btn:hover {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.save-btn:active,
+.cancel-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .department-container {
+    padding: 20px;
+  }
+
+  .department-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .add-dept-btn,
+  .add-role-btn {
+    width: 100%;
+  }
+
+  .modal {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
