@@ -1,5 +1,13 @@
-// Script: tạo user STAFF và profile Staff để test API
-// Cách dùng: từ thư mục backend chạy: node scripts\seedStaff.js
+/**
+ * Seed Script: Tạo 2 tài khoản Staff CỐ ĐỊNH
+ * 
+ * - Staff CTSV: Xử lý yêu cầu Công tác Sinh viên
+ * - Staff KTX: Xử lý yêu cầu Ký túc xá
+ * 
+ * LƯU Ý: KHÔNG tạo thêm staff mới, hệ thống chỉ có 2 staff này
+ * 
+ * Cách dùng: node scripts/seedStaff.js
+ */
 
 require('dotenv').config();
 const mongoose = require('mongoose');
@@ -7,190 +15,131 @@ const bcrypt = require('bcryptjs');
 
 const User = require('../src/models/User');
 const Staff = require('../src/models/Staff');
-const StaffRole = require('../src/models/StaffRole');
+const { FIXED_ACCOUNTS, STAFF_TYPES } = require('../src/constants/modelConstants');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/unihelper';
 
-async function createStaffRole() {
-  // Tạo staff roles nếu chưa có
-  const roles = [
-    {
-      name: 'Chuyên viên CTSV',
-      description: 'Chuyên viên Phòng Công tác Sinh viên',
-      isActive: true
+// 2 tài khoản staff CỐ ĐỊNH
+const STAFF_ACCOUNTS = [
+  {
+    user: {
+      name: 'Nhân viên Công tác Sinh viên',
+      email: FIXED_ACCOUNTS.STAFF_CTSV.email,
+      password: 'Password123!',
+      role: 'STAFF'
     },
-    {
-      name: 'Chuyên viên KTX',
-      description: 'Chuyên viên Ký túc xá',
-      isActive: true
-    },
-    {
-      name: 'Trưởng phòng CTSV',
-      description: 'Trưởng phòng Công tác Sinh viên',
-      isActive: true
-    },
-    {
-      name: 'Trưởng phòng KTX',
-      description: 'Trưởng phòng Ký túc xá',
-      isActive: true
+    staff: {
+      staffId: FIXED_ACCOUNTS.STAFF_CTSV.staffId,
+      staffType: STAFF_TYPES.CTSV,
+      department: FIXED_ACCOUNTS.STAFF_CTSV.department,
+      position: FIXED_ACCOUNTS.STAFF_CTSV.position,
+      phone: '0123456789'
     }
-  ];
-
-  const createdRoles = {};
-  for (const roleData of roles) {
-    let role = await StaffRole.findOne({ name: roleData.name });
-    if (!role) {
-      role = new StaffRole(roleData);
-      await role.save();
-      console.log(`🆕 StaffRole created: ${roleData.name}`);
-    } else {
-      console.log(`ℹ️ StaffRole already exists: ${roleData.name}`);
+  },
+  {
+    user: {
+      name: 'Nhân viên Ký túc xá',
+      email: FIXED_ACCOUNTS.STAFF_KTX.email,
+      password: 'Password123!',
+      role: 'STAFF'
+    },
+    staff: {
+      staffId: FIXED_ACCOUNTS.STAFF_KTX.staffId,
+      staffType: STAFF_TYPES.KTX,
+      department: FIXED_ACCOUNTS.STAFF_KTX.department,
+      position: FIXED_ACCOUNTS.STAFF_KTX.position,
+      phone: '0987654321'
     }
-    createdRoles[roleData.name] = role._id;
   }
+];
 
-  return createdRoles;
-}
-
-async function createStaffAccounts(staffRoles) {
-  const staffAccounts = [
-    {
-      // CTSV Staff
-      user: {
-        name: 'Nguyễn Văn CTSV',
-        email: 'ctsv@university.edu.vn',
-        password: 'Password123!',
-        role: 'STAFF'
-      },
-      staff: {
-        staffId: 'CTSV001',
-        staffType: 'CTSV',
-        department: 'Phòng Công tác Sinh viên',
-        email: 'ctsv@university.edu.vn',
-        hometown: 'Hà Nội',
-        phone: '0123456789',
-        staffRole: staffRoles['Chuyên viên CTSV']
-      }
-    },
-    {
-      // KTX Staff
-      user: {
-        name: 'Trần Thị KTX',
-        email: 'ktx@university.edu.vn',
-        password: 'Password123!',
-        role: 'STAFF'
-      },
-      staff: {
-        staffId: 'KTX001',
-        staffType: 'KTX',
-        department: 'Phòng Ký túc xá',
-        email: 'ktx@university.edu.vn',
-        hometown: 'Hồ Chí Minh',
-        phone: '0987654321',
-        staffRole: staffRoles['Chuyên viên KTX']
-      }
-    },
-    {
-      // CTSV Manager
-      user: {
-        name: 'Lê Văn Trưởng CTSV',
-        email: 'manager.ctsv@university.edu.vn',
-        password: 'Password123!',
-        role: 'STAFF'
-      },
-      staff: {
-        staffId: 'CTSV002',
-        staffType: 'CTSV',
-        department: 'Phòng Công tác Sinh viên',
-        email: 'manager.ctsv@university.edu.vn',
-        hometown: 'Đà Nẵng',
-        phone: '0111222333',
-        staffRole: staffRoles['Trưởng phòng CTSV']
-      }
-    }
-  ];
-
-  const createdStaff = [];
-
-  for (const accountData of staffAccounts) {
-    const { user: userData, staff: staffData } = accountData;
-
-    // Tạo User
-    let user = await User.findOne({ email: userData.email });
-    if (!user) {
-      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-      const hashed = await bcrypt.hash(userData.password, saltRounds);
-
-      user = new User({
-        ...userData,
-        password: hashed
-      });
-      await user.save();
-      console.log(`🆕 Staff User created: ${userData.email}`);
-    } else {
-      console.log(`ℹ️ Staff User already exists: ${userData.email}`);
-    }
-
-    // Tạo Staff profile
-    let staff = await Staff.findOne({ user: user._id });
-    if (!staff) {
-      staff = new Staff({
-        ...staffData,
-        user: user._id
-      });
-      await staff.save();
-      console.log(`🆕 Staff profile created: ${staffData.staffId} (${staffData.staffType})`);
-    } else {
-      console.log(`ℹ️ Staff profile already exists: ${staffData.staffId}`);
-    }
-
-    createdStaff.push({
-      user,
-      staff,
-      credentials: {
-        email: userData.email,
-        password: userData.password,
-        staffType: staffData.staffType
-      }
-    });
-  }
-
-  return createdStaff;
-}
-
-async function main() {
+async function seedStaff() {
   try {
     await mongoose.connect(MONGO_URI);
     console.log('✅ Connected to MongoDB');
+    console.log('═'.repeat(60));
 
-    // Tạo staff roles
-    const staffRoles = await createStaffRole();
+    const createdStaff = [];
 
-    // Tạo staff accounts
-    const staffAccounts = await createStaffAccounts(staffRoles);
+    for (const accountData of STAFF_ACCOUNTS) {
+      const { user: userData, staff: staffData } = accountData;
 
-    console.log('\n--- KẾT QUẢ STAFF ACCOUNTS ---');
-    staffAccounts.forEach(account => {
-      console.log(`\n📋 ${account.credentials.staffType} Staff:`);
-      console.log(`   Email: ${account.credentials.email}`);
-      console.log(`   Password: ${account.credentials.password}`);
-      console.log(`   Staff ID: ${account.staff.staffId}`);
-      console.log(`   Department: ${account.staff.department}`);
+      // Tạo hoặc tìm User
+      let user = await User.findOne({ email: userData.email });
+      
+      if (!user) {
+        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+        const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+
+        user = new User({
+          ...userData,
+          password: hashedPassword
+        });
+        await user.save();
+        console.log(`🆕 User created: ${userData.email}`);
+      } else {
+        console.log(`ℹ️ User exists: ${userData.email}`);
+      }
+
+      // Tạo hoặc tìm Staff profile (theo staffType vì chỉ có 1 mỗi loại)
+      let staff = await Staff.findOne({ staffType: staffData.staffType });
+      
+      if (!staff) {
+        staff = new Staff({
+          ...staffData,
+          user: user._id
+        });
+        await staff.save();
+        console.log(`🆕 Staff created: ${staffData.staffId} (${staffData.staffType})`);
+      } else {
+        // Cập nhật user reference nếu cần
+        if (staff.user.toString() !== user._id.toString()) {
+          staff.user = user._id;
+          await staff.save();
+          console.log(`🔄 Staff updated: ${staffData.staffId}`);
+        } else {
+          console.log(`ℹ️ Staff exists: ${staffData.staffId}`);
+        }
+      }
+
+      createdStaff.push({
+        email: userData.email,
+        password: userData.password,
+        staffId: staffData.staffId,
+        staffType: staffData.staffType,
+        department: staffData.department
+      });
+    }
+
+    // Hiển thị kết quả
+    console.log('\n' + '═'.repeat(60));
+    console.log('📋 2 STAFF ACCOUNTS CỐ ĐỊNH (KHÔNG TẠO THÊM ĐƯỢC)');
+    console.log('═'.repeat(60));
+
+    createdStaff.forEach((account, index) => {
+      console.log(`\n${index + 1}. ${account.staffType} Staff:`);
+      console.log(`   📧 Email: ${account.email}`);
+      console.log(`   🔑 Password: ${account.password}`);
+      console.log(`   🆔 Staff ID: ${account.staffId}`);
+      console.log(`   🏢 Department: ${account.department}`);
     });
 
-    console.log('\n💡 Hướng dẫn test API:');
-    console.log('1. Dùng credentials trên để login: POST /api/auth/login');
-    console.log('2. Lấy token từ response');
-    console.log('3. Test staff APIs: GET /api/staff/dashboard');
-    console.log('4. CTSV staff chỉ thấy yêu cầu CTSV, KTX staff chỉ thấy yêu cầu KTX');
+    console.log('\n' + '═'.repeat(60));
+    console.log('💡 LƯU Ý QUAN TRỌNG:');
+    console.log('═'.repeat(60));
+    console.log('✅ Staff CTSV chỉ xem/xử lý yêu cầu Công tác Sinh viên');
+    console.log('✅ Staff KTX chỉ xem/xử lý yêu cầu Ký túc xá');
+    console.log('❌ KHÔNG thể tạo thêm staff mới');
+    console.log('❌ KHÔNG thể xóa staff');
 
     await mongoose.connection.close();
     console.log('\n📴 Connection closed');
     process.exit(0);
+
   } catch (err) {
     console.error('❌ Seeder failed:', err);
     process.exit(1);
   }
 }
 
-main();
+seedStaff();

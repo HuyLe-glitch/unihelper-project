@@ -1,112 +1,63 @@
 const express = require('express');
 const router = express.Router();
 
-// Import controllers, middlewares, và validators
 const staffController = require('../controllers/staffController');
 const authMiddleware = require('../middleware/authMiddleware');
 const staffMiddleware = require('../middleware/staffMiddleware');
-const staffValidator = require('../validators/staffValidation');
 
-// Apply common middlewares cho tất cả staff routes
-router.use(authMiddleware.protect); // Require authentication
-router.use(staffMiddleware.ensureStaff); // Ensure user is staff
-router.use(staffMiddleware.sanitizeInput); // Sanitize input
-router.use(staffMiddleware.formatResponse); // Format response
-router.use(staffMiddleware.rateLimitStaffActions()); // Rate limiting
+/**
+ * Staff Routes
+ * 
+ * Hệ thống chỉ có 2 tài khoản staff CỐ ĐỊNH:
+ * - Staff CTSV: Xử lý yêu cầu Công tác Sinh viên
+ * - Staff KTX: Xử lý yêu cầu Ký túc xá
+ * 
+ * Mỗi staff chỉ xem và xử lý yêu cầu thuộc phạm vi của mình
+ */
 
-// [GET] /staff/profile - Lấy thông tin profile staff
-router.get('/profile',
-  staffMiddleware.logStaffActivity('GET_PROFILE'),
-  staffController.getProfile
-);
+// Authentication required for all staff routes
+router.use(authMiddleware.protect);
+router.use(staffMiddleware.ensureStaff);
 
-// [GET] /staff/dashboard - Lấy dữ liệu dashboard
-router.get('/dashboard',
-  staffMiddleware.logStaffActivity('GET_DASHBOARD'),
-  staffController.getDashboard
-);
+// ============================================
+// PROFILE & DASHBOARD
+// ============================================
 
-// [GET] /staff/requests - Lấy danh sách yêu cầu cho staff
-router.get('/requests',
-  staffValidator.getRequestsValidator,
-  staffMiddleware.handleValidationErrors,
-  staffMiddleware.logStaffActivity('GET_REQUESTS'),
-  staffController.getRequests
-);
+// [GET] /staff/profile
+router.get('/profile', staffController.getProfile);
 
-// [GET] /staff/requests/stats - Lấy thống kê yêu cầu
-router.get('/requests/stats',
-  staffMiddleware.logStaffActivity('GET_REQUEST_STATS'),
-  staffController.getRequestStats
-);
+// [GET] /staff/dashboard
+router.get('/dashboard', staffController.getDashboard);
 
-// [GET] /staff/requests/:requestId - Lấy chi tiết một yêu cầu
-router.get('/requests/:requestId',
-  staffValidator.getRequestByIdValidator,
-  staffMiddleware.handleValidationErrors,
-  staffMiddleware.logStaffActivity('GET_REQUEST_DETAIL'),
-  staffController.getRequestById
-);
+// ============================================
+// REQUEST MANAGEMENT
+// ============================================
 
-// [PUT] /staff/requests/:requestId/status - Cập nhật trạng thái yêu cầu
-router.put('/requests/:requestId/status',
-  staffValidator.updateRequestStatusValidator,
-  staffMiddleware.handleValidationErrors,
-  staffValidator.validateStatusTransition,
-  staffValidator.validateStaffPermissions,
-  staffMiddleware.logStaffActivity('UPDATE_REQUEST_STATUS'),
-  staffController.updateRequestStatus
-);
+// [GET] /staff/requests - Tự động filter theo staffType
+router.get('/requests', staffController.getRequests);
 
-// Routes cho CTSV staff only
-router.get('/ctsv/requests',
-  staffMiddleware.checkStaffTypePermission(['CTSV']),
-  staffValidator.getRequestsValidator,
-  staffMiddleware.handleValidationErrors,
-  staffMiddleware.logStaffActivity('GET_CTSV_REQUESTS'),
-  (req, res, next) => {
-    req.query.staffType = 'CTSV';
-    next();
-  },
-  staffController.getRequests
-);
+// [GET] /staff/requests/stats
+router.get('/requests/stats', staffController.getRequestStats);
 
-// Routes cho KTX staff only
-router.get('/ktx/requests',
-  staffMiddleware.checkStaffTypePermission(['KTX']),
-  staffValidator.getRequestsValidator,
-  staffMiddleware.handleValidationErrors,
-  staffMiddleware.logStaffActivity('GET_KTX_REQUESTS'),
-  (req, res, next) => {
-    req.query.staffType = 'KTX';
-    next();
-  },
-  staffController.getRequests
-);
+// [GET] /staff/requests/:requestId
+router.get('/requests/:requestId', staffController.getRequestById);
 
-// [GET] /staff/department/:staffType - Lấy danh sách nhân viên theo phòng ban
-router.get('/department/:staffType',
-  staffValidator.getDepartmentStaffValidator, // Use proper validator
-  staffMiddleware.handleValidationErrors,
-  staffMiddleware.logStaffActivity('GET_DEPARTMENT_STAFF'),
-  staffController.getStaffByDepartment
-);
+// [PUT] /staff/requests/:requestId/status
+router.put('/requests/:requestId/status', staffController.updateRequestStatus);
 
-// Error handling middleware cho staff routes
+// ============================================
+// STAFF INFO (cho admin xem)
+// ============================================
+
+// [GET] /staff/info/:staffType - Lấy thông tin 1 trong 2 staff
+router.get('/info/:staffType', staffController.getStaffByType);
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
 router.use((error, req, res, next) => {
   console.error('Staff route error:', error);
-  
-  // Log error details
-  const errorLog = {
-    timestamp: new Date().toISOString(),
-    userId: req.userData?._id,
-    route: req.originalUrl,
-    method: req.method,
-    error: error.message,
-    stack: error.stack
-  };
-  
-  console.error('Staff Error Log:', errorLog);
   
   res.status(500).json({
     status: false,
@@ -114,37 +65,5 @@ router.use((error, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { error: error.message })
   });
 });
-
-module.exports = router;
-const staffController = require('../controllers/staffController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
-const staffMiddleware = require('../middleware/staffMiddleware');
-const staffValidation = require('../validators/staffValidation');
-const staffService = require('../services/staffService');
-
-const { loadStaff } = require('../middleware/staffMiddleware');
-const { createStaff,updateStaff } = require('../validators/staffValidation');
-const { assignRole } = require('../services/staffService');
-
-
-// Protect all routes
-router.use(protect);
-
-// Staff CRUD operations (Admin only)
-router.get('/', restrictTo('ADMIN'), staffController.getAllStaff);
-router.get('/:id', restrictTo('ADMIN'), staffController.getStaffById);
-router.post('/', restrictTo('ADMIN'), staffValidation.createStaff, staffController.createStaff);
-router.patch('/:id', restrictTo('ADMIN'), staffMiddleware.loadStaff, staffValidation.updateStaff, staffController.updateStaff);
-router.delete('/:id', restrictTo('ADMIN'), staffController.deleteStaff);
-
-// Staff role management
-router.get('/:id/roles', restrictTo('ADMIN'), staffController.getStaffRoles);
-router.get('/roles', restrictTo('ADMIN'), staffController.getAllRoles);
-router.patch('/:id/assign-role', restrictTo('ADMIN'), staffMiddleware.loadStaff, staffController.assignRole);
-router.patch('/:id/remove-role', restrictTo('ADMIN'), staffController.removeRole);
-
-// Department management
-router.get('/department/:departmentId', restrictTo('ADMIN'), staffController.getStaffByDepartment);
-router.patch('/:id/transfer-department', restrictTo('ADMIN'), staffController.transferDepartment);
 
 module.exports = router;

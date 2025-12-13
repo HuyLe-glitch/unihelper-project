@@ -1,5 +1,13 @@
 const staffService = require('../services/staffService');
+const { STAFF_TYPES } = require('../constants/modelConstants');
 
+/**
+ * Staff Controller - Presentation Layer
+ * 
+ * Hệ thống chỉ có 2 tài khoản staff CỐ ĐỊNH:
+ * - Staff CTSV: ctsv@university.edu.vn
+ * - Staff KTX: ktx@university.edu.vn
+ */
 class StaffController {
 
   /**
@@ -7,13 +15,17 @@ class StaffController {
    */
   async getProfile(req, res) {
     try {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData.id;
       const staff = await staffService.getStaffByUserId(userId);
 
       res.status(200).json({
         status: true,
         message: 'Staff profile retrieved successfully',
-        data: staff
+        data: {
+          ...staff.toObject(),
+          userName: staff.user?.name,
+          userEmail: staff.user?.email
+        }
       });
     } catch (error) {
       console.error('Error in getProfile:', error);
@@ -25,11 +37,34 @@ class StaffController {
   }
 
   /**
-   * [GET] /staff/requests - Lấy danh sách yêu cầu dành cho staff
+   * [GET] /staff/dashboard - Lấy dữ liệu dashboard
+   */
+  async getDashboard(req, res) {
+    try {
+      const userId = req.userData.id;
+      const dashboardData = await staffService.getDashboardData(userId);
+
+      res.status(200).json({
+        status: true,
+        message: 'Dashboard data retrieved successfully',
+        data: dashboardData
+      });
+    } catch (error) {
+      console.error('Error in getDashboard:', error);
+      res.status(400).json({
+        status: false,
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * [GET] /staff/requests - Lấy danh sách yêu cầu
+   * Tự động filter theo staffType (CTSV hoặc KTX)
    */
   async getRequests(req, res) {
     try {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData.id;
       const {
         page = 1,
         limit = 10,
@@ -67,7 +102,7 @@ class StaffController {
    */
   async getRequestStats(req, res) {
     try {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData.id;
       const stats = await staffService.getRequestStatsForStaff(userId);
 
       res.status(200).json({
@@ -85,11 +120,11 @@ class StaffController {
   }
 
   /**
-   * [GET] /staff/requests/:requestId - Lấy chi tiết một yêu cầu
+   * [GET] /staff/requests/:requestId - Lấy chi tiết yêu cầu
    */
   async getRequestById(req, res) {
     try {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData.id;
       const { requestId } = req.params;
 
       const request = await staffService.getRequestById(userId, requestId);
@@ -109,11 +144,11 @@ class StaffController {
   }
 
   /**
-   * [PUT] /staff/requests/:requestId/status - Cập nhật trạng thái yêu cầu
+   * [PUT] /staff/requests/:requestId/status - Cập nhật trạng thái
    */
   async updateRequestStatus(req, res) {
     try {
-      const userId = req.userData.id; // Use .id
+      const userId = req.userData.id;
       const { requestId } = req.params;
       const { status, note } = req.body;
 
@@ -139,277 +174,53 @@ class StaffController {
   }
 
   /**
-   * [GET] /staff/dashboard - Lấy dữ liệu cho dashboard staff
+   * [GET] /staff/info/:staffType - Lấy thông tin staff theo type
+   * Chỉ trả về 1 staff vì mỗi type chỉ có 1 staff
    */
-  async getDashboard(req, res) {
-    try {
-      const userId = req.userData.id; // Use .id
-
-      // Lấy thống kê
-      const stats = await staffService.getRequestStatsForStaff(userId);
-
-      // Lấy danh sách yêu cầu gần đây (chưa xử lý)
-      const recentRequests = await staffService.getRequestsForStaff(userId, {
-        page: 1,
-        limit: 5,
-        status: 'pending', // This will be mapped to 'ĐANG XỬ LÝ' in repository
-        sortBy: 'requestDate',
-        sortOrder: 'desc'
-      });
-
-      res.status(200).json({
-        status: true,
-        message: 'Dashboard data retrieved successfully',
-        data: {
-          stats,
-          recentRequests: recentRequests.requests,
-          staffInfo: recentRequests.staff
-        }
-      });
-    } catch (error) {
-      console.error('Error in getDashboard:', error);
-      res.status(400).json({
-        status: false,
-        message: error.message
-      });
-    }
-  }
-
-  /**
-   * [GET] /staff/department/:staffType - Lấy danh sách nhân viên theo phòng ban
-   */
-  async getStaffByDepartment(req, res) {
+  async getStaffByType(req, res) {
     try {
       const { staffType } = req.params;
-      const {
-        page = 1,
-        limit = 10,
-        status = 'ACTIVE',
-        sortBy = 'dateOfJoining',
-        sortOrder = 'desc'
-      } = req.query;
 
-      // Validate staffType parameter
-      if (!['CTSV', 'KTX'].includes(staffType.toUpperCase())) {
+      const upperType = staffType.toUpperCase();
+      if (!Object.values(STAFF_TYPES).includes(upperType)) {
         return res.status(400).json({
           status: false,
           message: 'Invalid staff type. Must be CTSV or KTX'
         });
       }
 
-      const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        status,
-        sortBy,
-        sortOrder
-      };
+      const Staff = require('../models/Staff');
+      const staff = await Staff.findByType(upperType);
 
-      const result = await staffService.getStaffByType(staffType.toUpperCase(), options);
+      if (!staff) {
+        return res.status(404).json({
+          status: false,
+          message: `No ${upperType} staff found`
+        });
+      }
 
       res.status(200).json({
         status: true,
-        message: `${staffType.toUpperCase()} staff list retrieved successfully`,
-        data: result,
-        timestamp: new Date().toISOString()
+        message: `${upperType} staff info retrieved successfully`,
+        data: {
+          staffId: staff.staffId,
+          staffType: staff.staffType,
+          department: staff.department,
+          position: staff.position,
+          name: staff.user?.name,
+          email: staff.user?.email,
+          status: staff.status
+        }
       });
 
     } catch (error) {
-      console.error('Error in getStaffByDepartment:', error);
+      console.error('Error in getStaffByType:', error);
       res.status(400).json({
         status: false,
-        message: error.message,
-        timestamp: new Date().toISOString()
+        message: error.message
       });
     }
   }
-}
-
-module.exports = new StaffController();
-const Staff = require('../models/Staff');
-const StaffRole = require('../models/StaffRole');
-const User = require('../models/User');
-const Department = require('../models/Department');
-const { catchAsync } = require('../utils/appError');
-const staffService = require('../services/staffService');
-const userService = require('../services/userService');
-
-class StaffController {
-  // Add this missing method
-  getStaffRoles = catchAsync(async (req, res) => {
-    const roles = await staffService.getStaffRoles(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      data: roles
-    });
-  });
-
-  // Add method to get all available roles
-  getAllRoles = catchAsync(async (req, res) => {
-    const roles = await staffService.getAllRoles();
-
-    res.status(200).json({
-      success: true,
-      data: roles
-    });
-  })
-
-  // Get all staff
-  getAllStaff = catchAsync(async (req, res) => {
-    const result = await staffService.getAllStaff(req.query, req.query);
-
-    res.status(200).json({
-      success: true,
-      data: result.staff,
-      meta: result.meta
-    });
-  });
-
-  // Get staff by ID
-  getStaffById = catchAsync(async (req, res) => {
-    const staff = await Staff.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('department', 'name')
-      .populate('staffRole', 'name');
-
-    if (!staff) {
-      return res.status(404).json({
-        success: false,
-        message: 'Staff not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: staff
-    });
-  });
-
-  // Create new staff
-  createStaff = catchAsync(async (req, res) => {
-    const payload = req.body;
-
-    const result = await staffService.createStaff(payload);
-
-    return res.status(201).json({
-      status: 'success',
-      message: 'Staff profile created successfully',
-      data: result.data
-    });
-  });
-
-  // Update staff
-  // Thay thế method updateStaff trong staffController.js
-  updateStaff = catchAsync(async (req, res) => {
-    const result = await staffService.updateStaff(req.params.id, req.body);
-
-    res.status(200).json({
-      success: true,
-      message: result.message,
-      data: result.data
-    });
-  });
-
-  // Delete staff
-  deleteStaff = catchAsync(async (req, res) => {
-    const staff = await Staff.findByIdAndDelete(req.params.id);
-
-    if (!staff) {
-      return res.status(404).json({
-        success: false,
-        message: 'Staff not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Staff deleted successfully'
-    });
-  });
-
-  // Assign role to staff
-  assignRole = catchAsync(async (req, res) => {
-  const { roleId, staffRole } = req.body;
-  const mongoose = require('mongoose');
-
-  // debug helper (tạm) - bỏ/comment khi xong
-  // console.log('assignRole.req.body=', req.body);
-
-  const rid = roleId || staffRole;
-  if (!rid || !mongoose.Types.ObjectId.isValid(String(rid))) {
-    // trả lỗi rõ ràng (AppError sẽ được xử lý bởi global handler)
-    const { AppError } = require('../utils/appError');
-    throw new AppError('Invalid or missing roleId (use JSON body with "roleId" or "staffRole")', 400);
-  }
-
-  const updated = await staffService.assignRole(req.params.id, rid);
-
-  res.status(200).json({
-    success: true,
-    message: 'Role assigned successfully',
-    data: updated
-  });
-});
-
-  // Remove role from staff
-  removeRole = catchAsync(async (req, res) => {
-    const staff = await Staff.findByIdAndUpdate(
-      req.params.id,
-      { $unset: { staffRole: 1 } },
-      { new: true }
-    ).populate('user', 'name email');
-
-    if (!staff) {
-      return res.status(404).json({
-        success: false,
-        message: 'Staff not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: staff,
-      message: 'Role removed successfully'
-    });
-  });
-
-  // Get staff by department
-  getStaffByDepartment = catchAsync(async (req, res) => {
-    const staff = await Staff.find({ department: req.params.departmentId })
-      .populate('user', 'name email')
-      .populate('staffRole', 'name');
-
-    res.status(200).json({
-      success: true,
-      data: staff
-    });
-  });
-
-  // Transfer staff to different department
-  transferDepartment = catchAsync(async (req, res) => {
-    const { departmentId } = req.body;
-
-    const staff = await Staff.findByIdAndUpdate(
-      req.params.id,
-      { department: departmentId },
-      { new: true }
-    ).populate('user', 'name email')
-      .populate('department', 'name');
-
-    if (!staff) {
-      return res.status(404).json({
-        success: false,
-        message: 'Staff not found'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: staff,
-      message: 'Staff transferred successfully'
-    });
-  });
 }
 
 module.exports = new StaffController();
