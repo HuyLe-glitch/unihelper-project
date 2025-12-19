@@ -49,6 +49,7 @@ const seedAll = async () => {
 
     const scripts = [
       'seedCertificateType.js',
+      'seedFacultyAndMajor.js',
       'seedAdmin.js',
       'seedStaff.js',
       'seedStudent.js',

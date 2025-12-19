@@ -1,242 +1,269 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../schedule/Schedule.css';
-import { apiClient } from '../../../services/api';
+import './HistoryDormitory.css';
 
 const HistoryDormitory = () => {
   const navigate = useNavigate();
 
-  const [dormitoryHistory, setDormitoryHistory] = useState([]); // current page items
-  const [searchFilters, setSearchFilters] = useState({
-    studentCode: '',
-    fullName: '',
-    category: '',
-    deviceName: '',
-    requestDate: '',
-    status: ''
-  });
-  const [pageSize, setPageSize] = useState(5); // default 5 per page
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalRows, setTotalRows] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteRequestId, setDeleteRequestId] = useState(null);
-
-  // Handle delete request
-  const handleDeleteClick = (requestId) => {
-    setDeleteRequestId(requestId);
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-  try {
-    const response = await apiClient.delete(`/dormitory/requests/${deleteRequestId}`);
-    
-    if (response.data.success) {
-      // Remove item from local state instead of refetching
-      setDormitoryHistory(prev => prev.filter(item => item.id !== deleteRequestId));
-      setShowDeleteModal(false);
-      setDeleteRequestId(null);
-      
-      // Show success message (optional)
-      console.log('Request deleted successfully');
+  // Dữ liệu mẫu
+  const [dormitoryHistory] = useState([
+    {
+      id: 'KTX001',
+      requestCode: 'REQ001',
+      studentCode: '2051063001',
+      fullName: 'Nguyễn Văn A',
+      room: 'A101',
+      category: 'Thiết bị điện',
+      deviceName: 'Quạt trần',
+      description: 'Quạt trần phòng A101 không hoạt động, có tiếng kêu lạ',
+      requestDate: '2025-12-10',
+      confirmDate: '2025-12-12',
+      semester: 'HK1 2024-2025',
+      status: 'completed'
+    },
+    {
+      id: 'KTX002',
+      requestCode: 'REQ002',
+      studentCode: '2051063001',
+      fullName: 'Nguyễn Văn A',
+      room: 'A101',
+      category: 'Thiết bị nước',
+      deviceName: 'Vòi nước',
+      description: 'Vòi nước nhà vệ sinh bị rò rỉ',
+      requestDate: '2025-12-11',
+      confirmDate: '',
+      semester: 'HK1 2024-2025',
+      status: 'processing'
+    },
+    {
+      id: 'KTX003',
+      requestCode: 'REQ003',
+      studentCode: '2051063001',
+      fullName: 'Nguyễn Văn A',
+      room: 'A101',
+      category: 'Nội thất',
+      deviceName: 'Giường',
+      description: 'Giường bị gãy chân, cần thay mới',
+      requestDate: '2025-12-05',
+      confirmDate: '',
+      semester: 'HK2 2023-2024',
+      status: 'rejected'
+    },
+    {
+      id: 'KTX004',
+      requestCode: 'REQ004',
+      studentCode: '2051063001',
+      fullName: 'Nguyễn Văn A',
+      room: 'A101',
+      category: 'Cửa',
+      deviceName: 'Khóa cửa',
+      description: 'Khóa cửa phòng bị hỏng, không đóng được',
+      requestDate: '2025-12-08',
+      confirmDate: '2025-12-09',
+      semester: 'HK1 2024-2025',
+      status: 'completed'
     }
-  } catch (error) {
-    console.error('Delete failed:', error);
-    setError('Failed to delete request: ' + (error.response?.data?.message || error.message));
-  }
-};
+  ]);
 
-  const handleDeleteCancel = () => {
-    setShowDeleteModal(false);
-    setDeleteRequestId(null);
-  };
+  // States cho filter và search
+  const [searchTerm, setSearchTerm] = useState('');
+  const [semesterFilter, setSemesterFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('newest');
 
   const handleCreateRequest = () => {
     navigate('/student/dormitory');
   };
 
-  const getStatusBadge = (status) => {
-    const statusClasses = {
-      'Approved': 'status-approved',
-      'Pending': 'status-pending',
-      'Under Review': 'status-review',
-      'Rejected': 'status-rejected'
+  // Hàm lấy label và class cho status
+  const getStatusInfo = (status) => {
+    const statusMap = {
+      completed: { label: 'Đã hoàn thành', class: 'status-completed', icon: '✓' },
+      processing: { label: 'Đang xử lý', class: 'status-processing', icon: '⟳' },
+      rejected: { label: 'Đã từ chối', class: 'status-rejected', icon: '✕' },
     };
-    return (
-      <span className={`status-badge ${statusClasses[status] || 'status-default'}`}>
-        {status}
-      </span>
-    );
+    return statusMap[status] || statusMap.processing;
   };
 
-  const handleFilterChange = (field, value) => {
-    setSearchFilters(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const formatDate = (d) => {
-    if (!d) return '';
-    try {
-      return new Date(d).toISOString().slice(0, 10);
-    } catch {
-      return String(d);
-    }
-  };
-
-  const mapServerItemToUI = (it) => {
-    // Get current user data from localStorage (like ProfilePanel.jsx)
-    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const profileData = storedUser.profile || {};
-    
+  // Tính toán thống kê
+  const statistics = useMemo(() => {
     return {
-      id: it._id || it.id,
-      studentCode: profileData.studentId || storedUser.profile?.studentId || '',
-      fullName: storedUser.name || profileData.user?.name || '',
-      category: it.category || '',
-      deviceName: it.deviceName || '',
-      description: it.description || '',
-      requestDate: formatDate(it.requestDate || it.createdAt),
-      confirmDate: formatDate(it.confirmDate),
-      status: it.status || 'Pending'
+      total: dormitoryHistory.length,
+      completed: dormitoryHistory.filter(item => item.status === 'completed').length,
+      processing: dormitoryHistory.filter(item => item.status === 'processing').length,
+      rejected: dormitoryHistory.filter(item => item.status === 'rejected').length,
     };
-  };
+  }, [dormitoryHistory]);
 
+  // Lấy thông tin phòng từ yêu cầu đầu tiên
+  const roomInfo = dormitoryHistory.length > 0 ? dormitoryHistory[0].room : '';
 
-  const fetchRequests = useCallback(async (page = 1, limit = 5) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiClient.get('/dormitory/requests/my', {
-        params: { page, limit }
-      });
-      const payload = res?.data;
-      let items = [];
+  // Lọc và sắp xếp dữ liệu
+  const filteredAndSortedData = useMemo(() => {
+    let result = [...dormitoryHistory];
 
-      if (!payload) {
-        items = [];
-      } else if (Array.isArray(payload)) {
-        items = payload;
-      } else if (payload.data && Array.isArray(payload.data)) {
-        items = payload.data;
-      } else if (payload.success && Array.isArray(payload.data)) {
-        items = payload.data;
-      } else {
-        items = payload.data || [];
-      }
-
-      const mapped = items.map(mapServerItemToUI);
-      setDormitoryHistory(mapped);
-
-      const totalFromMeta = payload?.meta?.total || payload?.meta?.count || payload?.total;
-      if (typeof totalFromMeta === 'number') {
-        setTotalRows(totalFromMeta);
-      } else {
-        // fallback: estimate totalRows (use current page count if unknown)
-        setTotalRows(prev => {
-          // if we already had a total keep it, otherwise guess as page * limit when items full else mapped.length
-          if (prev && prev > 0) return prev;
-          return mapped.length === limit ? page * limit : ( (page - 1) * limit + mapped.length );
-        });
-      }
-    } catch (err) {
-      console.error('fetchRequests error', err);
-      setError(err?.response?.data?.message || err.message || 'Failed to load requests');
-      setDormitoryHistory([]);
-      setTotalRows(0);
-    } finally {
-      setLoading(false);
+    // Filter theo search term
+    if (searchTerm) {
+      result = result.filter(item =>
+        item.requestCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.deviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-  }, []);
 
-  // Fetch when page or pageSize changes (server-side pagination)
-  useEffect(() => {
-    fetchRequests(currentPage, pageSize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize]);
+    // Filter theo semester
+    if (semesterFilter !== 'all') {
+      result = result.filter(item => item.semester === semesterFilter);
+    }
 
-  // client-side filtering applied to current page items
-  const filteredHistory = dormitoryHistory.filter(item => {
-    return (
-      item.studentCode.toLowerCase().includes(searchFilters.studentCode.toLowerCase()) &&
-      item.fullName.toLowerCase().includes(searchFilters.fullName.toLowerCase()) &&
-      item.category.toLowerCase().includes(searchFilters.category.toLowerCase()) &&
-      item.deviceName.toLowerCase().includes(searchFilters.deviceName.toLowerCase()) &&
-      item.requestDate.includes(searchFilters.requestDate) &&
-      item.status.toLowerCase().includes(searchFilters.status.toLowerCase())
-    );
-  });
+    // Filter theo status
+    if (statusFilter !== 'all') {
+      result = result.filter(item => item.status === statusFilter);
+    }
 
-  const totalPages = Math.max(1, Math.ceil((totalRows || filteredHistory.length) / pageSize));
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + filteredHistory.length; // number shown on this page
-  const paginatedHistory = filteredHistory; // current page items (already from server)
+    // Sort theo thời gian
+    result.sort((a, b) => {
+      const dateA = new Date(a.requestDate);
+      const dateB = new Date(b.requestDate);
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    return result;
+  }, [dormitoryHistory, searchTerm, semesterFilter, statusFilter, sortOrder]);
+
+  // Lấy danh sách semester unique
+  const semesters = useMemo(() => {
+    return [...new Set(dormitoryHistory.map(item => item.semester))];
+  }, [dormitoryHistory]);
 
   return (
-    <div className="schedule-container">
-      <div className="schedule-header">
-        <h1 className="schedule-title">Lịch sử yêu cầu xử lý sự cố</h1>
-        <button
-          className="create-request-btn"
-          onClick={handleCreateRequest}
-        >
-          <span className="btn-icon">+</span>
-          Tạo yêu cầu KTX
-        </button>
+    <div className="history-dormitory-container">
+      {/* Header */}
+      <div className="page-header">
+        <div className="header-content">
+          <h1 className="page-title">🏢 Lịch sử yêu cầu Ký túc xá</h1>
+          <button className="create-btn" onClick={handleCreateRequest}>
+            <span className="btn-icon">+</span>
+            Tạo yêu cầu mới
+          </button>
+        </div>
       </div>
 
-      <div className="history-section">
-        <div className="top-controls">
-          <div className="display-controls">
-            <label>Hiển thị</label>
-            <select
-              value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-              className="page-size-select"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span>dòng dữ liệu</span>
+      {/* Statistics Cards */}
+      <div className="stats-grid">
+        <div className="stat-card stat-total">
+          <div className="stat-icon">📊</div>
+          <div className="stat-content">
+            <div className="stat-value">{statistics.total}</div>
+            <div className="stat-label">Tổng yêu cầu</div>
           </div>
-          <div className="search-box">
+        </div>
+        <div className="stat-card stat-completed">
+          <div className="stat-icon">✓</div>
+          <div className="stat-content">
+            <div className="stat-value">{statistics.completed}</div>
+            <div className="stat-label">Đã hoàn thành</div>
+          </div>
+        </div>
+        <div className="stat-card stat-processing">
+          <div className="stat-icon">⟳</div>
+          <div className="stat-content">
+            <div className="stat-value">{statistics.processing}</div>
+            <div className="stat-label">Đang xử lý</div>
+          </div>
+        </div>
+        <div className="stat-card stat-rejected">
+          <div className="stat-icon">✕</div>
+          <div className="stat-content">
+            <div className="stat-value">{statistics.rejected}</div>
+            <div className="stat-label">Đã từ chối</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="filters-section">
+        <div className="filters-wrapper">
+          {/* Search */}
+          <div className="filter-group search-group">
             <input
               type="text"
-              placeholder="Tìm kiếm..."
-              className="global-search-input"
-              onChange={(e) => {
-                const q = e.target.value || '';
-                setSearchFilters(prev => ({
-                  ...prev,
-                  studentCode: q,
-                  fullName: q,
-                  deviceName: q,
-                  category: q
-                }));
-              }}
+              placeholder="🔍 Tìm theo mã yêu cầu, MSSV, tên, thiết bị..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
             />
-            <button
-              className="search-btn-global"
-              onClick={() => { setCurrentPage(1); fetchRequests(1, pageSize); }}
-              disabled={loading}
-            >
-              Tìm kiếm
-            </button>
           </div>
+
+          {/* Semester Filter */}
+          <div className="filter-group">
+            <label className="filter-label">📅 Học kỳ</label>
+            <select
+              value={semesterFilter}
+              onChange={(e) => setSemesterFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Tất cả học kỳ</option>
+              {semesters.map(sem => (
+                <option key={sem} value={sem}>{sem}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="filter-group">
+            <label className="filter-label">📌 Trạng thái</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="completed">Đã hoàn thành</option>
+              <option value="processing">Đang xử lý</option>
+              <option value="rejected">Đã từ chối</option>
+            </select>
+          </div>
+
+          {/* Sort Order */}
+          <div className="filter-group">
+            <label className="filter-label">⏰ Sắp xếp</label>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="filter-select"
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Room Info */}
+      {roomInfo && (
+        <div className="room-info-banner">
+          <span className="room-icon">🚪</span>
+          <span className="room-text">Phòng: <strong>{roomInfo}</strong></span>
+        </div>
+      )}
+
+      {/* Table Section - FULL WIDTH */}
+      <div className="table-section">
+        {/* Summary - Above table */}
+        <div className="table-summary-top">
+          <p>Hiển thị <strong>{filteredAndSortedData.length}</strong> / <strong>{dormitoryHistory.length}</strong> yêu cầu</p>
         </div>
 
         <div className="table-container">
-          <table className="history-table">
+          <table className="dormitory-table">
             <thead>
               <tr>
-                <th>STT</th>
-                <th>Mã số sinh viên</th>
+                <th>Mã yêu cầu</th>
+                <th>Mã sinh viên</th>
                 <th>Họ tên</th>
                 <th>Danh mục</th>
                 <th>Tên thiết bị</th>
@@ -244,94 +271,53 @@ const HistoryDormitory = () => {
                 <th>Ngày yêu cầu</th>
                 <th>Xác nhận sửa chữa</th>
                 <th>Trạng thái</th>
-                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="10" className="no-data">Loading...</td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td colSpan="10" className="no-data">Error: {error}</td>
-                </tr>
-              ) : paginatedHistory.length > 0 ? (
-                paginatedHistory.map((item, index) => (
-                  <tr key={item.id || index}>
-                    <td>{startIndex + index + 1}</td>
-                    <td>{item.studentCode}</td>
-                    <td>{item.fullName}</td>
-                    <td>{item.category}</td>
-                    <td>{item.deviceName}</td>
-                    <td>{item.description || '-'}</td>
-                    <td>{item.requestDate}</td>
-                    <td>{item.confirmDate || '-'}</td>
-                    <td>{getStatusBadge(item.status)}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="action-btn">Xem</button>
-                        <button 
-                          className="action-btn delete-btn" 
-                          onClick={() => handleDeleteClick(item.id)}
-                          style={{ backgroundColor: '#dc3545', color: 'white' }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+              {filteredAndSortedData.length > 0 ? (
+                filteredAndSortedData.map((item) => {
+                  const statusInfo = getStatusInfo(item.status);
+                  return (
+                    <tr key={item.id} className="table-row">
+                      <td className="cell-request-code">
+                        <strong>{item.requestCode}</strong>
+                      </td>
+                      <td className="cell-student-code">{item.studentCode}</td>
+                      <td className="cell-fullname">{item.fullName}</td>
+                      <td className="cell-category">{item.category}</td>
+                      <td className="cell-device">{item.deviceName}</td>
+                      <td className="cell-description">{item.description}</td>
+                      <td className="cell-date">
+                        {new Date(item.requestDate).toLocaleDateString('vi-VN')}
+                      </td>
+                      <td className={`cell-confirm ${!item.confirmDate ? 'empty' : ''}`}>
+                        {item.confirmDate 
+                          ? new Date(item.confirmDate).toLocaleDateString('vi-VN')
+                          : 'Chưa xác nhận'}
+                      </td>
+                      <td className="cell-status">
+                        <span className={`status-badge ${statusInfo.class}`}>
+                          <span className="status-icon">{statusInfo.icon}</span>
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan="10" className="no-data">
-                    No data available in table
+                  <td colSpan="9" className="no-data">
+                    <div className="no-data-content">
+                      <span className="no-data-icon">📭</span>
+                      <p>Không tìm thấy yêu cầu nào</p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        <div className="pagination">
-          <span className="pagination-info">
-            Hiển thị {totalRows === 0 ? 0 : startIndex + 1} đến {Math.min(startIndex + pageSize, totalRows)} trong {totalRows} dòng dữ liệu
-          </span>
-          <div className="pagination-controls">
-            <span className="page-info">Trang {currentPage} / {totalPages}</span>
-            <button
-              className="pagination-btn"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1 || loading}
-            >
-              Trang trước
-            </button>
-            <button
-              className="pagination-btn"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage >= totalPages || loading}
-            >
-              Trang kế tiếp
-            </button>
-          </div>
-        </div>
       </div>
-      {showDeleteModal && (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h3>Xác nhận xóa</h3>
-          <p>Bạn có chắc chắn muốn xóa yêu cầu này không?</p>
-          <div className="modal-actions">
-            <button className="modal-btn cancel-btn" onClick={handleDeleteCancel}>
-              Hủy
-            </button>
-            <button className="modal-btn delete-btn" onClick={handleDeleteConfirm}>
-              Xóa
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
     </div>
   );
 };

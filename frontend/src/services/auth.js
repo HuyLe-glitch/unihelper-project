@@ -19,15 +19,9 @@ export const authService = {
   // New Login 
   login: async (credentials) => {
     try {
-      // Real API calls
-      let endpoint = '/auth/login';
-      let payload = { email: credentials.email, password: credentials.password };
-
-      // Use student ID login for students
-      if (credentials.role === 'student' && credentials.studentId) {
-        endpoint = '/auth/login/student';
-        payload = { studentId: credentials.studentId.toLowerCase(), password: credentials.password };
-      }
+      // Real API calls - tất cả roles đều dùng /auth/login với email
+      const endpoint = '/auth/login';
+      const payload = { email: credentials.email, password: credentials.password };
 
       const response = await apiClient.post(endpoint, payload);
       
@@ -36,9 +30,31 @@ export const authService = {
         // Normalize role to lowercase for frontend
         const normalizedRole = user.role.toLowerCase();
         
+        // For staff, determine staffType based on email or department
+        let staffType = null;
+        if (normalizedRole === 'staff') {
+          // Check if backend provides staffType, otherwise determine from email
+          if (user.staffType) {
+            staffType = user.staffType;
+          } else if (user.email) {
+            // Determine from email pattern
+            if (user.email.toLowerCase().includes('ctsv')) {
+              staffType = 'CTSV';
+            } else if (user.email.toLowerCase().includes('ktx')) {
+              staffType = 'KTX';
+            } else if (user.department) {
+              // Determine from department field if available
+              staffType = user.department.includes('CTSV') || user.department.includes('Công tác') ? 'CTSV' : 'KTX';
+            }
+          }
+        }
+        
         localStorage.setItem('authToken', response.data.data.token);
         localStorage.setItem('userRole', normalizedRole);
-        localStorage.setItem('user', JSON.stringify({...user, role: normalizedRole}));
+        if (staffType) {
+          localStorage.setItem('staffType', staffType);
+        }
+        localStorage.setItem('user', JSON.stringify({...user, role: normalizedRole, staffType}));
         
         return {
           ...response.data.data,
@@ -73,8 +89,14 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('staffType');
     localStorage.removeItem('user');
     window.location.href = '/login';
+  },
+
+  // Get staff type
+  getStaffType: () => {
+    return localStorage.getItem('staffType');
   },
 
   // Get current user

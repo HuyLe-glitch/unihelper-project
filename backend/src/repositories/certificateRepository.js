@@ -1,104 +1,204 @@
-const CertificateTemplate = require('../models/CertificateTemplate');
 const CertificateType = require('../models/CertificateType');
+const Certificate = require('../models/Certificate');
 
 /**
- * Certificate Repository - Data Access Layer
- * Xử lý tất cả các thao tác database liên quan đến Certificate
+ * Certificate Repository - Tương tác với Database
+ * Chỉ chứa các operation CRUD, không có business logic
  */
-class CertificateRepository {
-  // =============== CERTIFICATE TEMPLATES ===============
+const certificateRepository = {
+  // ==========================================
+  // CERTIFICATE TYPE OPERATIONS
+  // ==========================================
 
-  // Tạo certificate template mới
-  async createTemplate(templateData) {
-    const template = new CertificateTemplate(templateData);
-    return await template.save();
-  }
+  /**
+   * Lấy tất cả loại chứng nhận
+   */
+  getAllTypes: async () => {
+    return await CertificateType.find()
+      .populate('certificateCount')
+      .sort({ name: 1 });
+  },
 
-  // Tìm template theo ID
-  async findTemplateById(id) {
-    return await CertificateTemplate.findById(id).populate('certificateType');
-  }
+  /**
+   * Lấy loại chứng nhận theo ID
+   */
+  getTypeById: async (typeId) => {
+    return await CertificateType.findById(typeId)
+      .populate('certificateCount');
+  },
 
-  // Lấy tất cả templates
-  async findAllTemplates(filters = {}) {
-    return await CertificateTemplate.find(filters)
-      .populate('certificateType')
-      .sort({ createdAt: -1 });
-  }
-
-  // Cập nhật template
-  async updateTemplate(id, updateData) {
-    return await CertificateTemplate.findByIdAndUpdate(id, updateData, { new: true })
-      .populate('certificateType');
-  }
-
-  // Xóa template
-  async deleteTemplate(id) {
-    return await CertificateTemplate.findByIdAndDelete(id);
-  }
-
-  // Tìm templates theo type
-  async findTemplatesByType(typeId) {
-    return await CertificateTemplate.find({ certificateType: typeId })
-      .populate('certificateType')
-      .sort({ createdAt: -1 });
-  }
-
-  // =============== CERTIFICATE TYPES ===============
-
-  // Tạo certificate type mới
-  async createType(typeData) {
-    const type = new CertificateType(typeData);
-    return await type.save();
-  }
-
-  // Tìm type theo ID
-  async findTypeById(id) {
-    return await CertificateType.findById(id);
-  }
-
-  // Lấy tất cả types
-  async findAllTypes(filters = {}) {
-    return await CertificateType.find(filters).sort({ name: 1 });
-  }
-
-  // Cập nhật type
-  async updateType(id, updateData) {
-    return await CertificateType.findByIdAndUpdate(id, updateData, { new: true });
-  }
-
-  // Xóa type
-  async deleteType(id) {
-    return await CertificateType.findByIdAndDelete(id);
-  }
-
-  // Tìm type theo name
-  async findTypeByName(name) {
-    return await CertificateType.findOne({ name });
-  }
-
-  // Kiểm tra type name đã tồn tại
-  async typeNameExists(name, excludeId = null) {
-    const query = { name };
+  /**
+   * Kiểm tra tên loại chứng nhận đã tồn tại
+   */
+  checkTypeNameExists: async (name, excludeId = null) => {
+    const query = { name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } };
     if (excludeId) {
       query._id = { $ne: excludeId };
     }
-    const type = await CertificateType.findOne(query);
-    return !!type;
-  }
+    return await CertificateType.findOne(query);
+  },
 
-  // Lấy templates active theo type
-  async findActiveTemplatesByType(typeId) {
-    return await CertificateTemplate.find({
-      certificateType: typeId,
-      isActive: true
-    }).populate('certificateType');
-  }
+  /**
+   * Tạo loại chứng nhận mới
+   */
+  createType: async (typeData) => {
+    const type = new CertificateType(typeData);
+    return await type.save();
+  },
 
-  // Đếm số template theo type
-  async countTemplatesByType(typeId) {
-    return await CertificateTemplate.countDocuments({ certificateType: typeId });
-  }
-}
+  /**
+   * Cập nhật loại chứng nhận
+   */
+  updateType: async (typeId, updateData) => {
+    return await CertificateType.findByIdAndUpdate(
+      typeId,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('certificateCount');
+  },
 
-module.exports = new CertificateRepository();
+  /**
+   * Xóa loại chứng nhận
+   */
+  deleteType: async (typeId) => {
+    return await CertificateType.findByIdAndDelete(typeId);
+  },
+
+  /**
+   * Đếm số loại chứng nhận
+   */
+  countTypes: async () => {
+    return await CertificateType.countDocuments();
+  },
+
+  // ==========================================
+  // CERTIFICATE OPERATIONS
+  // ==========================================
+
+  /**
+   * Lấy tất cả chứng nhận
+   */
+  getAllCertificates: async (filters = {}) => {
+    const query = {};
+    if (filters.certificateType) {
+      query.certificateType = filters.certificateType;
+    }
+
+    return await Certificate.find(query)
+      .populate('certificateType', 'name')
+      .sort({ name: 1 });
+  },
+
+  /**
+   * Lấy chứng nhận theo ID
+   */
+  getCertificateById: async (certificateId) => {
+    return await Certificate.findById(certificateId)
+      .populate('certificateType', 'name');
+  },
+
+  /**
+   * Lấy chứng nhận theo loại
+   */
+  getCertificatesByType: async (typeId) => {
+    return await Certificate.find({ certificateType: typeId })
+      .populate('certificateType', 'name')
+      .sort({ name: 1 });
+  },
+
+  /**
+   * Kiểm tra tên chứng nhận đã tồn tại (trong toàn hệ thống)
+   */
+  checkCertificateNameExists: async (name, excludeId = null) => {
+    const query = { name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+    return await Certificate.findOne(query).populate('certificateType', 'name');
+  },
+
+  /**
+   * Kiểm tra nhiều tên chứng nhận cùng lúc
+   */
+  checkCertificateNamesExist: async (names) => {
+    const normalizedNames = names.map(n => new RegExp(`^${n.trim()}$`, 'i'));
+    return await Certificate.find({ 
+      name: { $in: normalizedNames } 
+    }).populate('certificateType', 'name');
+  },
+
+  /**
+   * Tạo chứng nhận mới
+   */
+  createCertificate: async (certificateData) => {
+    const certificate = new Certificate(certificateData);
+    return await certificate.save();
+  },
+
+  /**
+   * Tạo nhiều chứng nhận cùng lúc
+   */
+  createManyCertificates: async (certificatesData) => {
+    return await Certificate.insertMany(certificatesData);
+  },
+
+  /**
+   * Cập nhật chứng nhận
+   */
+  updateCertificate: async (certificateId, updateData) => {
+    return await Certificate.findByIdAndUpdate(
+      certificateId,
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('certificateType', 'name');
+  },
+
+  /**
+   * Xóa chứng nhận
+   */
+  deleteCertificate: async (certificateId) => {
+    return await Certificate.findByIdAndDelete(certificateId);
+  },
+
+  /**
+   * Xóa tất cả chứng nhận theo loại
+   */
+  deleteCertificatesByType: async (typeId) => {
+    return await Certificate.deleteMany({ certificateType: typeId });
+  },
+
+  /**
+   * Đếm số chứng nhận trong loại
+   */
+  countCertificatesByType: async (typeId) => {
+    return await Certificate.countDocuments({ certificateType: typeId });
+  },
+
+  /**
+   * Đếm tổng số chứng nhận
+   */
+  countCertificates: async () => {
+    return await Certificate.countDocuments();
+  },
+
+  /**
+   * Lấy thống kê
+   */
+  getStats: async () => {
+    const [typeCount, certificateCount, certificatesByType] = await Promise.all([
+      CertificateType.countDocuments(),
+      Certificate.countDocuments(),
+      Certificate.aggregate([
+        { $group: { _id: '$certificateType', count: { $sum: 1 } } }
+      ])
+    ]);
+
+    return {
+      totalTypes: typeCount,
+      totalCertificates: certificateCount,
+      certificatesByType
+    };
+  }
+};
+
+module.exports = certificateRepository;

@@ -31,32 +31,42 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const certificateRequestRoutes = require('./routes/certificateRequestRoutes');
 const dormitoryRoutes = require('./routes/dormitoryRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 
 const staffRoutes = require('./routes/staffRoutes');
-const staffRoleRoutes = require('./routes/staffRoleRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
+// staffRoleRoutes và departmentRoutes đã được xóa - hệ thống chỉ có 2 staff cố định
 
 const studentRoutes = require('./routes/studentRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const majorRoutes = require('./routes/majorRoutes');
+
+const semesterRoutes = require('./routes/semesterRoutes');
+const semesterTemplateRoutes = require('./routes/semesterTemplateRoutes');
+const roomRoutes = require('./routes/roomRoutes');
+const equipmentRoutes = require('./routes/equipmentRoutes');
 
 
 // --- Mount routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/certificate-requests', certificateRequestRoutes);
 app.use('/api/dormitory', dormitoryRoutes);
 app.use('/api/reports', reportRoutes);
 
 app.use('/api/staff', staffRoutes);
-app.use('/api/staff-roles', staffRoleRoutes);
-app.use('/api/departments', departmentRoutes);
+// Đã xóa routes: /api/staff-roles và /api/departments (không cần thiết)
 
 app.use('/api/students', studentRoutes);
 app.use('/api/faculties', facultyRoutes);
 app.use('/api/majors', majorRoutes);
+
+app.use('/api/semesters', semesterRoutes);
+app.use('/api/semester-templates', semesterTemplateRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/equipment', equipmentRoutes);
 
 
 // --- Health check route ---

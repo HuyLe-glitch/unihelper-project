@@ -1,40 +1,65 @@
+/* ============================================
+   STUDENT AFFAIRS - FULL WIDTH RESPONSIVE DESIGN
+   ============================================ */
+
 .student-affairs {
+  /* Full viewport width strategy */
+  width: 100vw;
+  max-width: 100vw;
+  
+  /* Negative margin to offset sidebar */
+  margin-left: -250px; /* Sidebar expanded width */
+  
+  /* Padding to compensate for sidebar */
   padding: 20px;
+  padding-left: 270px; /* 250px sidebar + 20px spacing */
+  padding-right: 35px; /* Extra spacing from scrollbar */
+  
+  /* Smooth transition when sidebar toggles */
+  transition: margin-left 0.3s ease, padding-left 0.3s ease;
+  
+  /* Other essential styles */
   min-height: 100vh;
   background-color: #f5f7fa;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .student-affairs-container {
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 40px 20px;
+  padding: 0;
   gap: 30px;
+  box-sizing: border-box;
 }
 
 .info-section {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .section-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 15px 25px;
+  padding: 20px 30px;
   text-align: center;
 }
 
 .section-header h2 {
   color: white;
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
 }
@@ -42,50 +67,55 @@
 .info-form {
   padding: 30px 40px 20px 40px;
   background: #f8f9fa;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-row {
-  margin-bottom: 15px;
+  margin-bottom: 0;
   display: flex;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group {
-  flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
   align-items: center;
-  gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin-bottom: 18px;
 }
 
 .form-checkbox {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: #667eea;
-  flex-shrink: 0;
+  display: none;
 }
 
 .form-group label {
   font-weight: 600;
-  color: #000;
-  min-width: 180px;
-  text-align: left;
+  color: #2c3e50;
   font-size: 14px;
   text-transform: uppercase;
-  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
 }
 
 .form-group input[type="text"] {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
   font-size: 14px;
-  background: #f8f9fa;
-  color: #000;
-  min-width: 0;
+  background: white;
+  color: #2c3e50;
   cursor: default;
+  box-sizing: border-box;
+  font-weight: 500;
+  transition: border-color 0.3s ease;
 }
 
 .form-group input[type="text"]:focus {
@@ -123,6 +153,8 @@
 .certificate-form {
   padding: 30px 40px 20px 40px;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group-certificate {
@@ -130,7 +162,8 @@
   align-items: center;
   gap: 15px;
   margin-bottom: 15px;
-  min-width: fit-content;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group-certificate label {
@@ -323,15 +356,22 @@
   background: #138496;
 }
 
-/* Responsive Design */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet (max-width: 768px) */
 @media (max-width: 768px) {
+  .student-affairs {
+    padding: 15px;
+  }
+  
   .student-affairs-container {
-    padding: 20px 15px;
-    max-width: 100%;
+    gap: 20px;
   }
   
   .info-section {
-    max-width: 100%;
+    width: 100%;
   }
   
   .info-form, .certificate-form {
@@ -348,11 +388,18 @@
     gap: 8px;
   }
   
+  .form-group-certificate {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
   .form-checkbox {
     align-self: flex-start;
   }
   
-  .form-group label {
+  .form-group label,
+  .form-group-certificate label {
     min-width: auto;
     font-size: 13px;
   }
@@ -364,18 +411,80 @@
   .section-header {
     padding: 15px 20px;
   }
-}
-
-@media (max-width: 480px) {
-  .student-affairs {
-    padding: 10px;
+  
+  .confirmation-row {
+    padding-left: 0;
   }
   
-  .info-form {
-    padding: 15px;
+  .select-container,
+  .text-input,
+  .textarea-input {
+    width: 100%;
+  }
+}
+
+/* Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .student-affairs {
+    padding: 12px;
+  }
+  
+  .student-affairs-container {
+    gap: 15px;
+  }
+  
+  .info-form, .certificate-form {
+    padding: 20px 15px;
   }
   
   .note-section {
-    padding: 15px 20px;
+    padding: 12px 15px;
   }
+  
+  .section-header {
+    padding: 15px;
+  }
+  
+  .section-header h2 {
+    font-size: 14px;
+  }
+  
+  .form-group label,
+  .form-group-certificate label {
+    font-size: 12px;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}
+
+/* ============================================
+   SIDEBAR COLLAPSED STATE HANDLING
+   ============================================ */
+
+/* 
+   When Layout component collapses sidebar (70px width),
+   it adds 'sidebar-collapsed' class to .main-content.
+   We adjust our negative margin and padding accordingly.
+*/
+
+/* Sidebar Collapsed State (70px) */
+.main-content.sidebar-collapsed .student-affairs {
+  margin-left: -70px !important; /* Collapsed sidebar width */
+  padding-left: 90px !important; /* 70px sidebar + 20px spacing */
+}
+
+/* Sidebar Expanded State (250px) - Default */
+.main-content.sidebar-expanded .student-affairs {
+  margin-left: -250px !important; /* Expanded sidebar width */
+  padding-left: 270px !important; /* 250px sidebar + 20px spacing */
+}
+
+/* Ensure all child elements inherit box-sizing */
+.student-affairs *,
+.student-affairs *::before,
+.student-affairs *::after {
+  box-sizing: border-box;
 }

@@ -40,9 +40,7 @@ const adminSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-adminSchema.index({ adminId: 1 });
-adminSchema.index({ user: 1 });
+// Indexes - không cần thêm vì adminId và user đã có unique: true (tự động tạo index)
 
 // Cập nhật lastLogin
 adminSchema.methods.updateLastLogin = function() {

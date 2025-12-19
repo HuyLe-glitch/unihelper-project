@@ -3,17 +3,20 @@ const mongoose = require('mongoose');
 /**
  * Database Connection Configuration
  * Hỗ trợ cả Local MongoDB và MongoDB Atlas
+ * 
+ * LƯU Ý: Đảm bảo MONGO_URI đúng trong file .env
+ * - Local: mongodb://localhost:27017/unihelper
+ * - Atlas: mongodb+srv://username:password@cluster.mongodb.net/unihelper
  */
 const connectDB = async () => {
   try {
-    // Options tối ưu cho cả Local và Atlas
+    // Options tối ưu cho MongoDB Driver 4.x+
+    // Không cần useNewUrlParser và useUnifiedTopology (deprecated)
     const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       // Options cho MongoDB Atlas
       retryWrites: true,
       w: 'majority',
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     };
 

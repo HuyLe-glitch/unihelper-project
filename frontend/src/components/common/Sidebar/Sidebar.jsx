@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { MENU_CONFIGS } from '../../../constants';
+import { getMenuConfig } from '../../../constants';
+import { authService } from '../../../services';
 import './Sidebar.css';
 
-const Sidebar = ({ userRole = 'student' }) => {
+const Sidebar = ({ userRole = 'student', isCollapsed = false }) => {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState({});
 
-  const menuItems = MENU_CONFIGS[userRole] || MENU_CONFIGS.student;
+  // Get staff type for staff users
+  const staffType = userRole === 'staff' ? authService.getStaffType() : null;
+  
+  // Get appropriate menu based on role and staff type
+  const menuItems = getMenuConfig(userRole, staffType);
 
   useEffect(() => {
     menuItems.forEach((item) => {
@@ -34,7 +39,7 @@ const Sidebar = ({ userRole = 'student' }) => {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="app-logo">
           <div className="logo-icon">🎓</div>

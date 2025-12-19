@@ -91,12 +91,6 @@ const StudentAffairs = () => {
           <div className="info-form">
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.fullName}
-                  onChange={() => handleCheckboxChange('fullName')}
-                />
                 <label>HỌ VÀ TÊN</label>
                 <input 
                   type="text" 
@@ -108,12 +102,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.birthDate}
-                  onChange={() => handleCheckboxChange('birthDate')}
-                />
                 <label>NGÀY SINH</label>
                 <input 
                   type="text" 
@@ -125,12 +113,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.studentId}
-                  onChange={() => handleCheckboxChange('studentId')}
-                />
                 <label>MSSV</label>
                 <input 
                   type="text" 
@@ -142,12 +124,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.currentAddress}
-                  onChange={() => handleCheckboxChange('currentAddress')}
-                />
                 <label>NƠI Ở HIỆN NAY</label>
                 <input 
                   type="text" 
@@ -159,12 +135,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.permanentAddress}
-                  onChange={() => handleCheckboxChange('permanentAddress')}
-                />
                 <label>NƠI THƯỜNG TRÚ</label>
                 <input 
                   type="text" 
@@ -176,12 +146,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.cccd}
-                  onChange={() => handleCheckboxChange('cccd')}
-                />
                 <label>CCCD</label>
                 <input 
                   type="text" 
@@ -193,12 +157,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.issueDate}
-                  onChange={() => handleCheckboxChange('issueDate')}
-                />
                 <label>NGÀY CẤP</label>
                 <input 
                   type="text" 
@@ -210,12 +168,6 @@ const StudentAffairs = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <input 
-                  type="checkbox" 
-                  className="form-checkbox"
-                  checked={checkedFields.issuePlace}
-                  onChange={() => handleCheckboxChange('issuePlace')}
-                />
                 <label>NƠI CẤP</label>
                 <input 
                   type="text" 

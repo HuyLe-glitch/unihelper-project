@@ -5,9 +5,10 @@ import { apiClient } from '../../../services/api'; // adjust path as needed
 
 const Dormitory = () => {
   const [requestItems, setRequestItems] = useState([
-    { id: 1, category: '', description: '' }
+    { id: 1, category: '', device: '', description: '' }
   ]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState({});
+  const [showDeviceDropdown, setShowDeviceDropdown] = useState({});
 
   const categories = [
     'Thiết bị điện',
@@ -19,13 +20,39 @@ const Dormitory = () => {
     'Thiết bị khác'
   ];
 
+  const devicesByCategory = {
+    'Thiết bị điện': ['Quạt trần', 'Quạt đứng', 'Đèn LED', 'Ổ cắm', 'Công tắc', 'Máy lạnh', 'Thiết bị điện khác'],
+    'Thiết bị nước': ['Vòi nước', 'Sen tắm', 'Bồn cầu', 'Bồn rửa', 'Đường ống', 'Thiết bị nước khác'],
+    'Giàn phơi đồ': ['Giàn phơi trong phòng', 'Giàn phơi ban công', 'Dây phơi'],
+    'Nội thất': ['Giường', 'Tủ quần áo', 'Bàn học', 'Ghế', 'Kệ', 'Nội thất khác'],
+    'Cửa': ['Cửa phòng', 'Cửa sổ', 'Khóa cửa', 'Tay nắm', 'Bản lề'],
+    'Gạch': ['Gạch nền', 'Gạch tường', 'Gạch nhà vệ sinh'],
+    'Thiết bị khác': ['Khác']
+  };
+
   const handleCategoryChange = (itemId, category) => {
     setRequestItems(items =>
       items.map(item =>
-        item.id === itemId ? { ...item, category } : item
+        item.id === itemId ? { ...item, category, device: '' } : item
       )
     );
     setShowCategoryDropdown({ ...showCategoryDropdown, [itemId]: false });
+  };
+
+  const handleDeviceChange = (itemId, device) => {
+    setRequestItems(items =>
+      items.map(item =>
+        item.id === itemId ? { ...item, device } : item
+      )
+    );
+    setShowDeviceDropdown({ ...showDeviceDropdown, [itemId]: false });
+  };
+
+  const toggleDeviceDropdown = (itemId) => {
+    setShowDeviceDropdown(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
   };
 
   const handleDescriptionChange = (itemId, description) => {
@@ -38,7 +65,7 @@ const Dormitory = () => {
 
   const addNewItem = () => {
     const newId = requestItems.length ? Math.max(...requestItems.map(item => item.id)) + 1 : 1;
-    setRequestItems([...requestItems, { id: newId, category: '', description: '' }]);
+    setRequestItems([...requestItems, { id: newId, category: '', device: '', description: '' }]);
   };
 
   const removeItem = (itemId) => {
@@ -61,8 +88,9 @@ const Dormitory = () => {
   };
 
   const resetForm = () => {
-    setRequestItems([{ id: 1, category: '', description: '' }]);
+    setRequestItems([{ id: 1, category: '', device: '', description: '' }]);
     setShowCategoryDropdown({});
+    setShowDeviceDropdown({});
   };
 
   //FE handle submit
@@ -87,12 +115,14 @@ const Dormitory = () => {
   }; */
 
   const handleSubmit = async () => {
-    const invalidItems = requestItems.filter(item => !item.category.trim() || !item.description.trim());
+    const invalidItems = requestItems.filter(item => 
+      !item.category.trim() || !item.device.trim() || !item.description.trim()
+    );
     if (invalidItems.length > 0) {
-      alert('Vui lòng nhập đầy đủ danh mục và mô tả cho tất cả các yêu cầu');
+      alert('Vui lòng nhập đầy đủ danh mục, thiết bị và mô tả cho tất cả các yêu cầu');
       return;
     }
-    const validItems = requestItems.filter(item => item.category && item.description);
+    const validItems = requestItems.filter(item => item.category && item.device && item.description);
     if (validItems.length === 0) {
       alert('Vui lòng nhập ít nhất một yêu cầu hợp lệ');
       return;
@@ -102,12 +132,11 @@ const Dormitory = () => {
       await apiClient.post('/dormitory/requests', {
         requests: validItems.map(item => ({
           category: item.category,
-          deviceName: item.category, // or another field if you have deviceName separately
+          deviceName: item.device,
           description: item.description
         }))
       });
       alert('Yêu cầu đã được gửi thành công!');
-      // clear inputs and close dropdowns
       resetForm();
     } catch (err) {
       console.error('Submit dormitory request failed:', err);
@@ -132,72 +161,117 @@ const Dormitory = () => {
         <div className="dormitory-form">
           {requestItems.map((item, index) => (
             <div key={item.id} className="request-item">
-              <div className="form-group">
-                <label className="form-label">Danh mục</label>
-                <div className="dropdown-container">
-                  <input
-                    type="text"
-                    className="dropdown-input"
-                    placeholder="Tên danh mục"
-                    value={item.category}
-                    readOnly
-                    onClick={() => toggleCategoryDropdown(item.id)}
-                    required
-                  />
-                  <span className="dropdown-icon">▼</span>
-                  {showCategoryDropdown[item.id] && (
-                    <div className="dropdown-menu">
-                      {categories.map((category) => (
-                        <div
-                          key={category}
-                          className="dropdown-item"
-                          onClick={() => handleCategoryChange(item.id, category)}
-                        >
-                          {category}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              <div className="request-item-header">
+                <h3 className="request-number">Yêu cầu #{index + 1}</h3>
+                {requestItems.length > 1 && (
+                  <button
+                    className="delete-btn-icon"
+                    onClick={() => removeItem(item.id)}
+                    title="Xóa yêu cầu này"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">
+                    <span className="label-icon">📋</span>
+                    Danh mục
+                  </label>
+                  <div className="dropdown-container">
+                    <input
+                      type="text"
+                      className="dropdown-input"
+                      placeholder="Chọn danh mục"
+                      value={item.category}
+                      readOnly
+                      onClick={() => toggleCategoryDropdown(item.id)}
+                      required
+                    />
+                    <span className="dropdown-icon">▼</span>
+                    {showCategoryDropdown[item.id] && (
+                      <div className="dropdown-menu">
+                        {categories.map((category) => (
+                          <div
+                            key={category}
+                            className="dropdown-item"
+                            onClick={() => handleCategoryChange(item.id, category)}
+                          >
+                            {category}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {item.category && (
+                  <div className="form-group">
+                    <label className="form-label">
+                      <span className="label-icon">🔧</span>
+                      Thiết bị
+                    </label>
+                    <div className="dropdown-container">
+                      <input
+                        type="text"
+                        className="dropdown-input"
+                        placeholder="Chọn thiết bị"
+                        value={item.device}
+                        readOnly
+                        onClick={() => toggleDeviceDropdown(item.id)}
+                        required
+                      />
+                      <span className="dropdown-icon">▼</span>
+                      {showDeviceDropdown[item.id] && (
+                        <div className="dropdown-menu">
+                          {devicesByCategory[item.category]?.map((device) => (
+                            <div
+                              key={device}
+                              className="dropdown-item"
+                              onClick={() => handleDeviceChange(item.id, device)}
+                            >
+                              {device}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
-                <label className="form-label">Mô tả</label>
+                <label className="form-label">
+                  <span className="label-icon">📝</span>
+                  Mô tả chi tiết sự cố
+                </label>
                 <textarea
                   className="form-textarea"
-                  placeholder="Mô tả chi tiết về sự cố..."
+                  placeholder="Mô tả chi tiết về sự cố và vị trí cụ thể..."
                   value={item.description}
                   onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
                   rows={4}
                   required
                 />
               </div>
-
-              <button
-                className="delete-btn"
-                onClick={() => removeItem(item.id)}
-                disabled={requestItems.length === 1}
-              >
-                <span className="btn-icon">×</span>
-                Xóa
-              </button>
             </div>
           ))}
 
           <button className="add-btn" onClick={addNewItem}>
             <span className="btn-icon">+</span>
-            Thêm
+            Thêm yêu cầu mới
           </button>
         </div>
 
         <div className="dormitory-footer">
-          <button className="submit-btn" onClick={handleSubmit}>
-            <span className="btn-icon">📄</span>
-            Gửi yêu cầu
-          </button>
           <button className="close-btn" onClick={handleClose}>
-            <span className="btn-icon">×</span>
             Đóng
+          </button>
+          <button className="submit-btn" onClick={handleSubmit}>
+            <span className="btn-icon">📤</span>
+            Gửi yêu cầu
           </button>
         </div>
       </div>

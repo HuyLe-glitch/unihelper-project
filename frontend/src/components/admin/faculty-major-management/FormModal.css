@@ -1,0 +1,553 @@
+/* ========================================
+   FormModal.css - Styles cho Form Modals
+   ======================================== */
+
+/* Form Modal specific styles */
+.form-modal {
+  max-width: 500px;
+  width: 95%;
+  background: #fff !important;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-modal *,
+.form-modal *::before,
+.form-modal *::after {
+  box-sizing: border-box;
+}
+
+/* CRITICAL: Form tag must stretch full width */
+.form-modal > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Modal header full-width */
+.form-modal .modal-header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  border-radius: 12px 12px 0 0;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.form-modal .modal-header h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+  width: 100%;
+}
+
+/* Modal content full-width - no gaps */
+/* Override common Modal.css which sets width: 90% */
+.form-modal .modal-content,
+.modal.form-modal .modal-content {
+  padding: 24px;
+  background: #fff;
+  margin: 0;
+  flex: 1;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Form tag must be full width */
+.form-modal form {
+  margin: 0;
+  padding: 0;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.form-group .required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+/* Input styles */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-color: #fff;
+  color: #333;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Error states */
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea,
+.input-error {
+  border-color: #e53e3e !important;
+  background-color: #fff5f5;
+}
+
+.form-group.has-error input:focus,
+.form-group.has-error select:focus,
+.form-group.has-error textarea:focus {
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+.error-message {
+  display: block;
+  color: #e53e3e;
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error banner for general errors */
+.error-banner {
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-banner::before {
+  content: '⚠️';
+}
+
+/* Character count */
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+/* Checkbox group */
+.form-group-checkbox {
+  margin-top: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+  accent-color: #4f46e5;
+  transform: scale(1.2);
+}
+
+/* Custom checkbox */
+.checkbox-label .checkmark {
+  display: none;
+}
+
+/* Spinner for loading state */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal Footer buttons */
+.form-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-radius: 0 0 12px 12px;
+}
+
+.form-modal .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.form-modal .btn-outline {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.form-modal .btn-outline:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.form-modal .btn-primary {
+  background-color: #4f46e5;
+  border: 1px solid #4f46e5;
+  color: #fff;
+}
+
+.form-modal .btn-primary:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.form-modal .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   BATCH MODE STYLES - Thêm hàng loạt
+   ======================================== */
+
+/* Batch mode có modal rộng hơn */
+.form-modal.batch-mode {
+  max-width: 600px;
+}
+
+/* Field hint */
+.field-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+
+/* Entries divider */
+.entries-divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.entries-divider span {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+/* Major entries container */
+.major-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Scrollable wrapper for entries + add button */
+.batch-mode .modal-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar for batch mode */
+.batch-mode .modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.batch-mode .modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.batch-mode .modal-content::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 3px;
+}
+
+.batch-mode .modal-content::-webkit-scrollbar-thumb:hover {
+  background: #a5b4fc;
+}
+
+/* Entry card */
+.entry-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.entry-card:hover {
+  border-color: #c7d2fe;
+  background: #fafbff;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.entry-number {
+  font-weight: 600;
+  color: #4f46e5;
+  font-size: 0.9rem;
+}
+
+.btn-remove-entry {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-entry:hover:not(:disabled) {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-remove-entry:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Entry fields - compact layout */
+.entry-fields .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.entry-fields .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.entry-fields .form-group label {
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+
+.entry-fields .form-group input,
+.entry-fields .form-group textarea {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.entry-fields .form-group textarea {
+  min-height: 60px;
+}
+
+/* Button thêm entry mới */
+.btn-add-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  background: #eef2ff;
+  border: 2px dashed #c7d2fe;
+  border-radius: 8px;
+  color: #4f46e5;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-entry:hover:not(:disabled) {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+}
+
+.btn-add-entry:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-add-entry .btn-icon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ========================================
+   Error Summary - Hiển thị tổng hợp lỗi cuối form
+   ======================================== */
+.error-summary {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #fecaca;
+}
+
+.error-summary-header .error-icon {
+  font-size: 1.2rem;
+}
+
+.error-summary-header .error-title {
+  font-weight: 600;
+  color: #dc2626;
+  font-size: 0.95rem;
+}
+
+.error-summary-content {
+  font-size: 0.85rem;
+  color: #991b1b;
+}
+
+.error-summary .error-general {
+  margin: 0 0 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(220, 38, 38, 0.1);
+  border-radius: 6px;
+}
+
+.error-summary .error-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.error-summary .error-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed rgba(220, 38, 38, 0.2);
+}
+
+.error-summary .error-item:last-child {
+  border-bottom: none;
+}
+
+.error-summary .error-item strong {
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.error-summary .error-item span {
+  color: #7f1d1d;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .form-modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .form-modal.batch-mode {
+    max-width: 100%;
+  }
+
+  .major-entries {
+    max-height: 300px;
+  }
+
+  .form-modal .modal-footer {
+    flex-direction: column;
+  }
+
+  .form-modal .btn {
+    width: 100%;
+  }
+}

@@ -3,6 +3,8 @@ import { StaffLayout } from '../layouts';
 import {
   StaffDashboard,
   StaffHistory,
+  StaffCtsvRequests,
+  StaffReports,
 } from '../components/staff';
 import RequireAuth from './RequireAuth.jsx';
 
@@ -17,23 +19,8 @@ import RequireAuth from './RequireAuth.jsx';
  * UI sẽ tự động hiển thị yêu cầu phù hợp dựa trên staffType.
  */
 
-// Component xử lý yêu cầu (sẽ tự động filter theo staffType)
-const StaffRequests = () => (
-  <div className="staff-requests-page">
-    <h2>Yêu cầu cần xử lý</h2>
-    <p>Danh sách yêu cầu sẽ được hiển thị dựa trên loại staff của bạn.</p>
-    {/* TODO: Implement request list component */}
-  </div>
-);
-
-// Component thống kê
-const StaffReports = () => (
-  <div className="staff-reports-page">
-    <h2>Thống kê</h2>
-    <p>Thống kê yêu cầu của phòng ban bạn phụ trách.</p>
-    {/* TODO: Implement reports component */}
-  </div>
-);
+// Component xử lý yêu cầu CTSV
+const StaffRequests = StaffCtsvRequests;
 
 // Component cài đặt
 const StaffSettings = () => (

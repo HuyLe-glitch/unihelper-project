@@ -1,0 +1,817 @@
+/* ============================================
+   HISTORY DORMITORY - FULL WIDTH RESPONSIVE DESIGN
+   ============================================ */
+
+/* Container - Full viewport width strategy */
+.history-dormitory-container {
+  /* Full viewport width */
+  width: 100vw;
+  max-width: 100vw;
+  
+  /* Negative margin to offset sidebar */
+  margin-left: -250px; /* Sidebar expanded width */
+  
+  /* Padding to compensate for sidebar */
+  padding: 20px;
+  padding-left: 270px; /* 250px sidebar + 20px spacing */
+  padding-right: 35px; /* Extra spacing from scrollbar */
+  
+  /* Smooth transition when sidebar toggles */
+  transition: margin-left 0.3s ease, padding-left 0.3s ease;
+  
+  /* Other essential styles */
+  background: #f8f9fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+.page-header {
+  margin-bottom: 25px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ============================================
+   STATISTICS CARDS - RESPONSIVE GRID
+   ============================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+  min-height: 110px;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(102, 126, 234, 0.1);
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+/* Stat card colors */
+.stat-total {
+  border-left-color: #667eea;
+}
+
+.stat-total .stat-icon {
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.stat-completed {
+  border-left-color: #28a745;
+}
+
+.stat-completed .stat-icon {
+  background: rgba(40, 167, 69, 0.15);
+}
+
+.stat-processing {
+  border-left-color: #ffc107;
+}
+
+.stat-processing .stat-icon {
+  background: rgba(255, 193, 7, 0.15);
+}
+
+.stat-rejected {
+  border-left-color: #dc3545;
+}
+
+.stat-rejected .stat-icon {
+  background: rgba(220, 53, 69, 0.15);
+}
+
+/* ============================================
+   FILTERS SECTION
+   ============================================ */
+.filters-section {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.filters-wrapper {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 15px;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-group {
+  /* Search takes more space */
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-input,
+.filter-select {
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  color: #495057;
+  font-weight: 500;
+}
+
+.search-input {
+  font-size: 15px;
+  color: #2c3e50;
+}
+
+.search-input::placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.search-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.filter-select option {
+  color: #2c3e50;
+  background: white;
+  font-weight: 500;
+  padding: 8px;
+}
+
+/* ============================================
+   ROOM INFO BANNER
+   ============================================ */
+.room-info-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 18px 30px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.room-icon {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+.room-label {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.room-value {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   TABLE SECTION - FULL WIDTH WITH SCROLL SPACE
+   ============================================ */
+.table-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+/* Custom scrollbar for table */
+.table-container::-webkit-scrollbar {
+  height: 10px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #adb5bd;
+  border-radius: 5px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #868e96;
+}
+
+.dormitory-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1400px;
+}
+
+/* Table Header */
+.dormitory-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.dormitory-table thead th {
+  padding: 16px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Table Body */
+.dormitory-table tbody tr {
+  border-bottom: 1px solid #dee2e6;
+  transition: all 0.2s ease;
+}
+
+.dormitory-table tbody tr:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dormitory-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.dormitory-table td {
+  padding: 16px 14px;
+  font-size: 14px;
+  color: #495057;
+  vertical-align: middle;
+  background: white;
+}
+
+.dormitory-table tbody tr:hover td {
+  background-color: #f8f9fa;
+}
+
+/* Column specific styles */
+.cell-request-code {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.cell-student-code {
+  color: #495057;
+  font-weight: 600;
+}
+
+.cell-fullname {
+  color: #2c3e50;
+  font-weight: 600;
+  max-width: 200px;
+}
+
+.cell-category {
+  color: #495057;
+  font-weight: 500;
+}
+
+.cell-device {
+  color: #495057;
+  max-width: 180px;
+}
+
+.cell-description {
+  max-width: 250px;
+  color: #6c757d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cell-date {
+  color: #6c757d;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.cell-confirm {
+  color: #28a745;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cell-confirm.empty {
+  color: #adb5bd;
+  font-style: italic;
+}
+
+.cell-status {
+  text-align: center;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-icon {
+  font-size: 14px;
+}
+
+.status-completed {
+  background: #d4edda;
+  color: #155724;
+  border: 2px solid #c3e6cb;
+}
+
+.status-processing {
+  background: #fff3cd;
+  color: #856404;
+  border: 2px solid #ffeaa7;
+}
+
+.status-rejected {
+  background: #f8d7da;
+  color: #721c24;
+  border: 2px solid #f5c6cb;
+}
+
+/* ============================================
+   TABLE SUMMARY
+   ============================================ */
+.table-summary-top {
+  background: white;
+  padding: 18px 30px;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table-summary-top p {
+  margin: 0;
+  font-size: 15px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.table-summary-top p strong {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* No Data State */
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-data-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.no-data-icon {
+  font-size: 64px;
+  opacity: 0.5;
+}
+
+.no-data-content p {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Large Tablet (769px - 1024px) */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .filters-wrapper {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .search-group {
+    grid-column: 1 / -1;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+    width: 55px;
+    height: 55px;
+  }
+
+  .room-info-banner {
+    font-size: 16px;
+  }
+
+  .room-value {
+    font-size: 18px;
+  }
+
+  .room-icon {
+    font-size: 22px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Tablet (481px - 768px) */
+@media (max-width: 768px) {
+  .history-dormitory-container {
+    padding: 15px;
+  }
+
+  .header-content {
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 22px;
+    justify-content: center;
+  }
+
+  /* Stats Grid - 2 columns on tablet */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 18px;
+    min-height: auto;
+    gap: 15px;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+  }
+
+  /* Filters - Stack vertically */
+  .filters-section {
+    padding: 20px;
+  }
+
+  .filters-wrapper {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .search-group {
+    grid-column: 1;
+  }
+
+  /* Room banner */
+  .room-info-banner {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  .room-value {
+    font-size: 18px;
+  }
+
+  .room-icon {
+    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+  }
+
+  /* Table adjustments */
+  .dormitory-table {
+    min-width: 1200px;
+  }
+
+  .dormitory-table thead th {
+    padding: 14px 12px;
+    font-size: 12px;
+  }
+
+  .dormitory-table td {
+    padding: 14px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile (max 480px) */
+@media (max-width: 480px) {
+  .history-dormitory-container {
+    padding: 12px;
+  }
+
+  .header-content {
+    padding: 18px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  /* Stats Grid - 2 columns on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 15px;
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  /* Filters */
+  .filters-section {
+    padding: 16px;
+  }
+
+  .filters-wrapper {
+    gap: 10px;
+  }
+
+  .search-input,
+  .filter-select {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .filter-label {
+    font-size: 12px;
+  }
+
+  /* Room banner */
+  .room-info-banner {
+    padding: 14px 20px;
+    font-size: 15px;
+    gap: 10px;
+  }
+
+  .room-value {
+    font-size: 16px;
+  }
+
+  .room-icon {
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    padding: 7px;
+  }
+
+  /* Table */
+  .table-section {
+    margin-bottom: 30px;
+  }
+
+  .dormitory-table {
+    min-width: 1000px;
+  }
+
+  .dormitory-table thead th {
+    padding: 12px 10px;
+    font-size: 11px;
+  }
+
+  .dormitory-table td {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .cell-request-code {
+    font-size: 13px;
+  }
+
+  .cell-fullname {
+    max-width: 150px;
+    font-size: 13px;
+  }
+
+  .cell-description {
+    max-width: 180px;
+    font-size: 12px;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .table-summary {
+    padding: 15px 20px;
+  }
+
+  .table-summary p {
+    font-size: 13px;
+  }
+}
+
+/* Very Small Mobile (max 360px) */
+@media (max-width: 360px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    flex-direction: row;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .stat-icon {
+    font-size: 24px;
+    width: 45px;
+    height: 45px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .room-info-banner {
+    font-size: 14px;
+  }
+
+  .room-value {
+    font-size: 15px;
+  }
+}
+
+/* ============================================
+   SIDEBAR COLLAPSED STATE HANDLING
+   ============================================ */
+
+/* Sidebar Collapsed State (70px) */
+.main-content.sidebar-collapsed .history-dormitory-container {
+  margin-left: -70px !important;
+  padding-left: 90px !important;
+}
+
+/* Sidebar Expanded State (250px) - Default */
+.main-content.sidebar-expanded .history-dormitory-container {
+  margin-left: -250px !important;
+  padding-left: 270px !important;
+}
+
+/* Ensure all child elements inherit box-sizing */
+.history-dormitory-container *,
+.history-dormitory-container *::before,
+.history-dormitory-container *::after {
+  box-sizing: border-box;
+}

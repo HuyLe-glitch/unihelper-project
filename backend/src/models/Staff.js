@@ -60,9 +60,7 @@ const staffSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-staffSchema.index({ staffId: 1 });
-staffSchema.index({ user: 1 });
+// Indexes - chỉ thêm index cho staffType (staffId và user đã có unique: true tự động tạo index)
 staffSchema.index({ staffType: 1 });
 
 // Virtual để lấy tên phòng ban đầy đủ

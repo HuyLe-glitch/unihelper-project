@@ -56,21 +56,20 @@ export const MENU_CONFIGS = {
   ],
 
   // ============================================
-  // STAFF MENU (Chung cho cả CTSV và KTX)
-  // Menu sẽ được filter dựa trên staffType khi render
+  // STAFF CTSV MENU - Nhân viên Công tác Sinh viên
   // ============================================
-  staff: [
+  staffCTSV: [
     {
       id: 'dashboard',
       icon: '📊',
-      label: 'Dashboard',
+      label: 'Dashboard CTSV',
       type: 'single',
       path: '/staff/dashboard',
     },
     {
       id: 'requests',
       icon: '📋',
-      label: 'Yêu cầu cần xử lý',
+      label: 'Yêu cầu CTSV',
       type: 'single',
       path: '/staff/requests',
     },
@@ -88,12 +87,39 @@ export const MENU_CONFIGS = {
       type: 'single',
       path: '/staff/reports',
     },
+  ],
+
+  // ============================================
+  // STAFF KTX MENU - Nhân viên Ký túc xá
+  // ============================================
+  staffKTX: [
     {
-      id: 'settings',
-      icon: '⚙️',
-      label: 'Cài đặt',
+      id: 'dashboard',
+      icon: '📊',
+      label: 'Dashboard KTX',
       type: 'single',
-      path: '/staff/settings',
+      path: '/staff/dashboard',
+    },
+    {
+      id: 'requests',
+      icon: '🏢',
+      label: 'Yêu cầu KTX',
+      type: 'single',
+      path: '/staff/requests',
+    },
+    {
+      id: 'history',
+      icon: '🕓',
+      label: 'Lịch sử xử lý',
+      type: 'single',
+      path: '/staff/history',
+    },
+    {
+      id: 'reports',
+      icon: '📈',
+      label: 'Thống kê',
+      type: 'single',
+      path: '/staff/reports',
     },
   ],
 
@@ -110,18 +136,26 @@ export const MENU_CONFIGS = {
       path: '/admin/dashboard',
     },
     {
-      id: 'students',
-      icon: '🎓',
-      label: 'Quản lý sinh viên',
-      type: 'single',
-      path: '/admin/students',
+      id: 'management',
+      icon: '⚙️',
+      label: 'Quản lý',
+      type: 'expandable',
+      children: [
+        { id: 'students', label: 'Sinh viên', path: '/admin/students' },
+        { id: 'faculty-major', label: 'Khoa & Chuyên ngành', path: '/admin/faculty-major' },
+        { id: 'semesters', label: 'Học kỳ', path: '/admin/semesters' },
+        { id: 'rooms', label: 'Phòng KTX', path: '/admin/rooms' },
+      ],
     },
     {
       id: 'requests',
       icon: '📋',
-      label: 'Tất cả yêu cầu',
-      type: 'single',
-      path: '/admin/requests',
+      label: 'Quản lý yêu cầu',
+      type: 'expandable',
+      children: [
+        { id: 'certificate-requests', label: 'Yêu cầu CTSV', path: '/admin/certificate-requests' },
+        { id: 'dormitory-requests', label: 'Danh mục thiết bị KTX', path: '/admin/dormitory-requests' },
+      ],
     },
     {
       id: 'reports',
@@ -129,13 +163,6 @@ export const MENU_CONFIGS = {
       label: 'Báo cáo hệ thống',
       type: 'single',
       path: '/admin/reports',
-    },
-    {
-      id: 'system-settings',
-      icon: '🔧',
-      label: 'Cài đặt hệ thống',
-      type: 'single',
-      path: '/admin/system-settings',
     },
   ],
 };
@@ -146,6 +173,24 @@ export const MENU_CONFIGS = {
 export const STAFF_TYPE_LABELS = {
   CTSV: 'Công tác Sinh viên',
   KTX: 'Ký túc xá',
+};
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Get menu config based on user role and staff type
+ * @param {string} role - User role (student, staff, admin)
+ * @param {string} staffType - Staff type (CTSV, KTX) - only for staff role
+ * @returns {Array} Menu configuration
+ */
+export const getMenuConfig = (role, staffType = null) => {
+  if (role === 'staff' && staffType) {
+    // Return specific menu for staff type
+    return MENU_CONFIGS[`staff${staffType}`] || MENU_CONFIGS.staffCTSV;
+  }
+  return MENU_CONFIGS[role] || [];
 };
 
 // ============================================

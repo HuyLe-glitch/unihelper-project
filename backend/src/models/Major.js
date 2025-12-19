@@ -24,18 +24,12 @@ const majorSchema = new mongoose.Schema({
     type: String, 
     trim: true,
     maxlength: 500
-  },
-  isActive: {
-    type: Boolean,
-    default: true
   }
 }, { timestamps: true });
 
 // Indexes
 majorSchema.index({ faculty: 1, name: 1 }, { unique: true });
-majorSchema.index({ code: 1 });
 majorSchema.index({ faculty: 1 });
-majorSchema.index({ isActive: 1 });
 
 // Pre-save validation to ensure faculty exists
 majorSchema.pre('save', async function(next) {

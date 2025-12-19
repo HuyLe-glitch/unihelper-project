@@ -1,5 +1,5 @@
 const Staff = require('../models/Staff');
-const StaffRole = require('../models/StaffRole');
+// StaffRole model đã được xóa - hệ thống chỉ có 2 staff cố định
 const CertificateRequest = require('../models/CertificateRequest');
 
 class StaffRepository {
@@ -13,7 +13,6 @@ class StaffRepository {
     try {
       return await Staff.findOne({ user: userId })
         .populate('user', 'username email fullName')
-        .populate('staffRole')
         .exec();
     } catch (error) {
       throw new Error(`Database error: Unable to find staff - ${error.message}`);
@@ -252,9 +251,9 @@ class StaffRepository {
       sortOptions[validSortBy] = sortOrder === 'desc' ? -1 : 1;
 
       // Execute query with population
+      // staffRole đã được xóa - không cần populate
       const staffList = await Staff.find(filter)
         .populate('user', 'username email fullName')
-        .populate('staffRole', 'name description')
         .sort(sortOptions)
         .skip(skip)
         .limit(parseInt(limit))

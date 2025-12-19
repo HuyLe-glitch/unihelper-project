@@ -26,11 +26,8 @@ export default function Login(){
         try {
           const credentials = { password, role: selectedRole };
           
-          if (selectedRole === 'student') {
-            credentials.studentId = studentId;
-          } else {
-            credentials.email = email;
-          }
+          // Tất cả roles đều dùng email để đăng nhập
+          credentials.email = email;
           
           const result = await login(credentials);
           
@@ -56,12 +53,12 @@ export default function Login(){
     const getRoleInfo = () => {
         switch(selectedRole) {
             case 'admin':
-                return { title: 'Admin Login', placeholder: 'admin@tdtu.edu.vn', inputType: 'email', label: 'Email' };
+                return { title: 'Admin Login', placeholder: 'admin@university.edu.vn', inputType: 'email', label: 'Email' };
             case 'staff':
-                return { title: 'Staff Login', placeholder: 'staff@tdtu.edu.vn', inputType: 'email', label: 'Email' };
+                return { title: 'Staff Login', placeholder: 'staff@university.edu.vn', inputType: 'email', label: 'Email' };
             case 'student':
             default:
-                return { title: 'Student Login', placeholder: 'Enter your Student ID', inputType: 'text', label: 'Student ID' };
+                return { title: 'Student Login', placeholder: 'student@example.com', inputType: 'email', label: 'Email' };
         }
     };
 
@@ -98,8 +95,8 @@ export default function Login(){
                         <input
                             type={roleInfo.inputType}
                             required
-                            value={selectedRole === 'student' ? studentId : email}
-                            onChange={e => selectedRole === 'student' ? setStudentId(e.target.value) : setEmail(e.target.value)}
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                             placeholder={roleInfo.placeholder}
                             className="form-input"
                         />

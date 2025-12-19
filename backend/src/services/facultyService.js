@@ -4,49 +4,64 @@ const { AppError } = require('../utils/appError');
 
 class FacultyService {
   // Get all faculties with major count
-  async getAllFaculties(filters = {}) {
-    const query = { isActive: true, ...filters };
-    
-    const faculties = await Faculty.find(query)
-      .populate('majorCount')
+  async getAllFaculties() {
+    const faculties = await Faculty.find()
       .sort({ name: 1 });
+
+    // Đếm số chuyên ngành cho mỗi khoa
+    const facultiesWithCount = await Promise.all(
+      faculties.map(async (faculty) => {
+        const majorCount = await Major.countDocuments({ faculty: faculty._id });
+        return {
+          ...faculty.toObject(),
+          majorCount
+        };
+      })
+    );
 
     return {
       success: true,
-      data: faculties
+      data: facultiesWithCount
     };
   }
 
   // Get faculty by ID with majors
   async getFacultyById(id) {
-    const faculty = await Faculty.findById(id)
-      .populate({
-        path: 'majors',
-        match: { isActive: true },
-        select: 'name code description'
-      })
-      .populate('majorCount');
+    const faculty = await Faculty.findById(id);
 
     if (!faculty) {
       throw new AppError('Không tìm thấy khoa', 404);
     }
 
+    // Lấy danh sách chuyên ngành thuộc khoa
+    const majors = await Major.find({ faculty: id }).select('name code description');
+    
     return {
       success: true,
-      data: faculty
+      data: {
+        ...faculty.toObject(),
+        majorCount: majors.length,
+        majors
+      }
     };
   }
 
   // Create faculty
   async createFaculty(facultyData) {
+    // Kiểm tra trùng code
     const existingCode = await Faculty.findOne({ code: facultyData.code });
     if (existingCode) {
-      throw new AppError('Mã khoa đã tồn tại', 400);
+      const error = new AppError('Mã khoa đã tồn tại', 409);
+      error.field = 'code';
+      throw error;
     }
 
+    // Kiểm tra trùng name
     const existingName = await Faculty.findOne({ name: facultyData.name });
     if (existingName) {
-      throw new AppError('Tên khoa đã tồn tại', 400);
+      const error = new AppError('Tên khoa đã tồn tại', 409);
+      error.field = 'name';
+      throw error;
     }
 
     const faculty = await Faculty.create(facultyData);
@@ -54,81 +69,81 @@ class FacultyService {
     return {
       success: true,
       message: 'Tạo khoa thành công',
-      data: faculty
+      data: {
+        ...faculty.toObject(),
+        majorCount: 0
+      }
     };
   }
 
   // Update faculty
   async updateFaculty(id, updateData) {
-  
     const faculty = await Faculty.findById(id);
     if (!faculty) {
       throw new AppError('Không tìm thấy Khoa', 404);
     }
 
-    // Convert string "false" to boolean
-    if (updateData.isActive !== undefined) {
-      updateData.isActive = updateData.isActive === 'false' ? false : updateData.isActive === 'true' ? true : updateData.isActive;
-    }
-
-    // Check duplicate code/name if updating
+    // Check duplicate code (exclude self)
     if (updateData.code && updateData.code !== faculty.code) {
-      const existingCode = await Faculty.findOne({ code: updateData.code });
+      const existingCode = await Faculty.findOne({ 
+        code: updateData.code,
+        _id: { $ne: id }
+      });
       if (existingCode) {
-        throw new AppError('Mã Khoa đã tồn tại', 400);
+        const error = new AppError('Mã Khoa đã tồn tại', 409);
+        error.field = 'code';
+        throw error;
       }
     }
 
+    // Check duplicate name (exclude self)
     if (updateData.name && updateData.name !== faculty.name) {
-      const existingName = await Faculty.findOne({ name: updateData.name });
+      const existingName = await Faculty.findOne({ 
+        name: updateData.name,
+        _id: { $ne: id }
+      });
       if (existingName) {
-        throw new AppError('Tên Khoa đã tồn tại', 400);
+        const error = new AppError('Tên Khoa đã tồn tại', 409);
+        error.field = 'name';
+        throw error;
       }
-    }
-
-    // Cascade: Update majors based on faculty isActive status
-    // Deactivate major
-    if (updateData.isActive === false) {
-      const result = await Major.updateMany(
-        { faculty: id },
-        { isActive: false }
-      );
-    }
-    // Activate major 
-    else if (updateData.isActive === true) {
-      const result = await Major.updateMany(
-        { faculty: id },
-        { isActive: true }
-      );
     }
 
     const updatedFaculty = await Faculty.findByIdAndUpdate(
       id, 
       updateData, 
       { new: true, runValidators: true }
-    ).populate('majorCount');
+    );
+
+    // Đếm số chuyên ngành
+    const majorCount = await Major.countDocuments({ faculty: id });
 
     return {
       success: true,
       message: 'Cập nhật khoa thành công',
-      data: updatedFaculty
+      data: {
+        ...updatedFaculty.toObject(),
+        majorCount
+      }
     };
   }
 
-  // Soft delete faculty (cascade to majors)
+  // Hard delete faculty - Xóa hoàn toàn khỏi DB (cascade xóa tất cả majors)
   async deleteFaculty(id) {
     const faculty = await Faculty.findById(id);
     if (!faculty) {
       throw new AppError('Không tìm thấy khoa', 404);
     }
 
-    // Set isActive = false (will trigger cascade)
-    faculty.isActive = false;
-    await faculty.save();
+    // Xóa tất cả chuyên ngành thuộc khoa này trước
+    await Major.deleteMany({ faculty: id });
+
+    // Xóa khoa
+    await Faculty.findByIdAndDelete(id);
 
     return {
       success: true,
-      message: 'Xóa khoa thành công (đã cascade to majors)'
+      message: 'Đã xóa khoa và tất cả chuyên ngành thuộc khoa'
     };
   }
 
@@ -139,10 +154,8 @@ class FacultyService {
       throw new AppError('Không tìm thấy khoa', 404);
     }
 
-    const majors = await Major.find({ 
-      faculty: facultyId,
-      isActive: true 
-    }).select('name code description');
+    const majors = await Major.find({ faculty: facultyId })
+      .select('name code description');
 
     return {
       success: true,
@@ -157,7 +170,6 @@ class FacultyService {
       }
     };
   }
-
 }
 
 module.exports = new FacultyService();

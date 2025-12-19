@@ -163,23 +163,10 @@ const StaffReports = () => {
             </div>
           </div>
 
-          {/* Lọc theo nhân viên */}
-          <div className="filter-group">
-            <label>Nhân viên</label>
-            <select 
-              value={filters.staff}
-              onChange={(e) => handleFilterChange('staff', e.target.value)}
-            >
-              <option value="all">Tất cả nhân viên</option>
-              <option value="nguyen-van-an">Nguyễn Văn An</option>
-              <option value="tran-thi-binh">Trần Thị Bình</option>
-              <option value="le-hoang-nam">Lê Hoàng Nam</option>
-            </select>
-          </div>
         </div>
       </div>
 
-      {/* HÀNG 1: KPI CARDS */}
+      {/* HÀNG 1: KPI CARDS - 4 thẻ yêu cầu */}
       <div className="kpi-section">
         <div className="kpi-cards">
           <div className="kpi-card total">
@@ -191,25 +178,32 @@ const StaffReports = () => {
             </div>
           </div>
 
-          <div className="kpi-card processed">
+          <div className="kpi-card completed">
             <div className="kpi-icon">✅</div>
             <div className="kpi-content">
-              <div className="kpi-number">{mockData.kpi.processed.toLocaleString()}</div>
-              <div className="kpi-label">Đã Xử lý</div>
+              <div className="kpi-number">{mockData.statusDistribution[0].count.toLocaleString()}</div>
+              <div className="kpi-label">Đã Hoàn thành</div>
               <div className="kpi-change">+8% so với tháng trước</div>
             </div>
           </div>
 
-          <div className="kpi-card pending">
+          <div className="kpi-card processing">
             <div className="kpi-icon">⏳</div>
             <div className="kpi-content">
               <div className="kpi-number">{mockData.kpi.pending}</div>
-              <div className="kpi-label">Đang chờ</div>
+              <div className="kpi-label">Đang Xử lý</div>
               <div className="kpi-change">-15% so với tháng trước</div>
             </div>
           </div>
 
-
+          <div className="kpi-card rejected">
+            <div className="kpi-icon">❌</div>
+            <div className="kpi-content">
+              <div className="kpi-number">{mockData.statusDistribution[1].count.toLocaleString()}</div>
+              <div className="kpi-label">Đã Từ chối</div>
+              <div className="kpi-change">-5% so với tháng trước</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -361,97 +355,6 @@ const StaffReports = () => {
             </div>
           </div>
 
-          {/* Top Staff */}
-          <div className="chart-container">
-            <h3>Nhân viên Xử lý Nhiều nhất</h3>
-            <div className="bar-chart">
-              {mockData.topStaff.map((staff, index) => (
-                <div key={index} className="bar-item">
-                  <div className="bar-label">
-                    <span className="staff-name">{staff.name}</span>
-                    <span className="staff-count">{staff.processed}</span>
-                  </div>
-                  <div className="bar-background">
-                    <div 
-                      className="bar-fill" 
-                      style={{width: `${(staff.processed / mockData.topStaff[0].processed) * 100}%`}}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HÀNG 4: BẢNG DỮ LIỆU CHI TIẾT */}
-      <div className="data-table-section">
-        <div className="section-header">
-          <h2>Hiệu suất Chi tiết theo Nhân viên</h2>
-        </div>
-        
-        <div className="data-table">
-          <table>
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('name')} className="sortable">
-                  Tên nhân viên 
-                  {sortConfig.key === 'name' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('position')} className="sortable">
-                  Chức vụ
-                  {sortConfig.key === 'position' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('totalProcessed')} className="sortable">
-                  Tổng đã xử lý
-                  {sortConfig.key === 'totalProcessed' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('pending')} className="sortable">
-                  Đang chờ
-                  {sortConfig.key === 'pending' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-
-              </tr>
-            </thead>
-            <tbody>
-              {getSortedData().map((staff, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className="staff-cell">
-                      <div className="staff-avatar">{staff.name.charAt(0)}</div>
-                      <span>{staff.name}</span>
-                    </div>
-                  </td>
-                  <td>{staff.position}</td>
-                  <td>
-                    <span className="number-highlight">{staff.totalProcessed}</span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${staff.pending > 10 ? 'high' : 'normal'}`}>
-                      {staff.pending}
-                    </span>
-                  </td>
-
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ const userRepository = require('../repositories/userRepository');
 const { AppError } = require('../utils/appError');
 const Student = require('../models/Student');
 const Staff = require('../models/Staff');
-const Department = require('../models/Department');
+// Department model đã được xóa - hệ thống chỉ có 2 staff cố định
 const mongoose = require('mongoose');
 
 /**
