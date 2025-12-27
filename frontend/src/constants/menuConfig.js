@@ -180,16 +180,57 @@ export const STAFF_TYPE_LABELS = {
 // ============================================
 
 /**
- * Get menu config based on user role and staff type
+ * Get menu config based on user role, staff type, and dormitory status
  * @param {string} role - User role (student, staff, admin)
  * @param {string} staffType - Staff type (CTSV, KTX) - only for staff role
+ * @param {boolean} isDormResident - Whether student is a dormitory resident
  * @returns {Array} Menu configuration
  */
-export const getMenuConfig = (role, staffType = null) => {
+export const getMenuConfig = (role, staffType = null, isDormResident = false) => {
   if (role === 'staff' && staffType) {
     // Return specific menu for staff type
     return MENU_CONFIGS[`staff${staffType}`] || MENU_CONFIGS.staffCTSV;
   }
+  
+  // For students, filter out dormitory-related items if not a dorm resident
+  if (role === 'student') {
+    const studentMenu = MENU_CONFIGS.student || [];
+    
+    if (!isDormResident) {
+      // Lọc bỏ các menu liên quan đến KTX cho sinh viên ngoại trú
+      return studentMenu.map(item => {
+        if (item.type === 'expandable' && item.children) {
+          // Lọc bỏ các children liên quan đến dormitory/KTX
+          const filteredChildren = item.children.filter(child => 
+            !child.id.includes('dormitory') && 
+            !child.path?.includes('dormitory') &&
+            !child.label?.toLowerCase().includes('ktx')
+          );
+          
+          // Nếu không còn children nào, ẩn luôn menu cha
+          if (filteredChildren.length === 0) {
+            return null;
+          }
+          
+          return { ...item, children: filteredChildren };
+        }
+        
+        // Ẩn single menu liên quan đến dormitory
+        if (item.type === 'single' && (
+          item.id.includes('dormitory') || 
+          item.path?.includes('dormitory') ||
+          item.label?.toLowerCase().includes('ktx')
+        )) {
+          return null;
+        }
+        
+        return item;
+      }).filter(Boolean); // Loại bỏ các null items
+    }
+    
+    return studentMenu;
+  }
+  
   return MENU_CONFIGS[role] || [];
 };
 

@@ -174,7 +174,20 @@ const semesterRepository = {
   },
 
   /**
-   * Deactivate tất cả semesters (để set một cái mới active)
+   * Tìm semester theo ngày - Học kỳ nào có startDate <= date <= endDate
+   * CHỈ THUẦN QUERY, không có logic if/else
+   * @param {Date} date - Ngày cần kiểm tra
+   * @returns {Semester|null} - Học kỳ phù hợp hoặc null
+   */
+  findSemesterByDate: async (date) => {
+    return await Semester.findOne({
+      startDate: { $lte: date },
+      endDate: { $gte: date }
+    }).populate('templateId', 'code name');
+  },
+
+  /**
+   * Deactivate tất cả semesters
    */
   deactivateAllSemesters: async () => {
     return await Semester.updateMany({}, { isActive: false });

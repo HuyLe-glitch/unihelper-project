@@ -195,22 +195,6 @@ exports.deleteSemester = async (req, res, next) => {
 };
 
 /**
- * POST /api/semesters/:id/activate
- * Kích hoạt semester
- */
-exports.activateSemester = async (req, res, next) => {
-  try {
-    const validationError = handleValidationErrors(req, res);
-    if (validationError) return;
-
-    const result = await semesterService.activateSemester(req.params.id);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
  * GET /api/semesters/preview
  * Preview dates trước khi tạo
  */

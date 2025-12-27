@@ -1,20 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/dormitoryRequestController');
-const { protect,restrictTo } = require('../middleware/authMiddleware');
+const dormitoryController = require('../controllers/dormitoryController');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 router.use(protect);
-// CRUD cơ bản
-router.get('/', restrictTo('ADMIN'), controller.getAllRequests);
-router.post('/', controller.createRequest);
 
-// Dashboard stats
-router.get('/stats/request-by-month', restrictTo('ADMIN'), controller.getRequestStatsByMonth);
-router.get('/stats/confirm-by-month', restrictTo('ADMIN'), controller.getConfirmStatsByMonth);
+// KTX Reports - sử dụng dormitoryController
+router.get('/ktx/requests', restrictTo('ADMIN', 'STAFF'), dormitoryController.getAllDormitoryRequests);
+router.get('/ktx/stats/by-month', restrictTo('ADMIN', 'STAFF'), dormitoryController.getDormitoryRequestsByMonth);
 
-router.get('/stats/weekly', restrictTo('ADMIN'), controller.getWeeklyStats);
-router.get('/stats/yearly', restrictTo('ADMIN'), controller.getYearlyStats);
-/*router.get('/stats/by-category', restrictTo('ADMIN'), controller.getStatsByCategory);*/
-router.get('/stats/by-status', restrictTo('ADMIN'), controller.getStatsByStatus);
+// TODO: Thêm các route báo cáo khác sau này (CTSV, etc.)
 
 module.exports = router;

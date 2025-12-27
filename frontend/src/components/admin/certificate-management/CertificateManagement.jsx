@@ -375,6 +375,14 @@ const CertificateManagement = () => {
             <div className="items-grid">
               {filteredTypes.map((type) => (
                 <div key={type._id} className="item-card">
+                  {/* Nút thêm nhanh - Góc trên bên trái */}
+                  <button
+                    className="btn-quick-add"
+                    onClick={() => handleAddCertificate(type._id)}
+                    title="Thêm chứng nhận vào loại"
+                  >
+                    ➕
+                  </button>
                   <h4 className="item-title">{type.name}</h4>
                   <p className="item-description">{type.description || 'Không có mô tả'}</p>
                   <div className="item-stats">
@@ -390,13 +398,6 @@ const CertificateManagement = () => {
                       title="Xem danh sách chứng nhận"
                     >
                       📜 Xem chứng nhận
-                    </button>
-                    <button
-                      className="btn-action btn-add-item"
-                      onClick={() => handleAddCertificate(type._id)}
-                      title="Thêm chứng nhận vào loại"
-                    >
-                      ➕
                     </button>
                     <button
                       className="btn-action btn-edit"

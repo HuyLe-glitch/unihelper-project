@@ -106,20 +106,8 @@ const SemesterManagement = () => {
     }
   };
 
-  const handleActivateSemester = async (semester) => {
-    if (semester.isActive) return;
-    
-    try {
-      const response = await semesterService.activateSemester(semester._id);
-      if (response.success) {
-        showToast(`Đã kích hoạt học kỳ "${semester.name}"`);
-        loadSemesters();
-      }
-    } catch (error) {
-      const message = error.response?.data?.message || 'Không thể kích hoạt học kỳ';
-      showToast(message, 'error');
-    }
-  };
+  // Học kỳ được tự động kích hoạt bởi Backend dựa trên ngày hiện tại
+  // Không cần nút kích hoạt thủ công
 
   const handleModalSuccess = (data, action) => {
     if (action === 'create') {
@@ -248,15 +236,6 @@ const SemesterManagement = () => {
                     </td>
                     <td className="td-right">
                       <div className="action-buttons">
-                        {!semester.isActive && (
-                          <button
-                            className="action-btn activate-btn"
-                            onClick={() => handleActivateSemester(semester)}
-                            title="Kích hoạt học kỳ này"
-                          >
-                            ⚡
-                          </button>
-                        )}
                         <button
                           className="action-btn edit-btn"
                           onClick={() => handleEditSemester(semester)}

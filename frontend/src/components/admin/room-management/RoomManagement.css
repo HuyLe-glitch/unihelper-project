@@ -267,7 +267,7 @@
 .room-card:hover {
   border-color: #667eea;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-  transform: translateY(-3px);
+   transform: translateY(-3px);
 }
 
 .room-card.room-full {
@@ -357,11 +357,7 @@
 }
 
 .progress-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6c757d;
-  min-width: 50px;
-  text-align: right;
+  display: none; /* Ẩn vì đã có info "Đang ở" phía trên */
 }
 
 .room-card-actions {

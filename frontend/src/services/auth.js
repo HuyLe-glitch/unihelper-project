@@ -48,13 +48,27 @@ export const authService = {
             }
           }
         }
+
+        // For students, get isDormResident from profile
+        let isDormResident = false;
+        if (normalizedRole === 'student' && user.profile) {
+          isDormResident = user.profile.isDormResident || false;
+        }
         
         localStorage.setItem('authToken', response.data.data.token);
         localStorage.setItem('userRole', normalizedRole);
         if (staffType) {
           localStorage.setItem('staffType', staffType);
         }
-        localStorage.setItem('user', JSON.stringify({...user, role: normalizedRole, staffType}));
+        if (normalizedRole === 'student') {
+          localStorage.setItem('isDormResident', isDormResident.toString());
+        }
+        localStorage.setItem('user', JSON.stringify({
+          ...user, 
+          role: normalizedRole, 
+          staffType,
+          isDormResident
+        }));
         
         return {
           ...response.data.data,
@@ -90,6 +104,7 @@ export const authService = {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
     localStorage.removeItem('staffType');
+    localStorage.removeItem('isDormResident');
     localStorage.removeItem('user');
     window.location.href = '/login';
   },
@@ -97,6 +112,11 @@ export const authService = {
   // Get staff type
   getStaffType: () => {
     return localStorage.getItem('staffType');
+  },
+
+  // Get isDormResident status
+  getIsDormResident: () => {
+    return localStorage.getItem('isDormResident') === 'true';
   },
 
   // Get current user

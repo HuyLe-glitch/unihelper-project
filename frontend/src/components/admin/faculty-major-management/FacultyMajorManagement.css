@@ -387,12 +387,44 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  position: relative;
 }
 
 .item-card:hover {
   border-color: #667eea;
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
   transform: translateY(-4px);
+}
+
+/* Nút Thêm nhanh - Góc trên bên phải */
+.btn-quick-add {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid #667eea;
+  background: #e0e7ff;
+  color: #667eea;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  z-index: 1;
+}
+
+.btn-quick-add:hover {
+  background: #c7d2fe;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-quick-add:active {
+  transform: scale(0.95);
 }
 
 .item-header {
@@ -861,27 +893,6 @@
 
 .item-card.inactive .item-title {
   color: #6b7280;
-}
-
-/* Additional stat card colors */
-.stat-card.stat-blue {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-}
-
-.stat-card.stat-green {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-}
-
-.stat-card.stat-red {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
-
-.stat-card.stat-purple {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  color: white;
 }
 
 /* ========================================

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminLayout } from '../layouts';
 import { AdminDashboard } from '../components/admin/dashboard';
-import { StudentManagement } from '../components/admin/student-management';
+import { StudentManagement, StudentImportPage } from '../components/admin/student-management';
 import { FacultyMajorManagement } from '../components/admin/faculty-major-management';
 import { SemesterManagement } from '../components/admin/semester-management';
 import { CertificateManagement } from '../components/admin/certificate-management';
@@ -39,6 +39,7 @@ export const adminRoutes = [
       
       // Quản lý sinh viên
       { path: 'students', element: <StudentManagement /> },
+      { path: 'students/import', element: <StudentImportPage /> },
       
       // Quản lý Khoa & Chuyên ngành (Unified)
       { path: 'faculty-major', element: <FacultyMajorManagement /> },

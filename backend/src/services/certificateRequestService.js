@@ -34,7 +34,7 @@ class CertificateRequestService {
       certificateName: certificateName, // Đây là ObjectId của CertificateName
       semester,
       notes: notes || '',
-      status: 'PENDING'
+      status: 'ĐANG XỬ LÝ'
     });
 
     return {
@@ -116,10 +116,10 @@ class CertificateRequestService {
       throw new AppError('Không tìm thấy thông tin staff', 404);
     }
 
-    // Validation trạng thái
-    const validStatuses = ['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED', 'COMPLETED'];
+    // Validation trạng thái - phải khớp với enum trong Model
+    const validStatuses = ['ĐANG XỬ LÝ', 'HỢP LỆ', 'KHÔNG HỢP LỆ'];
     if (!validStatuses.includes(status)) {
-      throw new AppError('Trạng thái không hợp lệ', 400);
+      throw new AppError('Trạng thái không hợp lệ. Cho phép: ĐANG XỬ LÝ, HỢP LỆ, KHÔNG HỢP LỆ', 400);
     }
 
     const updatedRequest = await certificateRequestRepository.updateRequestStatus(

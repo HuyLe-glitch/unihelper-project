@@ -25,6 +25,7 @@ const FacultyMajorManagement = () => {
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [showMajorModal, setShowMajorModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [preSelectedFacultyId, setPreSelectedFacultyId] = useState(null);
 
   // Delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState({ show: false, type: '', item: null });
@@ -174,8 +175,9 @@ const FacultyMajorManagement = () => {
 
   // ============ MAJOR HANDLERS ============
 
-  const handleAddMajor = () => {
+  const handleAddMajor = (facultyId = null) => {
     setEditingItem(null);
+    setPreSelectedFacultyId(facultyId);
     setShowMajorModal(true);
   };
 
@@ -412,6 +414,14 @@ const FacultyMajorManagement = () => {
             <div className="items-grid">
               {filteredFaculties.map((faculty) => (
                 <div key={faculty._id} className="item-card">
+                  {/* Nút thêm nhanh - Góc trên bên trái */}
+                  <button
+                    className="btn-quick-add"
+                    onClick={() => handleAddMajor(faculty._id)}
+                    title="Thêm chuyên ngành vào khoa"
+                  >
+                    ➕
+                  </button>
                   <div className="item-header">
                     <div className="item-code">{faculty.code}</div>
                   </div>
@@ -511,6 +521,7 @@ const FacultyMajorManagement = () => {
         editingMajor={editingItem}
         faculties={faculties}
         isLoading={isSubmitting}
+        preSelectedFacultyId={preSelectedFacultyId}
       />
 
       {/* Delete Confirmation Dialog */}

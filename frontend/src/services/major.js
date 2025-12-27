@@ -55,6 +55,17 @@ export const majorService = {
   deleteMajor: async (majorId) => {
     const response = await apiClient.delete(`/majors/${majorId}`);
     return response.data;
+  },
+
+  /**
+   * Lấy danh sách chuyên ngành theo Khoa
+   * @param {string} facultyId - ID của khoa
+   */
+  getMajorsByFaculty: async (facultyId) => {
+    const response = await apiClient.get('/majors', { 
+      params: { faculty: facultyId } 
+    });
+    return response.data;
   }
 };
 

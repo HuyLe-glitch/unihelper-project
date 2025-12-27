@@ -386,12 +386,44 @@
   border-radius: 12px;
   padding: 24px;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .item-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   border-color: #667eea;
+}
+
+/* Nút Thêm nhanh - Góc trên bên phải */
+.btn-quick-add {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid #667eea;
+  background: #e0e7ff;
+  color: #667eea;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  z-index: 1;
+}
+
+.btn-quick-add:hover {
+  background: #c7d2fe;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-quick-add:active {
+  transform: scale(0.95);
 }
 
 .item-title {
@@ -468,15 +500,6 @@
 
 .btn-view:hover {
   background: #c7d2fe;
-}
-
-.btn-add-item {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.btn-add-item:hover {
-  background: #a7f3d0;
 }
 
 .btn-edit {

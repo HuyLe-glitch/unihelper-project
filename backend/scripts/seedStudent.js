@@ -43,25 +43,21 @@ async function main() {
     });
     console.log(`🆕 User created: ${email}`);
 
-    // Tạo Student profile
+    // Tạo Student profile theo model mới
+    // Các trường: fullName, dateOfBirth, phone, email(từ User), citizenId, address, major, isDormResident, roomId
     const student = await Student.create({
       user: user._id,
-      studentId: 'S20250001',
       fullName: 'Nguyễn Văn Test',
-      major: major._id,
-      academicYear: '2025',
-      gpa: 3.5,
-      phone: '0123456789',
-      className: 'CNTT-01',
-      address: '123 Đường ABC, Quận 1, TP.HCM',
       dateOfBirth: new Date('2003-01-15'),
+      phone: '0123456789',
       citizenId: '001203012345',
-      enrollmentDate: new Date('2021-09-01'),
-      status: 'ACTIVE'
+      address: '123 Đường ABC, Quận 1, TP.HCM',
+      major: major._id,
+      isDormResident: false,
+      roomId: null
     });
 
     console.log('🎉 Student created successfully!');
-    console.log(`   🎓 Student ID: ${student.studentId}`);
     console.log(`   👤 Name: ${student.fullName}`);
     console.log(`   📧 Email: ${email}`);
     console.log(`   🔑 Password: ${password}`);

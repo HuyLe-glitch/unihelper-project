@@ -63,8 +63,7 @@ const semesterSchema = new mongoose.Schema(
 // Compound unique index: Một năm không thể có 2 học kỳ cùng template
 semesterSchema.index({ templateId: 1, year: 1 }, { unique: true });
 
-// Index để tìm kiếm và sắp xếp
-semesterSchema.index({ name: 1 });
+// Index để tìm kiếm và sắp xếp (name đã có unique: true tự động tạo index)
 semesterSchema.index({ year: -1 });
 semesterSchema.index({ startDate: -1 });
 semesterSchema.index({ isActive: 1 });

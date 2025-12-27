@@ -102,13 +102,8 @@ export const semesterService = {
     return response.data;
   },
 
-  /**
-   * Kích hoạt semester
-   */
-  activateSemester: async (semesterId) => {
-    const response = await apiClient.post(`/semesters/${semesterId}/activate`);
-    return response.data;
-  },
+  // Học kỳ được tự động kích hoạt bởi Backend dựa trên ngày hiện tại
+  // Không cần API activateSemester thủ công
 
   /**
    * Xóa semester

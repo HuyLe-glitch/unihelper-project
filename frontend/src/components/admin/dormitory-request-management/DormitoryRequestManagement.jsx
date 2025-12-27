@@ -375,6 +375,14 @@ const DormitoryRequestManagement = () => {
             <div className="items-grid">
               {filteredCategories.map((category) => (
                 <div key={category._id} className="item-card">
+                  {/* Nút thêm nhanh - Góc trên bên trái */}
+                  <button
+                    className="btn-quick-add"
+                    onClick={() => handleAddItem(category._id)}
+                    title="Thêm thiết bị vào danh mục"
+                  >
+                    ➕
+                  </button>
                   <h4 className="item-title">{category.name}</h4>
                   <p className="item-description">{category.description || 'Không có mô tả'}</p>
                   <div className="item-stats">
@@ -390,13 +398,6 @@ const DormitoryRequestManagement = () => {
                       title="Xem danh sách thiết bị"
                     >
                       📝 Xem thiết bị
-                    </button>
-                    <button
-                      className="btn-action btn-add-item"
-                      onClick={() => handleAddItem(category._id)}
-                      title="Thêm thiết bị vào danh mục"
-                    >
-                      ➕
                     </button>
                     <button
                       className="btn-action btn-edit"

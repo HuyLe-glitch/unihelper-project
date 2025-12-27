@@ -154,6 +154,22 @@ class UserRepository {
         return null;
     }
 
+    // For Student, need to populate major and faculty
+    if (role === 'STUDENT') {
+      return await profileModel.findOne({ user: userId })
+        .populate({
+          path: 'user',
+          select: '-password'
+        })
+        .populate({
+          path: 'major',
+          populate: {
+            path: 'faculty'
+          }
+        })
+        .populate('roomId');
+    }
+
     return await profileModel.findOne({ user: userId }).populate({
       path: 'user',
       select: '-password' // Exclude password from populate

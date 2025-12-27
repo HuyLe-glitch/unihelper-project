@@ -17,9 +17,18 @@ class AuthService {
     }
 
     // Find student by studentId (case insensitive)
+    // Populate user, major (with faculty), and roomId
     const student = await Student.findOne({ 
       studentId: { $regex: new RegExp(`^${studentId}$`, 'i') } 
-    }).populate('user');
+    })
+      .populate('user')
+      .populate({
+        path: 'major',
+        populate: {
+          path: 'faculty'
+        }
+      })
+      .populate('roomId');
     
     if (!student || !student.user) {
       throw new AppError('Student ID hoặc password không đúng', 401);

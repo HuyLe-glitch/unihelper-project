@@ -20,10 +20,9 @@ router.get(
   semesterController.getAllSemesters
 );
 
-// GET /api/semesters/active - Lấy semester đang active
+// GET /api/semesters/active - Lấy semester đang active (Tất cả roles đều có thể truy cập)
 router.get(
   '/active',
-  restrictTo('ADMIN', 'STAFF'),
   semesterController.getActiveSemester
 );
 
@@ -56,14 +55,6 @@ router.patch(
   restrictTo('ADMIN'),
   semesterValidation.update,
   semesterController.updateSemester
-);
-
-// POST /api/semesters/:id/activate - Kích hoạt semester (ADMIN only)
-router.post(
-  '/:id/activate',
-  restrictTo('ADMIN'),
-  idValidation,
-  semesterController.activateSemester
 );
 
 // DELETE /api/semesters/:id - Xóa semester (ADMIN only)

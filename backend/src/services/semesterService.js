@@ -111,6 +111,9 @@ const semesterService = {
   // ==================== SEMESTER SERVICES ====================
 
   getAllSemesters: async (filters = {}) => {
+    // Sync trạng thái active trước khi trả về danh sách
+    await semesterService.syncActiveSemester();
+
     const parsedFilters = {};
     if (filters.year) parsedFilters.year = parseInt(filters.year);
     if (filters.templateId) parsedFilters.templateId = filters.templateId;
@@ -243,25 +246,71 @@ const semesterService = {
     return { success: true, message: 'Xóa học kỳ thành công' };
   },
 
-  activateSemester: async (semesterId) => {
-    const semester = await semesterRepository.getSemesterById(semesterId);
-    if (!semester) {
-      throw createError('Không tìm thấy học kỳ', 404);
-    }
-
-    await semesterRepository.deactivateAllSemesters();
-    const updatedSemester = await semesterRepository.updateSemester(semesterId, { isActive: true });
-
-    return {
-      success: true,
-      message: `Đã kích hoạt học kỳ "${updatedSemester.name}"`,
-      data: updatedSemester
-    };
-  },
-
   getActiveSemester: async () => {
+    // Sync trước khi trả về để đảm bảo dữ liệu chính xác
+    await semesterService.syncActiveSemester();
     const semester = await semesterRepository.getActiveSemester();
     return { success: true, data: semester || null };
+  },
+
+  /**
+   * CORE BUSINESS LOGIC: Tự động xác định học kỳ đang hoạt động
+   * Dựa trên thời gian hiện tại và startDate/endDate của các học kỳ
+   * 
+   * Logic:
+   * 1. Lấy thời gian hiện tại
+   * 2. Tìm học kỳ có startDate <= currentDate <= endDate
+   * 3. Nếu tìm thấy: Activate học kỳ đó, deactivate các học kỳ khác
+   * 4. Nếu không tìm thấy (đang nghỉ): Deactivate tất cả
+   * 
+   * @returns {Object} - Kết quả sync
+   */
+  syncActiveSemester: async () => {
+    // 1. Lấy thời gian hiện tại (đầu ngày để so sánh chính xác)
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // 2. Tìm học kỳ phù hợp với ngày hiện tại
+    const matchingSemester = await semesterRepository.findSemesterByDate(currentDate);
+
+    // 3. Xử lý kết quả
+    if (matchingSemester) {
+      // Nếu học kỳ này đã active rồi thì không cần làm gì
+      if (matchingSemester.isActive) {
+        return {
+          success: true,
+          message: `Học kỳ "${matchingSemester.name}" đang hoạt động`,
+          data: matchingSemester,
+          synced: false
+        };
+      }
+
+      // Deactivate tất cả trước
+      await semesterRepository.deactivateAllSemesters();
+      
+      // Activate học kỳ phù hợp bằng updateSemester
+      const activatedSemester = await semesterRepository.updateSemester(
+        matchingSemester._id, 
+        { isActive: true }
+      );
+      
+      return {
+        success: true,
+        message: `Đã tự động kích hoạt học kỳ "${activatedSemester.name}"`,
+        data: activatedSemester,
+        synced: true
+      };
+    } else {
+      // 4. Không có học kỳ nào phù hợp -> deactivate tất cả
+      await semesterRepository.deactivateAllSemesters();
+      
+      return {
+        success: true,
+        message: 'Hiện tại không có học kỳ nào đang diễn ra',
+        data: null,
+        synced: true
+      };
+    }
   },
 
   previewDates: async (templateId, year) => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { getMenuConfig } from '../../../constants';
 import { authService } from '../../../services';
@@ -11,8 +11,25 @@ const Sidebar = ({ userRole = 'student', isCollapsed = false }) => {
   // Get staff type for staff users
   const staffType = userRole === 'staff' ? authService.getStaffType() : null;
   
-  // Get appropriate menu based on role and staff type
-  const menuItems = getMenuConfig(userRole, staffType);
+  // Get isDormResident for student users
+  const isDormResident = useMemo(() => {
+    if (userRole !== 'student') return false;
+    
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        // Check từ profile.isDormResident hoặc trực tiếp từ user
+        return user?.profile?.isDormResident || user?.isDormResident || false;
+      }
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+    }
+    return false;
+  }, [userRole]);
+  
+  // Get appropriate menu based on role, staff type, and dormitory status
+  const menuItems = getMenuConfig(userRole, staffType, isDormResident);
 
   useEffect(() => {
     menuItems.forEach((item) => {

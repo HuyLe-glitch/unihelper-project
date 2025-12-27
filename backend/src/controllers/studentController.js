@@ -1,44 +1,263 @@
 const studentService = require('../services/studentService');
-const { catchAsync } = require('../utils/appError');
-const userService = require('../services/userService');
+const { validationResult } = require('express-validator');
 
+/**
+ * Student Controller - Thin Controller
+ * Chỉ nhận request, gọi service và trả response
+ * KHÔNG chứa business logic
+ */
 class StudentController {
-  createStudent = catchAsync(async (req, res) => {
-    const payload = req.body;
+  /**
+   * POST /api/students
+   * Tạo sinh viên mới
+   */
+  createStudent = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-    const result = await studentService.createStudent(payload);
+      const result = await studentService.createStudent(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-    return res.status(201).json({
-      status: 'success',
-      message: 'Student profile created successfully',
-      data: result.data
-    });
-  });
+  /**
+   * GET /api/students
+   * Lấy danh sách sinh viên
+   */
+  listStudents = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 20;
+      
+      const filters = {};
+      if (req.query.major) filters.major = req.query.major;
+      if (req.query.status) filters.status = req.query.status;
+      if (req.query.isDormResident !== undefined) {
+        filters.isDormResident = req.query.isDormResident === 'true';
+      }
 
-  listStudents = catchAsync(async (req, res) => {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20;
-    const filters = {};
-    if (req.query.major) filters.major = req.query.major;
-    if (req.query.status) filters.status = req.query.status;
-    const { docs, total } = await studentService.listStudents(page, limit, filters);
-    res.json({ success: true, data: docs, meta: { page, limit, total } });
-  });
+      const result = await studentService.listStudents(page, limit, filters);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-  getStudentById = catchAsync(async (req, res) => {
-    const doc = await studentService.getStudentById(req.params.id);
-    res.json({ success: true, data: doc });
-  });
+  /**
+   * GET /api/students/dormitory
+   * Lấy danh sách sinh viên ở KTX
+   */
+  listDormStudents = async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 20;
+      
+      const filters = {};
+      if (req.query.roomId) filters.roomId = req.query.roomId;
 
-  updateStudent = catchAsync(async (req, res) => {
-    const updated = await studentService.updateStudent(req.params.id, req.body);
-    res.json({ success: true, data: updated });
-  });
+      const result = await studentService.listDormStudents(page, limit, filters);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-  deleteStudent = catchAsync(async (req, res) => {
-    await studentService.deleteStudent(req.params.id);
-    res.json({ success: true, message: 'Student deleted' });
-  });
+  /**
+   * GET /api/students/:id
+   * Lấy sinh viên theo ID
+   */
+  getStudentById = async (req, res, next) => {
+    try {
+      const result = await studentService.getStudentById(req.params.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * PATCH /api/students/:id
+   * Cập nhật sinh viên
+   */
+  updateStudent = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
+
+      const result = await studentService.updateStudent(req.params.id, req.body);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * DELETE /api/students/:id
+   * Xóa sinh viên
+   */
+  deleteStudent = async (req, res, next) => {
+    try {
+      const result = await studentService.deleteStudent(req.params.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * GET /api/students/available-rooms
+   * Lấy danh sách phòng còn chỗ trống
+   */
+  getAvailableRooms = async (req, res, next) => {
+    try {
+      const result = await studentService.getAvailableRooms();
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * GET /api/students/stats
+   * Lấy thống kê sinh viên
+   */
+  getStats = async (req, res, next) => {
+    try {
+      const result = await studentService.getStats();
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // ==========================================
+  // IMPORT CSV APIs
+  // ==========================================
+
+  /**
+   * POST /api/students/import/preview
+   * API Preview - Validate dữ liệu CSV KHÔNG lưu DB
+   * [PHỤC VỤ FRONTEND BƯỚC 2: XEM TRƯỚC & VALIDATE]
+   */
+  previewImport = async (req, res, next) => {
+    try {
+      const { rows, majorId } = req.body;
+      
+      if (!rows || !Array.isArray(rows)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ - cần mảng rows'
+        });
+      }
+      
+      if (!majorId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu majorId - chuyên ngành'
+        });
+      }
+      
+      const result = await studentService.previewImport(rows, majorId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST /api/students/import/execute
+   * API Import - Lưu dữ liệu hợp lệ vào DB
+   * [PHỤC VỤ FRONTEND BƯỚC 3: XỬ LÝ]
+   */
+  executeImport = async (req, res, next) => {
+    try {
+      const { validRows, majorId } = req.body;
+      
+      if (!validRows || !Array.isArray(validRows) || validRows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không có dữ liệu hợp lệ để import'
+        });
+      }
+      
+      if (!majorId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Thiếu majorId - chuyên ngành'
+        });
+      }
+      
+      const result = await studentService.executeImport(validRows, majorId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * DELETE /api/students/bulk
+   * Xóa nhiều sinh viên cùng lúc
+   */
+  bulkDeleteStudents = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
+
+      const { ids } = req.body;
+      const result = await studentService.bulkDeleteStudents(ids);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST /api/students/transfer
+   * Chuyển phòng cho nhiều sinh viên
+   */
+  transferStudentsRoom = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
+
+      const { studentIds, targetRoomId } = req.body;
+      const result = await studentService.transferStudentsRoom(studentIds, targetRoomId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new StudentController();

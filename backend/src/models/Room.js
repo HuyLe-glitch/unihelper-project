@@ -51,8 +51,7 @@ const roomSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
-roomSchema.index({ name: 1 });
+// Indexes (name đã có unique: true nên không cần index riêng)
 roomSchema.index({ status: 1 });
 
 // Pre-save middleware để auto-update status

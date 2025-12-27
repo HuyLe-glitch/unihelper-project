@@ -1,53 +1,36 @@
 const mongoose = require('mongoose');
 
+/**
+ * Student Model
+ * Các trường theo yêu cầu: name, dateOfBirth, phone, email (từ User), 
+ * cccd, address, FacultyId, majorId, isDormResident, roomId
+ */
 const studentSchema = new mongoose.Schema({
+  // Email được lấy từ User model thông qua ref
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
     unique: true
   },
-  studentId: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
+  // Họ và tên
   fullName: {
     type: String,
     required: true,
     trim: true,
     maxlength: 50
   },
-  major: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Major',
+  // Ngày sinh
+  dateOfBirth: {
+    type: Date,
     required: true
   },
-  academicYear: {
-    type: String,
-    required: true
-  },
-  gpa: {
-    type: Number,
-    min: 0,
-    max: 4,
-    default: 0
-  },
+  // Số điện thoại
   phone: {
     type: String,
     trim: true
   },
-  className: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  address: {
-    type: String,
-    required: true,
-    trim: true
-  },
+  // CCCD
   citizenId: {
     type: String,
     trim: true,
@@ -55,18 +38,28 @@ const studentSchema = new mongoose.Schema({
     required: true,
     sparse: true
   },
-  dateOfBirth: {
-    type: Date,
+  // Địa chỉ
+  address: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  // Khoa (Faculty) - Ref thông qua Major
+  major: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Major',
     required: true
   },
-  enrollmentDate: {
-    type: Date,
-    default: Date.now
+  // KTX - Có ở ký túc xá không
+  isDormResident: {
+    type: Boolean,
+    default: false
   },
-  status: {
-    type: String,
-    enum: ['ACTIVE', 'INACTIVE', 'GRADUATED', 'SUSPENDED','DROPPED','TEMPORARY_LEAVE'],
-    default: 'ACTIVE'
+  // Phòng KTX - nullable
+  roomId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Room',
+    default: null
   },
   // Soft delete
   isDeleted: { 
@@ -76,7 +69,7 @@ const studentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Indexes
-studentSchema.index({ major: 1, status: 1 });
+studentSchema.index({ major: 1 });
 
 // Virtual populate
 studentSchema.virtual('userInfo', {

@@ -23,7 +23,7 @@ router.use(protect);
  */
 router.get(
   '/categories',
-  restrictTo('ADMIN', 'STAFF'),
+  restrictTo('ADMIN', 'STAFF', 'STUDENT'),
   equipmentValidation.queryValidation,
   equipmentController.getAllCategories
 );
@@ -35,7 +35,7 @@ router.get(
  */
 router.get(
   '/categories/:id',
-  restrictTo('ADMIN', 'STAFF'),
+  restrictTo('ADMIN', 'STAFF', 'STUDENT'),
   equipmentValidation.idValidation,
   equipmentController.getCategoryById
 );
@@ -84,7 +84,7 @@ router.delete(
  */
 router.get(
   '/categories/:id/items',
-  restrictTo('ADMIN', 'STAFF'),
+  restrictTo('ADMIN', 'STAFF', 'STUDENT'),
   equipmentValidation.idValidation,
   equipmentController.getItemsByCategory
 );
@@ -113,7 +113,7 @@ router.post(
  */
 router.get(
   '/items',
-  restrictTo('ADMIN', 'STAFF'),
+  restrictTo('ADMIN', 'STAFF', 'STUDENT'),
   equipmentValidation.queryValidation,
   equipmentController.getAllItems
 );
@@ -125,7 +125,7 @@ router.get(
  */
 router.get(
   '/items/:id',
-  restrictTo('ADMIN', 'STAFF'),
+  restrictTo('ADMIN', 'STAFF', 'STUDENT'),
   equipmentValidation.idValidation,
   equipmentController.getItemById
 );

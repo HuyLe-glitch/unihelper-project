@@ -6,13 +6,17 @@ const dormitoryRequestSchema = new mongoose.Schema({
         ref: 'Student',
         required: true
     },
-    category: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'DormitoryCategory',
-            required: true
-        },
-    ],
+    // Danh mục thiết bị (ref đến EquipmentCategory)
+    category: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'EquipmentCategory',
+        required: true
+    },
+    // Thiết bị cụ thể (ref đến EquipmentItem) - tùy chọn
+    item: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'EquipmentItem'
+    },
     description: {
         type: String
     },

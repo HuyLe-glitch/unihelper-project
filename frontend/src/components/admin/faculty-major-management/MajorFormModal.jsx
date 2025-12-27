@@ -16,7 +16,8 @@ const MajorFormModal = ({
   onSubmit, 
   editingMajor,
   faculties,
-  isLoading 
+  isLoading,
+  preSelectedFacultyId 
 }) => {
   // Khoa được chọn (dùng chung cho tất cả chuyên ngành khi thêm mới)
   const [selectedFaculty, setSelectedFaculty] = useState('');
@@ -53,8 +54,8 @@ const MajorFormModal = ({
         setSelectedFaculty('');
         setMajorEntries([{ id: 1, name: '', code: '', description: '' }]);
       } else {
-        // Chế độ Add: reset form
-        setSelectedFaculty('');
+        // Chế độ Add: reset form, set preSelectedFacultyId nếu có
+        setSelectedFaculty(preSelectedFacultyId || '');
         setMajorEntries([{ id: 1, name: '', code: '', description: '' }]);
         setEditFormData({ name: '', code: '', faculty: '', description: '' });
       }
@@ -62,7 +63,7 @@ const MajorFormModal = ({
       setEntryErrors({});
       setGeneralError('');
     }
-  }, [isOpen, editingMajor]);
+  }, [isOpen, editingMajor, preSelectedFacultyId]);
 
   // ============ EDIT MODE HANDLERS ============
   const handleEditChange = (e) => {
