@@ -1,13 +1,55 @@
 const app = require('./app');
 const http = require('http');
+const { Server } = require('socket.io');
 const PORT = process.env.PORT || 5000;
 
 // Create HTTP server
 const server = http.createServer(app);
 
+// ==========================================
+// SOCKET.IO CONFIGURATION
+// ==========================================
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Socket.IO connection handler
+io.on('connection', (socket) => {
+  console.log(`🔌 Socket connected: ${socket.id}`);
+
+  // Client tham gia phòng KTX (JOIN_ROOM)
+  socket.on('JOIN_ROOM', (roomId) => {
+    if (roomId) {
+      socket.join(roomId);
+      console.log(`👤 Socket ${socket.id} joined room: ${roomId}`);
+    }
+  });
+
+  // Client rời phòng (LEAVE_ROOM)
+  socket.on('LEAVE_ROOM', (roomId) => {
+    if (roomId) {
+      socket.leave(roomId);
+      console.log(`👤 Socket ${socket.id} left room: ${roomId}`);
+    }
+  });
+
+  // Xử lý ngắt kết nối
+  socket.on('disconnect', () => {
+    console.log(`🔌 Socket disconnected: ${socket.id}`);
+  });
+});
+
+// Gắn io vào app để sử dụng trong middleware
+app.set('io', io);
+
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🔌 Socket.IO is ready for connections`);
 });
 
 // Handle graceful shutdown

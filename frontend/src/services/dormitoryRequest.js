@@ -86,6 +86,15 @@ const dormitoryRequestService = {
   },
 
   /**
+   * Xác nhận sửa chữa - Sinh viên xác nhận đã sửa xong (STUDENT)
+   * @param {string} requestId - ID yêu cầu
+   */
+  confirmRepair: async (requestId) => {
+    const response = await apiClient.patch(`/dormitory/requests/${requestId}/confirm-repair`);
+    return response.data;
+  },
+
+  /**
    * Xóa yêu cầu
    * @param {string} requestId
    */
@@ -100,12 +109,12 @@ const dormitoryRequestService = {
 
   /**
    * Lấy tất cả yêu cầu (STAFF/ADMIN)
-   * @param {Object} filters - { status, studentId, page, limit }
+   * @param {Object} filters - { status, student, page, limit }
    */
   getAllRequests: async (filters = {}) => {
     const params = new URLSearchParams();
     if (filters.status) params.append('status', filters.status);
-    if (filters.studentId) params.append('studentId', filters.studentId);
+    if (filters.student) params.append('student', filters.student);
     if (filters.page) params.append('page', filters.page);
     if (filters.limit) params.append('limit', filters.limit);
 
@@ -113,6 +122,16 @@ const dormitoryRequestService = {
     const url = `/dormitory/requests${queryString ? `?${queryString}` : ''}`;
 
     const response = await apiClient.get(url);
+    return response.data;
+  },
+
+  /**
+   * Tiếp nhận yêu cầu KTX (STAFF/ADMIN)
+   * Chuyển status từ 'Pending' -> 'Under Review'
+   * @param {string} requestId - ID yêu cầu
+   */
+  acceptRequest: async (requestId) => {
+    const response = await apiClient.patch(`/dormitory/requests/${requestId}/accept`);
     return response.data;
   },
 

@@ -66,6 +66,11 @@
   margin-bottom: 25px;
 }
 
+/* Grid 3 cột cho 3 thẻ thống kê */
+.stats-grid.stats-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .stat-card {
   background: white;
   padding: 24px;
@@ -153,27 +158,36 @@
    ============================================ */
 .filters-section {
   background: white;
-  padding: 25px 30px;
+  padding: 20px 30px;
   border-radius: 12px;
   margin-bottom: 25px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .filters-wrapper {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  display: flex;
+  align-items: center;
   gap: 15px;
-  align-items: end;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
-.search-group {
-  /* Search takes more space */
+.filter-group.search-group {
+  flex: 4;
+}
+
+.filter-group:not(.search-group):not(.sort-group) {
+  flex: 1;
+  min-width: 160px;
+  max-width: 170px;
+}
+
+.filter-group.sort-group {
+  flex: 0 0 auto;
 }
 
 .filter-label {
@@ -185,23 +199,26 @@
   gap: 6px;
 }
 
-.search-input,
-.filter-select {
-  padding: 12px 16px;
+/* ============================================
+   ĐỒNG BỘ CHIỀU CAO TẤT CẢ INPUT/SELECT = 42px
+   ============================================ */
+
+/* Ô tìm kiếm */
+.search-input {
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 0 16px !important;
   border: 2px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 15px;
   transition: all 0.3s ease;
   background: white;
   width: 100%;
   box-sizing: border-box;
-  color: #495057;
-  font-weight: 500;
-}
-
-.search-input {
-  font-size: 15px;
   color: #2c3e50;
+  font-weight: 500;
+  line-height: 38px !important;
 }
 
 .search-input::placeholder {
@@ -209,20 +226,42 @@
   font-weight: 400;
 }
 
-.search-input:focus,
-.filter-select:focus {
+.search-input:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Các ô bộ lọc - CÙNG chiều cao với search */
 .filter-select {
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 0 12px !important;
+  padding-right: 32px !important;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  color: #495057;
+  font-weight: 500;
+  line-height: 38px !important;
   cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
+  background-position: right 10px center;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .filter-select option {
@@ -230,6 +269,46 @@
   background: white;
   font-weight: 500;
   padding: 8px;
+}
+
+/* ============================================
+   SORT TOGGLE BUTTON - Cùng chiều cao với input/select
+   ============================================ */
+.sort-toggle-btn {
+  width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: #495057;
+  transition: all 0.3s ease;
+  margin-top: 0; /* Không có label nữa */
+}
+
+.sort-toggle-btn:hover {
+  border-color: #667eea;
+  background: #f8f9fa;
+  color: #667eea;
+}
+
+.sort-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.sort-toggle-btn svg {
+  flex-shrink: 0;
+}
+
+.sort-arrow {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* ============================================
@@ -247,6 +326,7 @@
   gap: 12px;
   font-size: 18px;
   font-weight: 600;
+  flex-wrap: wrap;
 }
 
 .room-icon {
@@ -270,6 +350,47 @@
   font-weight: 700;
   font-size: 20px;
   letter-spacing: 0.5px;
+}
+
+.roommates-count {
+  font-weight: 400;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+/* ============================================
+   OWN REQUEST VS ROOMMATE REQUEST STYLING
+   ============================================ */
+.table-row.own-request {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.table-row.own-request:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.table-row.roommate-request {
+  background-color: rgba(255, 193, 7, 0.03);
+}
+
+.table-row.roommate-request:hover {
+  background-color: rgba(255, 193, 7, 0.08);
+}
+
+.owner-badge {
+  margin-left: 6px;
+  font-size: 12px;
+}
+
+.you-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 /* ============================================
@@ -390,10 +511,34 @@
 }
 
 .cell-description {
-  max-width: 250px;
+  max-width: 200px;
+  max-height: 60px;
+  overflow-y: auto;
   color: #6c757d;
   font-size: 13px;
   line-height: 1.5;
+  padding-right: 4px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Custom scrollbar cho mô tả */
+.cell-description::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cell-description::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.cell-description::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 2px;
+}
+
+.cell-description::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
 }
 
 .cell-date {
@@ -413,6 +558,11 @@
   font-style: italic;
 }
 
+/* Cột Trạng thái - căn giữa đồng bộ header và body */
+.dormitory-table thead th:nth-child(9) {
+  text-align: center;
+}
+
 .cell-status {
   text-align: center;
 }
@@ -421,12 +571,14 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+  margin: 0 auto;
 }
 
 .status-icon {
@@ -439,6 +591,12 @@
   border: 2px solid #c3e6cb;
 }
 
+.status-pending {
+  background: #e7e3ff;
+  color: #5a4fcf;
+  border: 2px solid #c9c3ff;
+}
+
 .status-processing {
   background: #fff3cd;
   color: #856404;
@@ -449,6 +607,14 @@
   background: #f8d7da;
   color: #721c24;
   border: 2px solid #f5c6cb;
+}
+
+/* Waiting Accept - Chờ Staff tiếp nhận */
+.waiting-accept {
+  font-size: 13px;
+  color: #5a4fcf;
+  font-weight: 500;
+  font-style: italic;
 }
 
 /* ============================================
@@ -510,12 +676,18 @@
   }
 
   .filters-wrapper {
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
   }
 
-  .search-group {
-    grid-column: 1 / -1;
+  .filter-group.search-group {
+    flex: 1 1 100%;
+  }
+
+  .filter-group:not(.search-group):not(.sort-group) {
+    flex: 1 1 calc(50% - 12px);
+    max-width: none;
   }
 
   .page-title {
@@ -596,12 +768,18 @@
   }
 
   .filters-wrapper {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
   }
 
-  .search-group {
-    grid-column: 1;
+  .filter-group.search-group {
+    flex: 1 1 100%;
+  }
+
+  .filter-group:not(.search-group):not(.sort-group) {
+    flex: 1 1 100%;
+    max-width: none;
   }
 
   /* Room banner */
@@ -689,8 +867,15 @@
 
   .search-input,
   .filter-select {
-    padding: 10px 14px;
+    height: 40px !important;
+    min-height: 40px !important;
     font-size: 14px;
+  }
+
+  .sort-toggle-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
   }
 
   .filter-label {
@@ -744,7 +929,8 @@
   }
 
   .cell-description {
-    max-width: 180px;
+    max-width: 150px;
+    max-height: 50px;
     font-size: 12px;
   }
 
@@ -814,4 +1000,255 @@
 .history-dormitory-container *::before,
 .history-dormitory-container *::after {
   box-sizing: border-box;
+}
+
+/* ============================================
+   LOADING & ERROR STATES
+   ============================================ */
+
+/* Loading Container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e1e5eb;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Error Container */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+  border-left: 4px solid #e74c3c;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  font-size: 16px;
+  color: #e74c3c;
+  text-align: center;
+  margin: 0 0 20px 0;
+  max-width: 400px;
+}
+
+.retry-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Empty State Enhancement */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+}
+
+.empty-state-message {
+  font-size: 14px;
+  color: #6c757d;
+  text-align: center;
+  max-width: 350px;
+  margin: 0 0 20px 0;
+}
+
+.empty-state-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.empty-state-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ============================================
+   XÁC NHẬN SỬA CHỮA - BUTTON & STATES
+   ============================================ */
+
+/* Nút xác nhận sửa chữa */
+.btn-confirm-repair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-confirm-repair:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.btn-confirm-repair:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-confirm-repair .btn-icon {
+  font-size: 14px;
+}
+
+.btn-confirm-repair .btn-loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Ngày xác nhận đã hoàn thành */
+.confirm-date {
+  color: #22c55e;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* Chờ xác nhận (yêu cầu của bạn cùng phòng) */
+.waiting-confirm {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.toast-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 500;
 }

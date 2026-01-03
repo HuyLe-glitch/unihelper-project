@@ -60,6 +60,29 @@
   font-size: 28px;
   font-weight: 700;
 }
+
+/* Thông tin phòng KTX */
+.student-room-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.room-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.room-value {
+  color: white;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
   
   .dormitory-form {
     padding: 32px;

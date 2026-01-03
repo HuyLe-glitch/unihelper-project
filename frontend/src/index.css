@@ -35,6 +35,45 @@ h1 {
   line-height: 1.1;
 }
 
+/* Reset input styles globally */
+input, textarea, select {
+  outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Fix search-input double border issue - search input inside search-box should be transparent */
+.search-box .search-input,
+input.search-input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.search-box .search-input:focus,
+input.search-input:focus {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Remove inner shadow on iOS */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;

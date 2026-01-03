@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const globalErrorHandler = require('./middleware/errorHandler');
 const { AppError } = require('./utils/appError');
+const { attachSocketIO } = require('./middleware/socketMiddleware');
 
 
 // Load environment variables
@@ -27,6 +28,10 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// --- Socket.IO Middleware (Dependency Injection) ---
+// Gắn io vào mọi request để Controller có thể emit event
+app.use(attachSocketIO);
+
 // --- Import routes ---
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -46,6 +51,7 @@ const semesterRoutes = require('./routes/semesterRoutes');
 const semesterTemplateRoutes = require('./routes/semesterTemplateRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const equipmentRoutes = require('./routes/equipmentRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 
 
 // --- Mount routes ---
@@ -67,6 +73,7 @@ app.use('/api/semesters', semesterRoutes);
 app.use('/api/semester-templates', semesterTemplateRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/equipment', equipmentRoutes);
+app.use('/api/files', fileRoutes);
 
 
 // --- Health check route ---

@@ -1,57 +1,101 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import certificateRequestService from '../../../services/certificateRequest';
+import socketService from '../../../services/socket';
 import './HistoryAffair.css';
 
 const HistoryAffair = () => {
   const navigate = useNavigate();
   
-  // Dữ liệu mẫu
-  const [affairsHistory] = useState([
-    {
-      id: '01146969',
-      certificateType: 'Nghĩa vụ quân sự',
-      certificateName: 'Tạm hoãn nghĩa vụ quân sự',
-      semester: 'HK1 - 2025',
-      requestDate: '2025-08-16',
-      status: 'valid',
-      responseTime: '4:45 CH\n19-08-2025',
-      notes: 'Sinh viên vui lòng đến P. CTHSSV (A0003) nhận bản chính giấy chứng nhận sinh viên. Thời gian từ ngày 19/8/2025 - 04/9/2025. Nếu SV không nhận hồ sơ theo thời gian nêu trên vui lòng liên hệ trực tiếp Phòng để nêu rõ lý do.',
-      file: '01146969.pdf',
-    },
-    {
-      id: '01136977',
-      certificateType: 'Bổ sung hồ sơ cá nhân',
-      certificateName: 'Bổ sung hồ sơ cá nhân',
-      semester: 'HK1 - 2024',
-      requestDate: '2024-08-30',
-      status: 'valid',
-      responseTime: '2:38 CH\n05-09-2024',
-      notes: 'Sinh viên vui lòng đến P. CTHSSV (A0003) nhận bản chính giấy chứng nhận sinh viên. Thời gian từ ngày 05/9/2024 – 19/9/2024. Nếu SV không nhận hồ sơ theo thời gian nêu trên vui lòng liên hệ trực tiếp Phòng CHSSV để nêu rõ lý do.',
-      file: '01136977.pdf',
-    },
-    {
-      id: '01125588',
-      certificateType: 'Xác nhận sinh viên',
-      certificateName: 'Xác nhận sinh viên đang học',
-      semester: 'HK2 - 2024',
-      requestDate: '2024-12-10',
-      status: 'processing',
-      responseTime: '-',
-      notes: 'Yêu cầu đang được xử lý bởi Phòng CTSV.',
-      file: '',
-    },
-    {
-      id: '01098765',
-      certificateType: 'Bảng điểm',
-      certificateName: 'Bảng điểm tích lũy',
-      semester: 'HK1 - 2024',
-      requestDate: '2024-07-20',
-      status: 'invalid',
-      responseTime: '10:30 SA\n25-07-2024',
-      notes: 'Yêu cầu không hợp lệ do sinh viên chưa hoàn thành học phí học kỳ 1.',
-      file: '',
-    },
-  ]);
+  // State cho dữ liệu từ API
+  const [affairsHistory, setAffairsHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Mapping status từ backend sang frontend UI
+  const mapStatusFromBackend = (backendStatus) => {
+    const statusMapping = {
+      'ĐANG XỬ LÝ': 'processing',
+      'HỢP LỆ': 'valid',
+      'KHÔNG HỢP LỆ': 'invalid'
+    };
+    return statusMapping[backendStatus] || 'processing';
+  };
+
+  // Format responseTime từ Date sang chuỗi hiển thị
+  const formatResponseTime = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = date.toLocaleDateString('vi-VN');
+    return `${time}\n${dateStr}`;
+  };
+
+  // Transform dữ liệu từ API sang format UI
+  const transformRequestData = useCallback((request) => {
+    return {
+      id: request.requestCode || request._id,
+      certificateType: request.certificateType?.name || 'Không xác định',
+      certificateName: request.certificateName?.name || 'Không xác định',
+      semester: request.semester || '',
+      requestDate: request.requestDate || request.createdAt,
+      status: mapStatusFromBackend(request.status),
+      responseTime: formatResponseTime(request.responseTime),
+      notes: request.notes || '',
+      staffFile: request.staffFile?.fileName ? request.staffFile : null
+    };
+  }, []);
+
+  // Fetch dữ liệu từ API
+  const fetchHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await certificateRequestService.getMyRequests({ page: 1, limit: 100 });
+      
+      if (response.success && response.data) {
+        const transformedData = (response.data.requests || []).map(transformRequestData);
+        setAffairsHistory(transformedData);
+      } else {
+        setError(response.message || 'Không thể tải dữ liệu');
+      }
+    } catch (err) {
+      console.error('Error fetching certificate request history:', err);
+      setError(err.response?.data?.message || 'Không thể tải lịch sử yêu cầu CTSV');
+    } finally {
+      setLoading(false);
+    }
+  }, [transformRequestData]);
+
+  // Fetch data khi component mount
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  // Socket.IO realtime updates - khi Staff duyệt/từ chối yêu cầu
+  useEffect(() => {
+    // Kết nối socket
+    socketService.connect();
+
+    // Lắng nghe sự kiện yêu cầu được cập nhật (duyệt/từ chối)
+    socketService.onCertificateRequestUpdated((data) => {
+      // Refresh danh sách khi có cập nhật (chỉ xảy ra khi staff DUYỆT/TỪ CHỐI)
+      fetchHistory();
+    });
+
+    // Lắng nghe sự kiện yêu cầu mới được tạo (để cập nhật chính trang của mình sau khi gửi)
+    socketService.onCertificateRequestCreated((data) => {
+      // Refresh danh sách khi có yêu cầu mới
+      fetchHistory();
+    });
+
+    // Cleanup khi unmount
+    return () => {
+      socketService.off('CERTIFICATE_REQUEST_UPDATED');
+      socketService.off('CERTIFICATE_REQUEST_CREATED');
+    };
+  }, [fetchHistory]);
 
   // States cho filter và search
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,6 +105,11 @@ const HistoryAffair = () => {
 
   const handleCreateRequest = () => {
     navigate('/student/student-affairs/');
+  };
+
+  // Toggle sort order trực tiếp khi click
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
   };
 
   // Hàm lấy label và class cho status
@@ -119,8 +168,35 @@ const HistoryAffair = () => {
 
   // Lấy danh sách semester unique
   const semesters = useMemo(() => {
-    return [...new Set(affairsHistory.map(item => item.semester))];
+    return [...new Set(affairsHistory.map(item => item.semester))].filter(Boolean);
   }, [affairsHistory]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="history-affair-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải lịch sử yêu cầu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="history-affair-container">
+        <div className="error-container">
+          <span className="error-icon">⚠️</span>
+          <p className="error-message">{error}</p>
+          <button className="retry-btn" onClick={fetchHistory}>
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="history-affair-container">
@@ -183,7 +259,6 @@ const HistoryAffair = () => {
 
           {/* Semester Filter */}
           <div className="filter-group">
-            <label className="filter-label">📅 Học kỳ</label>
             <select
               value={semesterFilter}
               onChange={(e) => setSemesterFilter(e.target.value)}
@@ -198,30 +273,36 @@ const HistoryAffair = () => {
 
           {/* Status Filter */}
           <div className="filter-group">
-            <label className="filter-label">📌 Trạng thái</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="filter-select"
             >
               <option value="all">Tất cả trạng thái</option>
-              <option value="valid">Hợp lệ</option>
-              <option value="processing">Đang xử lý</option>
-              <option value="invalid">Không hợp lệ</option>
+              <option value="valid">✓ Hợp lệ</option>
+              <option value="processing">⟳ Đang xử lý</option>
+              <option value="invalid">✕ Không hợp lệ</option>
             </select>
           </div>
 
-          {/* Sort Order */}
-          <div className="filter-group">
-            <label className="filter-label">⏰ Sắp xếp</label>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="filter-select"
+          {/* Sort Order - Toggle Icon Button */}
+          <div className="filter-group sort-group">
+            <button 
+              className="sort-toggle-btn"
+              onClick={toggleSortOrder}
+              title={sortOrder === 'newest' ? 'Mới nhất' : 'Cũ nhất'}
             >
-              <option value="newest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
-            </select>
+              {sortOrder === 'newest' ? (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M3 6h6v2H3V6zm0 12v-2h18v2H3zm0-7h12v2H3v-2z"/>
+                </svg>
+              )}
+              <span className="sort-arrow">{sortOrder === 'newest' ? '↓' : '↑'}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -240,8 +321,7 @@ const HistoryAffair = () => {
                 <th>Trạng thái</th>
                 <th>Phản hồi lúc</th>
                 <th>Lưu ý</th>
-                <th>File đính kèm</th>
-                <th>Thao tác</th>
+                <th>File phản hồi</th>
               </tr>
             </thead>
             <tbody>
@@ -277,30 +357,12 @@ const HistoryAffair = () => {
                         <div className="notes-content">{item.notes}</div>
                       </td>
                       <td className="cell-file">
-                        {item.file ? (
-                          <a href="#" className="file-link">
-                            <span className="file-icon">📥</span>
-                            <span className="file-name">{item.file}</span>
+                        {item.staffFile ? (
+                          <a href={item.staffFile.filePath || '#'} className="file-link" target="_blank" rel="noopener noreferrer">
+                            <span className="file-name">{item.staffFile.fileName}</span>
                           </a>
                         ) : (
                           <span className="no-file">-</span>
-                        )}
-                      </td>
-                      <td className="cell-action">
-                        {item.status === 'valid' && (
-                          <button className="action-btn action-confirm">
-                            ✓ Xác nhận
-                          </button>
-                        )}
-                        {item.status === 'processing' && (
-                          <button className="action-btn action-view">
-                            👁 Xem
-                          </button>
-                        )}
-                        {item.status === 'invalid' && (
-                          <button className="action-btn action-resubmit">
-                            🔄 Gửi lại
-                          </button>
                         )}
                       </td>
                     </tr>
@@ -308,7 +370,7 @@ const HistoryAffair = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" className="no-data">
+                  <td colSpan="9" className="no-data">
                     <div className="no-data-content">
                       <span className="no-data-icon">📭</span>
                       <p>Không tìm thấy yêu cầu nào</p>

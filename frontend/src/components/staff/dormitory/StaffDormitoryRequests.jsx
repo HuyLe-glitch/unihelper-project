@@ -1,197 +1,207 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './StaffDormitoryRequests.css';
 import '../staffPages.css';
+import dormitoryRequestService from '../../../services/dormitoryRequest';
+import { roomService } from '../../../services/room';
+import socketService from '../../../services/socket';
+import SemesterFilter from '../../common/SemesterFilter/SemesterFilter';
 
-// Mock data cho yêu cầu sửa chữa thiết bị KTX
-const MOCK_REQUESTS = [
-  {
-    id: 'KTX001',
-    student: {
-      name: 'Nguyễn Văn An',
-      studentId: '2051063001',
-      email: 'nvanan@student.tdtu.edu.vn',
-      phone: '0912345678'
-    },
-    room: 'A101',
-    building: 'Tòa A',
-    category: 'Điện nước',
-    deviceName: 'Bóng đèn',
-    description: 'Bóng đèn trong phòng bị hỏng, không sáng. Yêu cầu thay thế bóng đèn mới.',
-    requestDate: '15/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    priority: 'CAO',
-    responseTime: null,
-    notes: null,
-    attachedImages: ['ktx001_1.jpg', 'ktx001_2.jpg'],
-    processingHistory: [
-      { date: '15/12/2024 14:30', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: 'KTX002',
-    student: {
-      name: 'Trần Thị Bình',
-      studentId: '2051063002',
-      email: 'ttbinh@student.tdtu.edu.vn',
-      phone: '0923456789'
-    },
-    room: 'B205',
-    building: 'Tòa B',
-    category: 'Vệ sinh',
-    deviceName: 'Vòi nước',
-    description: 'Vòi nước trong nhà vệ sinh bị rò rỉ nước liên tục, cần sửa chữa gấp.',
-    requestDate: '14/12/2024',
-    status: 'ĐÃ XỬ LÝ',
-    priority: 'TRUNG BÌNH',
-    responseTime: '9:30 SA\n15-12-2024',
-    notes: 'Đã thay thế vòi nước mới và kiểm tra hệ thống. Sinh viên vui lòng kiểm tra và báo lại nếu còn vấn đề.',
-    attachedImages: ['ktx002_1.jpg'],
-    processingHistory: [
-      { date: '15/12/2024 09:30', action: 'Đã hoàn thành sửa chữa', staff: 'Phạm Văn Công' },
-      { date: '14/12/2024 16:00', action: 'Đang tiến hành sửa chữa', staff: 'Phạm Văn Công' },
-      { date: '14/12/2024 10:15', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: 'KTX003',
-    student: {
-      name: 'Lê Hoàng Nam',
-      studentId: '2051063003',
-      email: 'lhnam@student.tdtu.edu.vn',
-      phone: '0934567890'
-    },
-    room: 'C312',
-    building: 'Tòa C',
-    category: 'Nội thất',
-    deviceName: 'Tủ quần áo',
-    description: 'Cánh tủ quần áo bị gãy bản lề, không đóng mở được.',
-    requestDate: '13/12/2024',
-    status: 'ĐÃ XỬ LÝ',
-    priority: 'THẤP',
-    responseTime: '2:45 CH\n14-12-2024',
-    notes: 'Đã thay thế bản lề mới cho tủ quần áo. Hoàn thành.',
-    attachedImages: ['ktx003_1.jpg'],
-    processingHistory: [
-      { date: '14/12/2024 14:45', action: 'Đã hoàn thành sửa chữa', staff: 'Trần Văn Dũng' },
-      { date: '13/12/2024 15:20', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: 'KTX004',
-    student: {
-      name: 'Phạm Minh Châu',
-      studentId: '2051063004',
-      email: 'pmchau@student.tdtu.edu.vn',
-      phone: '0945678901'
-    },
-    room: 'A203',
-    building: 'Tòa A',
-    category: 'Điện nước',
-    deviceName: 'Máy lạnh',
-    description: 'Máy lạnh không hoạt động, không lạnh. Phòng rất nóng, cần kiểm tra sớm.',
-    requestDate: '15/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    priority: 'CAO',
-    responseTime: null,
-    notes: 'Đang chờ kỹ thuật viên kiểm tra.',
-    attachedImages: null,
-    processingHistory: [
-      { date: '15/12/2024 16:00', action: 'Đã phân công kỹ thuật viên', staff: 'Phạm Văn Công' },
-      { date: '15/12/2024 11:20', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: 'KTX005',
-    student: {
-      name: 'Võ Thị Hương',
-      studentId: '2051063005',
-      email: 'vthuong@student.tdtu.edu.vn',
-      phone: '0956789012'
-    },
-    room: 'B108',
-    building: 'Tòa B',
-    category: 'An ninh',
-    deviceName: 'Khóa cửa',
-    description: 'Khóa cửa phòng bị kẹt, không mở được từ trong. Cần hỗ trợ khẩn cấp.',
-    requestDate: '15/12/2024',
-    status: 'TỪ CHỐI',
-    priority: 'CAO',
-    responseTime: '5:00 CH\n15-12-2024',
-    notes: 'Yêu cầu không hợp lệ. Khóa cửa đã được kiểm tra trước đó và hoạt động bình thường. Sinh viên vui lòng liên hệ trực tiếp để được hướng dẫn sử dụng.',
-    attachedImages: null,
-    processingHistory: [
-      { date: '15/12/2024 17:00', action: 'Từ chối yêu cầu', staff: 'Trần Văn Dũng' },
-      { date: '15/12/2024 13:45', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: 'KTX006',
-    student: {
-      name: 'Hoàng Đức Trí',
-      studentId: '2051063006',
-      email: 'hdtri@student.tdtu.edu.vn',
-      phone: '0967890123'
-    },
-    room: 'C401',
-    building: 'Tòa C',
-    category: 'Vệ sinh',
-    deviceName: 'Bồn cầu',
-    description: 'Bồn cầu bị tắc nghẽn, không xả được nước.',
-    requestDate: '14/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    priority: 'CAO',
-    responseTime: null,
-    notes: 'Đã liên hệ công ty vệ sinh để xử lý.',
-    attachedImages: null,
-    processingHistory: [
-      { date: '14/12/2024 17:30', action: 'Đang xử lý', staff: 'Phạm Văn Công' },
-      { date: '14/12/2024 14:20', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  }
-];
+/**
+ * StaffDormitoryRequests - Giao diện quản lý yêu cầu KTX cho Staff
+ */
 
+// Cấu hình trạng thái hiển thị
 const STATUS_CONFIG = {
-  'ĐANG XỬ LÝ': { className: 'processing', icon: '⏳', color: '#f59e0b' },
-  'ĐÃ XỬ LÝ': { className: 'completed', icon: '✓', color: '#22c55e' },
-  'TỪ CHỐI': { className: 'rejected', icon: '✕', color: '#ef4444' }
-};
-
-const PRIORITY_CONFIG = {
-  'CAO': { className: 'high', icon: '🔴', label: 'Khẩn cấp' },
-  'TRUNG BÌNH': { className: 'medium', icon: '🟡', label: 'Trung bình' },
-  'THẤP': { className: 'low', icon: '🟢', label: 'Thấp' }
+  'Pending': { className: 'pending', icon: '📨', label: 'Gửi yêu cầu', color: '#f59e0b' },
+  'Under Review': { className: 'processing', icon: '⏳', label: 'Đang xử lý', color: '#3b82f6' },
+  'Approved': { className: 'completed', icon: '✓', label: 'Hoàn thành', color: '#22c55e' }
 };
 
 const StaffDormitoryRequests = () => {
-  const [requests] = useState(MOCK_REQUESTS);
+  // State cho dữ liệu
+  const [requests, setRequests] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 0 });
+
+  // State cho UI
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [roomFilter, setRoomFilter] = useState('all');
+  const [semesterFilter, setSemesterFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
   const [dateSort, setDateSort] = useState('newest');
-  const [showProcessModal, setShowProcessModal] = useState(false);
-  const [processAction, setProcessAction] = useState('');
-  const [processNote, setProcessNote] = useState('');
-  const [editableNote, setEditableNote] = useState('');
-  const [editableImages, setEditableImages] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
+  
+  // State cho room dropdown
+  const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
+  const [roomSearchTerm, setRoomSearchTerm] = useState('');
+  
+  // State cho xử lý
+  const [processing, setProcessing] = useState(false);
 
-  // Statistics
+  // ==========================================
+  // API CALLS
+  // ==========================================
+
+  /**
+   * Lấy danh sách yêu cầu từ API
+   */
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const filters = {
+        page: pagination.page,
+        limit: pagination.limit
+      };
+
+      // Thêm filter status nếu không phải 'all'
+      if (statusFilter !== 'all') {
+        filters.status = statusFilter;
+      }
+
+      const response = await dormitoryRequestService.getAllRequests(filters);
+
+      if (response.success) {
+        setRequests(response.data || []);
+        setPagination(prev => ({
+          ...prev,
+          total: response.pagination?.total || 0,
+          pages: response.pagination?.pages || 0
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching dormitory requests:', err);
+      setError(err.response?.data?.message || 'Không thể tải danh sách yêu cầu');
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.page, pagination.limit, statusFilter]);
+
+  /**
+   * Lấy danh sách phòng từ API
+   */
+  const fetchRooms = useCallback(async () => {
+    try {
+      const response = await roomService.getAllRooms();
+      if (response.success) {
+        setRooms(response.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching rooms:', err);
+    }
+  }, []);
+
+  /**
+   * Staff tiếp nhận yêu cầu (Pending -> Under Review)
+   */
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      setProcessing(true);
+      
+      const response = await dormitoryRequestService.acceptRequest(requestId);
+
+      if (response.success) {
+        // Cập nhật state local
+        setRequests(prev => prev.map(req => 
+          req._id === requestId ? { ...req, status: 'Under Review' } : req
+        ));
+
+        // Cập nhật selectedRequest nếu đang xem
+        if (selectedRequest?._id === requestId) {
+          setSelectedRequest(prev => ({ ...prev, status: 'Under Review' }));
+        }
+
+        alert('Đã tiếp nhận yêu cầu thành công!');
+      }
+    } catch (err) {
+      console.error('Error accepting request:', err);
+      alert(err.response?.data?.message || 'Không thể tiếp nhận yêu cầu');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ==========================================
+  // SOCKET.IO REALTIME
+  // ==========================================
+
+  useEffect(() => {
+    // Kết nối socket
+    socketService.connect();
+
+    // Lắng nghe sự kiện có yêu cầu KTX mới
+    socketService.onDormitoryRequestCreated((data) => {
+      console.log('📡 [Socket] New dormitory request created:', data);
+      // Thêm yêu cầu mới vào đầu danh sách
+      if (data.request) {
+        setRequests(prev => [data.request, ...prev]);
+      } else {
+        // Nếu không có đủ dữ liệu, fetch lại
+        fetchRequests();
+      }
+    });
+
+    // Lắng nghe sự kiện yêu cầu được cập nhật
+    socketService.onDormitoryRequestUpdated((data) => {
+      console.log('📡 [Socket] Dormitory request updated:', data);
+      if (data.request && data.requestId) {
+        // Cập nhật request trong danh sách
+        setRequests(prev => prev.map(req => 
+          req._id === data.requestId ? { ...req, ...data.request, status: data.status || data.request.status } : req
+        ));
+
+        // Cập nhật selectedRequest nếu đang xem
+        setSelectedRequest(prev => {
+          if (prev?._id === data.requestId) {
+            return { ...prev, ...data.request, status: data.status || data.request.status };
+          }
+          return prev;
+        });
+      }
+    });
+
+    // Cleanup khi unmount
+    return () => {
+      socketService.off('DORMITORY_REQUEST_CREATED');
+      socketService.off('DORMITORY_REQUEST_UPDATED');
+    };
+  }, [fetchRequests]);
+
+  // ==========================================
+  // EFFECTS
+  // ==========================================
+
+  // Fetch requests và rooms khi component mount
+  useEffect(() => {
+    fetchRequests();
+    fetchRooms();
+  }, [fetchRequests, fetchRooms]);
+
+  // ==========================================
+  // COMPUTED VALUES
+  // ==========================================
+
+  // Thống kê
   const stats = useMemo(() => ({
     total: requests.length,
-    processing: requests.filter(r => r.status === 'ĐANG XỬ LÝ').length,
-    completed: requests.filter(r => r.status === 'ĐÃ XỬ LÝ').length,
-    rejected: requests.filter(r => r.status === 'TỪ CHỐI').length
+    pending: requests.filter(r => r.status === 'Pending').length,
+    processing: requests.filter(r => r.status === 'Under Review').length,
+    completed: requests.filter(r => r.status === 'Approved').length
   }), [requests]);
 
-  // Get unique categories
-  const categories = useMemo(() => 
-    [...new Set(requests.map(r => r.category))],
-    [requests]
-  );
+  // Lọc phòng theo search term
+  const filteredRooms = useMemo(() => {
+    if (!roomSearchTerm) return rooms;
+    return rooms.filter(room => 
+      room.name?.toLowerCase().includes(roomSearchTerm.toLowerCase())
+    );
+  }, [rooms, roomSearchTerm]);
 
-  // Filtered and sorted requests
+  // Filter và sort requests
   const filteredRequests = useMemo(() => {
     let result = [...requests];
 
@@ -199,77 +209,90 @@ const StaffDormitoryRequests = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(r =>
-        r.id.toLowerCase().includes(term) ||
-        r.student.name.toLowerCase().includes(term) ||
-        r.student.email.toLowerCase().includes(term) ||
-        r.room.toLowerCase().includes(term) ||
-        r.deviceName.toLowerCase().includes(term)
+        r.requestCode?.toLowerCase().includes(term) ||
+        r.student?.fullName?.toLowerCase().includes(term) ||
+        r.student?.user?.email?.toLowerCase().includes(term) ||
+        r.category?.name?.toLowerCase().includes(term) ||
+        r.item?.name?.toLowerCase().includes(term)
       );
     }
 
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(r => r.status === statusFilter);
+    // Room filter
+    if (roomFilter !== 'all') {
+      result = result.filter(r => 
+        (r.student?.roomId?._id || r.student?.roomId) === roomFilter
+      );
     }
 
-    // Category filter
-    if (categoryFilter !== 'all') {
-      result = result.filter(r => r.category === categoryFilter);
+    // Semester filter
+    if (semesterFilter !== 'all') {
+      result = result.filter(r => r.semester === semesterFilter);
     }
 
     // Date filter
     if (dateFilter) {
       result = result.filter(r => {
-        const requestDate = r.requestDate.split('/').reverse().join('-');
+        const requestDate = new Date(r.requestDate || r.createdAt).toISOString().split('T')[0];
         return requestDate === dateFilter;
       });
     }
 
     // Date sort
     result.sort((a, b) => {
-      const dateA = new Date(a.requestDate.split('/').reverse().join('-'));
-      const dateB = new Date(b.requestDate.split('/').reverse().join('-'));
+      const dateA = new Date(a.requestDate || a.createdAt);
+      const dateB = new Date(b.requestDate || b.createdAt);
       return dateSort === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
     return result;
-  }, [requests, searchTerm, statusFilter, categoryFilter, dateFilter, dateSort]);
+  }, [requests, searchTerm, roomFilter, semesterFilter, dateFilter, dateSort]);
+
+  // ==========================================
+  // HANDLERS
+  // ==========================================
 
   const handleSelectRequest = (request) => {
     setSelectedRequest(request);
-    setEditableNote(request.notes || '');
-    setEditableImages(request.attachedImages || []);
-    setIsEditing(false);
   };
 
-  const handleProcess = (action) => {
-    setProcessAction(action);
-    setShowProcessModal(true);
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  const handleSubmitProcess = () => {
-    // Here you would call API to process the request
-    console.log('Processing:', selectedRequest?.id, processAction, processNote);
-    setShowProcessModal(false);
-    setProcessNote('');
-    setProcessAction('');
-  };
+  // ==========================================
+  // RENDER
+  // ==========================================
 
-  const handleSave = () => {
-    // Here you would call API to save the editable note and images
-    console.log('Saving:', selectedRequest?.id, editableNote, editableImages);
-    if (selectedRequest) {
-      selectedRequest.notes = editableNote;
-      selectedRequest.attachedImages = editableImages;
-    }
-    setIsEditing(false);
-  };
+  if (loading && requests.length === 0) {
+    return (
+      <div className="dormitory-management">
+        <div className="loading-state">
+          <span className="loading-icon">⏳</span>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleImageAdd = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = files.map(file => file.name);
-    setEditableImages([...editableImages, ...newImages]);
-  };
+  if (error && requests.length === 0) {
+    return (
+      <div className="dormitory-management">
+        <div className="error-state">
+          <span className="error-icon">❌</span>
+          <p>{error}</p>
+          <button onClick={fetchRequests} className="btn-retry">Thử lại</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dormitory-management">
@@ -278,12 +301,6 @@ const StaffDormitoryRequests = () => {
         <div className="dormitory-header__info">
           <h1>Quản lý yêu cầu sửa chữa KTX</h1>
           <p>Xử lý và theo dõi các yêu cầu sửa chữa thiết bị từ sinh viên</p>
-        </div>
-        <div className="dormitory-header__actions">
-          <button className="btn-export">
-            <span className="btn-icon">📊</span>
-            Xuất báo cáo
-          </button>
         </div>
       </header>
 
@@ -296,26 +313,35 @@ const StaffDormitoryRequests = () => {
             <span className="stat-card__label">Tổng yêu cầu</span>
           </div>
         </div>
-        <div className="stat-card stat-card--processing" onClick={() => setStatusFilter(statusFilter === 'ĐANG XỬ LÝ' ? 'all' : 'ĐANG XỬ LÝ')}>
+        <div 
+          className={`stat-card stat-card--pending ${statusFilter === 'Pending' ? 'active' : ''}`}
+          onClick={() => setStatusFilter(statusFilter === 'Pending' ? 'all' : 'Pending')}
+        >
+          <div className="stat-card__icon">📨</div>
+          <div className="stat-card__content">
+            <span className="stat-card__number">{stats.pending}</span>
+            <span className="stat-card__label">Gửi yêu cầu</span>
+          </div>
+          {stats.pending > 0 && <span className="stat-card__badge pulse">Chờ tiếp nhận</span>}
+        </div>
+        <div 
+          className={`stat-card stat-card--processing ${statusFilter === 'Under Review' ? 'active' : ''}`}
+          onClick={() => setStatusFilter(statusFilter === 'Under Review' ? 'all' : 'Under Review')}
+        >
           <div className="stat-card__icon">⏳</div>
           <div className="stat-card__content">
             <span className="stat-card__number">{stats.processing}</span>
             <span className="stat-card__label">Đang xử lý</span>
           </div>
-          {stats.processing > 0 && <span className="stat-card__badge pulse">Cần xử lý</span>}
         </div>
-        <div className="stat-card stat-card--completed" onClick={() => setStatusFilter(statusFilter === 'ĐÃ XỬ LÝ' ? 'all' : 'ĐÃ XỬ LÝ')}>
+        <div 
+          className={`stat-card stat-card--completed ${statusFilter === 'Approved' ? 'active' : ''}`}
+          onClick={() => setStatusFilter(statusFilter === 'Approved' ? 'all' : 'Approved')}
+        >
           <div className="stat-card__icon">✓</div>
           <div className="stat-card__content">
             <span className="stat-card__number">{stats.completed}</span>
-            <span className="stat-card__label">Đã xử lý</span>
-          </div>
-        </div>
-        <div className="stat-card stat-card--rejected" onClick={() => setStatusFilter(statusFilter === 'TỪ CHỐI' ? 'all' : 'TỪ CHỐI')}>
-          <div className="stat-card__icon">✕</div>
-          <div className="stat-card__content">
-            <span className="stat-card__number">{stats.rejected}</span>
-            <span className="stat-card__label">Từ chối</span>
+            <span className="stat-card__label">Hoàn thành</span>
           </div>
         </div>
       </div>
@@ -326,7 +352,7 @@ const StaffDormitoryRequests = () => {
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Tìm theo mã, tên SV, phòng, thiết bị..."
+            placeholder="Tìm theo mã, tên SV, email, thiết bị..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -335,41 +361,114 @@ const StaffDormitoryRequests = () => {
           )}
         </div>
         <div className="filter-group">
+          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="filter-select"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="ĐANG XỬ LÝ">Đang xử lý</option>
-            <option value="ĐÃ XỬ LÝ">Đã xử lý</option>
-            <option value="TỪ CHỐI">Từ chối</option>
+            <option value="Pending">Gửi yêu cầu</option>
+            <option value="Under Review">Đang xử lý</option>
+            <option value="Approved">Hoàn thành</option>
           </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Tất cả danh mục</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="filter-select date-input"
-            placeholder="Chọn ngày"
+
+          {/* Room Filter - Custom Dropdown */}
+          <div className="custom-dropdown">
+            <div 
+              className="custom-dropdown-trigger"
+              onClick={() => {
+                setIsRoomDropdownOpen(!isRoomDropdownOpen);
+                if (!isRoomDropdownOpen) setRoomSearchTerm('');
+              }}
+            >
+              <span className="dropdown-value">
+                {roomFilter === 'all' 
+                  ? 'Tất cả phòng' 
+                  : rooms.find(r => r._id === roomFilter)?.name || roomFilter
+                }
+              </span>
+              <span className={`dropdown-arrow ${isRoomDropdownOpen ? 'open' : ''}`}>▼</span>
+            </div>
+            {isRoomDropdownOpen && (
+              <>
+                <div 
+                  className="dropdown-backdrop" 
+                  onClick={() => setIsRoomDropdownOpen(false)}
+                />
+                <div className="custom-dropdown-menu">
+                  <div className="dropdown-search">
+                    <input
+                      type="text"
+                      placeholder="Tìm phòng..."
+                      value={roomSearchTerm}
+                      onChange={(e) => setRoomSearchTerm(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="dropdown-items-list">
+                    {!roomSearchTerm && (
+                      <div 
+                        className={`dropdown-item ${roomFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => {
+                          setRoomFilter('all');
+                          setIsRoomDropdownOpen(false);
+                        }}
+                      >
+                        Tất cả phòng
+                      </div>
+                    )}
+                    {filteredRooms.length === 0 ? (
+                      <div className="dropdown-item dropdown-no-result">
+                        Không tìm thấy phòng
+                      </div>
+                    ) : (
+                      filteredRooms.map(room => (
+                        <div 
+                          key={room._id}
+                          className={`dropdown-item ${room._id === roomFilter ? 'active' : ''}`}
+                          onClick={() => {
+                            setRoomFilter(room._id);
+                            setIsRoomDropdownOpen(false);
+                          }}
+                        >
+                          {room.name}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Semester Filter Component */}
+          <SemesterFilter
+            value={semesterFilter}
+            onChange={setSemesterFilter}
+            dateValue={dateFilter}
+            onDateChange={setDateFilter}
+            showInfoBar={false}
           />
-          <select
-            value={dateSort}
-            onChange={(e) => setDateSort(e.target.value)}
-            className="filter-select"
+
+          {/* Sort Order - Toggle Icon Button */}
+          <button 
+            className="sort-toggle-btn"
+            onClick={() => setDateSort(dateSort === 'newest' ? 'oldest' : 'newest')}
+            title={dateSort === 'newest' ? 'Mới nhất trước' : 'Cũ nhất trước'}
           >
-            <option value="newest">Mới nhất trước</option>
-            <option value="oldest">Cũ nhất trước</option>
-          </select>
+            {dateSort === 'newest' ? (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3 6h6v2H3V6zm0 12v-2h18v2H3zm0-7h12v2H3v-2z"/>
+              </svg>
+            )}
+            <span className="sort-arrow">{dateSort === 'newest' ? '↓' : '↑'}</span>
+          </button>
         </div>
       </div>
 
@@ -390,36 +489,35 @@ const StaffDormitoryRequests = () => {
             ) : (
               filteredRequests.map(request => (
                 <div
-                  key={request.id}
-                  className={`request-card ${selectedRequest?.id === request.id ? 'active' : ''} ${request.status === 'ĐANG XỬ LÝ' ? 'pending' : ''}`}
+                  key={request._id}
+                  className={`request-card ${selectedRequest?._id === request._id ? 'active' : ''} ${request.status === 'Pending' ? 'pending' : ''}`}
                   onClick={() => handleSelectRequest(request)}
                 >
                   <div className="request-card__header">
-                    <span className="request-code">#{request.id}</span>
-                    <span className={`status-badge ${STATUS_CONFIG[request.status].className}`}>
-                      {STATUS_CONFIG[request.status].icon} {request.status}
+                    <span className="request-code">#{request.requestCode}</span>
+                    <span className={`status-badge ${STATUS_CONFIG[request.status]?.className || ''}`}>
+                      {STATUS_CONFIG[request.status]?.icon} {STATUS_CONFIG[request.status]?.label || request.status}
                     </span>
                   </div>
                   <div className="request-card__body">
                     <div className="student-brief">
                       <span className="student-avatar">
-                        {request.student.name.charAt(request.student.name.lastIndexOf(' ') + 1)}
+                        {request.student?.fullName?.charAt(request.student.fullName.lastIndexOf(' ') + 1) || '?'}
                       </span>
                       <div className="student-info">
-                        <span className="student-name">{request.student.name}</span>
-                        <span className="student-id">{request.student.email}</span>
+                        <span className="student-name">{request.student?.fullName || 'Không xác định'}</span>
+                        <span className="student-id">{request.student?.user?.email || ''}</span>
                       </div>
                     </div>
                     <div className="request-meta">
                       <div className="meta-row">
-                        <span className="room-badge">🏠 {request.room}</span>
-                        <span className={`priority-badge ${PRIORITY_CONFIG[request.priority].className}`}>
-                          {PRIORITY_CONFIG[request.priority].icon}
-                        </span>
+                        <span className="room-badge">🏠 {request.student?.roomId?.name || 'N/A'}</span>
                       </div>
                       <div className="meta-row">
-                        <span className="device-name">🔧 {request.deviceName}</span>
-                        <span className="request-date">📅 {request.requestDate}</span>
+                        <span className="device-name">🔧 {request.category?.name || 'N/A'}{request.item?.name ? ` - ${request.item.name}` : ''}</span>
+                      </div>
+                      <div className="meta-row">
+                        <span className="request-date">📅 {formatDate(request.requestDate || request.createdAt)}</span>
                       </div>
                     </div>
                   </div>
@@ -435,12 +533,9 @@ const StaffDormitoryRequests = () => {
             <>
               <div className="detail-header">
                 <div className="detail-title">
-                  <h2>Chi tiết yêu cầu #{selectedRequest.id}</h2>
-                  <span className={`status-badge large ${STATUS_CONFIG[selectedRequest.status].className}`}>
-                    {STATUS_CONFIG[selectedRequest.status].icon} {selectedRequest.status}
-                  </span>
-                  <span className={`priority-badge large ${PRIORITY_CONFIG[selectedRequest.priority].className}`}>
-                    {PRIORITY_CONFIG[selectedRequest.priority].icon} {PRIORITY_CONFIG[selectedRequest.priority].label}
+                  <h2>Chi tiết yêu cầu #{selectedRequest.requestCode}</h2>
+                  <span className={`status-badge large ${STATUS_CONFIG[selectedRequest.status]?.className || ''}`}>
+                    {STATUS_CONFIG[selectedRequest.status]?.icon} {STATUS_CONFIG[selectedRequest.status]?.label || selectedRequest.status}
                   </span>
                 </div>
                 <button className="btn-close" onClick={() => setSelectedRequest(null)}>×</button>
@@ -456,27 +551,21 @@ const StaffDormitoryRequests = () => {
                   <div className="info-grid">
                     <div className="info-item">
                       <label>Họ và tên</label>
-                      <span>{selectedRequest.student.name}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>MSSV</label>
-                      <span className="code">{selectedRequest.student.studentId}</span>
+                      <span>{selectedRequest.student?.fullName || 'N/A'}</span>
                     </div>
                     <div className="info-item">
                       <label>Email</label>
-                      <a href={`mailto:${selectedRequest.student.email}`}>{selectedRequest.student.email}</a>
-                    </div>
-                    <div className="info-item">
-                      <label>Số điện thoại</label>
-                      <a href={`tel:${selectedRequest.student.phone}`}>{selectedRequest.student.phone}</a>
+                      <a href={`mailto:${selectedRequest.student?.user?.email}`}>
+                        {selectedRequest.student?.user?.email || 'N/A'}
+                      </a>
                     </div>
                     <div className="info-item">
                       <label>Phòng</label>
-                      <span className="highlight">{selectedRequest.room}</span>
+                      <span className="highlight">{selectedRequest.student?.roomId?.name || 'N/A'}</span>
                     </div>
                     <div className="info-item">
-                      <label>Tòa nhà</label>
-                      <span>{selectedRequest.building}</span>
+                      <label>Học kỳ</label>
+                      <span>{selectedRequest.semester || 'N/A'}</span>
                     </div>
                   </div>
                 </section>
@@ -490,147 +579,76 @@ const StaffDormitoryRequests = () => {
                   <div className="info-grid">
                     <div className="info-item">
                       <label>Danh mục</label>
-                      <span className="highlight">{selectedRequest.category}</span>
+                      <span className="highlight">{selectedRequest.category?.name || 'N/A'}</span>
                     </div>
                     <div className="info-item">
-                      <label>Tên thiết bị</label>
-                      <span>{selectedRequest.deviceName}</span>
-                    </div>
-                    <div className="info-item">
-                      <label>Mức độ ưu tiên</label>
-                      <span className={`priority-badge ${PRIORITY_CONFIG[selectedRequest.priority].className}`}>
-                        {PRIORITY_CONFIG[selectedRequest.priority].icon} {PRIORITY_CONFIG[selectedRequest.priority].label}
-                      </span>
+                      <label>Thiết bị</label>
+                      <span>{selectedRequest.item?.name || 'Không chỉ định'}</span>
                     </div>
                     <div className="info-item">
                       <label>Ngày yêu cầu</label>
-                      <span>{selectedRequest.requestDate}</span>
+                      <span>{formatDate(selectedRequest.requestDate || selectedRequest.createdAt)}</span>
                     </div>
-                    {selectedRequest.responseTime && (
+                    {selectedRequest.confirmDate && (
                       <div className="info-item">
-                        <label>Phản hồi lúc</label>
-                        <span style={{whiteSpace: 'pre-line'}}>{selectedRequest.responseTime}</span>
+                        <label>Ngày hoàn thành</label>
+                        <span>{formatDate(selectedRequest.confirmDate)}</span>
                       </div>
                     )}
                     <div className="info-item full-width">
                       <label>Mô tả chi tiết</label>
                       <div className="description-box">
-                        {selectedRequest.description}
+                        {selectedRequest.description || 'Không có mô tả'}
                       </div>
                     </div>
-                    <div className="info-item full-width">
-                      <label>Hình ảnh đính kèm</label>
-                      {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditing ? (
-                        <div className="image-upload-box" style={{marginTop: '8px'}}>
-                          <input 
-                            type="file" 
-                            id="image-upload-edit" 
-                            accept="image/*" 
-                            multiple
-                            onChange={handleImageAdd}
-                            hidden 
-                          />
-                          <label htmlFor="image-upload-edit" className="image-upload-label">
-                            <span className="upload-icon">🖼️</span>
-                            <span>Click để chọn hình ảnh</span>
-                          </label>
-                          {editableImages && editableImages.length > 0 && (
-                            <div className="image-list">
-                              {editableImages.map((img, idx) => (
-                                <span key={idx} className="image-tag">{img}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : editableImages && editableImages.length > 0 ? (
-                        <div className="image-list">
-                          {editableImages.map((img, idx) => (
-                            <a href="#" key={idx} className="image-link">
-                              <span className="file-icon">🖼️</span>
-                              {img}
-                            </a>
-                          ))}
-                        </div>
-                      ) : (
-                        <span style={{color: 'var(--dormitory-text-muted)', fontStyle: 'italic'}}>Chưa có hình ảnh đính kèm</span>
-                      )}
-                    </div>
-                  </div>
-                </section>
-
-                {/* Notes Section */}
-                <section className="detail-section">
-                  <h3 className="section-title">
-                    <span className="section-icon">💬</span>
-                    Ghi chú xử lý
-                  </h3>
-                  {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditing ? (
-                    <textarea
-                      className="notes-editable"
-                      rows="4"
-                      value={editableNote}
-                      onChange={(e) => setEditableNote(e.target.value)}
-                      placeholder="Nhập ghi chú xử lý..."
-                    />
-                  ) : (
-                    <div className="notes-box">
-                      {editableNote || 'Chưa có ghi chú xử lý'}
-                    </div>
-                  )}
-                </section>
-
-                {/* Processing History */}
-                <section className="detail-section">
-                  <h3 className="section-title">
-                    <span className="section-icon">📜</span>
-                    Lịch sử xử lý
-                  </h3>
-                  <div className="history-timeline">
-                    {selectedRequest.processingHistory.map((item, index) => (
-                      <div key={index} className="timeline-item">
-                        <div className="timeline-dot"></div>
-                        <div className="timeline-content">
-                          <span className="timeline-action">{item.action}</span>
-                          <div className="timeline-meta">
-                            <span className="timeline-staff">{item.staff}</span>
-                            <span className="timeline-date">{item.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </section>
               </div>
 
               {/* Action Buttons */}
-              {selectedRequest.status === 'ĐANG XỬ LÝ' && (
+              {selectedRequest.status === 'Pending' && (
                 <div className="detail-actions">
-                  {isEditing ? (
-                    <>
-                      <button className="btn-action btn-approve" onClick={handleSave}>
-                        <span>💾</span> Lưu thay đổi
-                      </button>
-                      <button className="btn-action btn-cancel" onClick={() => {
-                        setEditableNote(selectedRequest.notes || '');
-                        setEditableImages(selectedRequest.attachedImages || []);
-                        setIsEditing(false);
-                      }}>
-                        <span>✕</span> Hủy
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="btn-action btn-approve" onClick={() => handleProcess('complete')}>
-                        <span>✓</span> Hoàn thành
-                      </button>
-                      <button className="btn-action btn-reject" onClick={() => handleProcess('reject')}>
-                        <span>✕</span> Từ chối
-                      </button>
-                      <button className="btn-action btn-request-info" onClick={() => setIsEditing(true)}>
-                        <span>✏️</span> Chỉnh sửa
-                      </button>
-                    </>
-                  )}
+                  <button 
+                    className="btn-action btn-accept" 
+                    onClick={() => handleAcceptRequest(selectedRequest._id)}
+                    disabled={processing}
+                    style={{
+                      background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                      color: '#ffffff',
+                      padding: '14px 24px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      cursor: processing ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <span>✓</span> {processing ? 'Đang xử lý...' : 'Tiếp nhận yêu cầu'}
+                  </button>
+                </div>
+              )}
+
+              {/* Hiển thị thông báo khi đang chờ sinh viên xác nhận */}
+              {selectedRequest.status === 'Under Review' && (
+                <div className="detail-actions">
+                  <div className="waiting-notice">
+                    <span className="notice-icon">⏳</span>
+                    <span>Đang chờ sinh viên xác nhận hoàn thành</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Hiển thị khi đã hoàn thành */}
+              {selectedRequest.status === 'Approved' && (
+                <div className="detail-actions">
+                  <div className="completed-notice">
+                    <span className="notice-icon">✓</span>
+                    <span>Yêu cầu đã được xử lý hoàn thành</span>
+                  </div>
                 </div>
               )}
             </>
@@ -645,61 +663,6 @@ const StaffDormitoryRequests = () => {
           )}
         </div>
       </div>
-
-      {/* Process Modal */}
-      {showProcessModal && (
-        <div className="modal-overlay" onClick={() => setShowProcessModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                {processAction === 'complete' && '✓ Hoàn thành yêu cầu'}
-                {processAction === 'reject' && '✕ Từ chối yêu cầu'}
-              </h3>
-              <button className="btn-close" onClick={() => setShowProcessModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Mã yêu cầu</label>
-                <input type="text" value={`#${selectedRequest?.id}`} readOnly />
-              </div>
-              <div className="form-group">
-                <label>Sinh viên</label>
-                <input type="text" value={`${selectedRequest?.student.name} - ${selectedRequest?.room}`} readOnly />
-              </div>
-              <div className="form-group">
-                <label>Thiết bị</label>
-                <input type="text" value={selectedRequest?.deviceName} readOnly />
-              </div>
-              <div className="form-group">
-                <label>
-                  {processAction === 'complete' && 'Ghi chú hoàn thành'}
-                  {processAction === 'reject' && 'Lý do từ chối *'}
-                </label>
-                <textarea
-                  rows="4"
-                  placeholder={
-                    processAction === 'complete' 
-                      ? 'Nhập ghi chú hoàn thành (không bắt buộc)...'
-                      : 'Nhập lý do từ chối...'
-                  }
-                  value={processNote}
-                  onChange={(e) => setProcessNote(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowProcessModal(false)}>Hủy</button>
-              <button 
-                className={`btn-submit ${processAction === 'complete' ? 'approve' : 'reject'}`}
-                onClick={handleSubmitProcess}
-              >
-                {processAction === 'complete' && 'Xác nhận hoàn thành'}
-                {processAction === 'reject' && 'Xác nhận từ chối'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

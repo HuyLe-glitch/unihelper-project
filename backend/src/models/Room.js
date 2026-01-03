@@ -27,10 +27,10 @@ const roomSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Số người đang ở không thể âm']
     },
-    // Loại phòng (liên kết DormitoryCategory)
+    // Loại phòng (có thể để trống hoặc liên kết với category phòng)
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'DormitoryCategory',
+      ref: 'RoomCategory',
       default: null
     },
     // Mô tả

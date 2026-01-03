@@ -16,7 +16,7 @@
   --sf-radius: 12px;
   --sf-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   
-  display: contents;
+  display: contents !important;
 }
 
 /* ========================================
@@ -24,14 +24,17 @@
    ======================================== */
 .semester-filter__select-wrapper {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center !important;
 }
 
 .semester-filter__select {
-  min-width: 180px;
-  padding: 12px 36px 12px 16px;
+  min-width: 160px;
+  height: 44px;
+  padding: 0 36px 0 14px;
   border: 2px solid var(--sf-border);
   border-radius: var(--sf-radius);
   font-size: 14px;
@@ -42,6 +45,7 @@
   transition: all 0.3s ease;
   appearance: none;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .semester-filter__select:hover {
@@ -56,19 +60,42 @@
   box-shadow: 0 0 0 4px var(--sf-primary-light);
 }
 
-/* Tooltip showing date range */
+/* Tooltip showing date range - Hiển thị ở DƯỚI */
 .semester-filter__tooltip {
   position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 10;
-  margin-top: 6px;
-  padding: 8px 14px;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  padding: 10px 16px;
   background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-dark) 100%);
   border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
   white-space: nowrap;
   animation: sfSlideDown 0.25s ease;
+  pointer-events: none;
+}
+
+/* Arrow pointing up */
+.semester-filter__tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: var(--sf-primary);
+}
+
+@keyframes sfSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 @keyframes sfSlideDown {
@@ -94,14 +121,16 @@
    ======================================== */
 .semester-filter__date-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
 }
 
 .semester-filter__date-input {
-  min-width: 200px;
-  width: 200px;
-  padding: 12px 44px 12px 16px;
+  min-width: 160px;
+  width: 160px;
+  height: 44px;
+  padding: 0 40px 0 14px;
   border: 2px solid var(--sf-border);
   border-radius: var(--sf-radius);
   font-size: 14px;
@@ -111,6 +140,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color-scheme: light;
+  box-sizing: border-box;
 }
 
 .semester-filter__date-input:hover {

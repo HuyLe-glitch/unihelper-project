@@ -13,6 +13,14 @@ class CertificateRequestController {
 
     const result = await certificateRequestService.createCertificateRequest(userId, requestData);
 
+    // Emit socket event để thông báo cho Staff CTSV
+    if (req.io && result.success) {
+      req.io.emit('CERTIFICATE_REQUEST_CREATED', {
+        request: result.data,
+        message: 'Có yêu cầu CTSV mới'
+      });
+    }
+
     res.status(201).json(result);
   });
 
@@ -60,15 +68,26 @@ class CertificateRequestController {
   // PUT /api/certificate-requests/:id/status - Cập nhật trạng thái yêu cầu (Staff/Admin only)
   updateRequestStatus = catchAsync(async (req, res) => {
     const { id } = req.params;
-    const { status, notes } = req.body;
+    const { status, notes, staffFile } = req.body;
     const staffUserId = req.userData.id;
 
     const result = await certificateRequestService.updateRequestStatus(
       id,
       status,
       staffUserId,
-      notes
+      notes,
+      staffFile
     );
+
+    // Chỉ emit socket event khi DUYỆT hoặc TỪ CHỐI (không emit khi chỉ cập nhật file/note)
+    if (req.io && result.success && (status === 'HỢP LỆ' || status === 'KHÔNG HỢP LỆ')) {
+      req.io.emit('CERTIFICATE_REQUEST_UPDATED', {
+        requestId: id,
+        request: result.data,
+        status: status,
+        message: status === 'HỢP LỆ' ? 'Yêu cầu đã được duyệt' : 'Yêu cầu đã bị từ chối'
+      });
+    }
 
     res.status(200).json(result);
   });

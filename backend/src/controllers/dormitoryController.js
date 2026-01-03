@@ -21,14 +21,35 @@ const createDormitoryRequest = catchAsync(async (req, res) => {
   const { category, item, description } = req.body;
   const userId = req.userData.id;
 
-  const result = await dormitoryRequestService.createRequest(
+  const { request, roomId, realtimePayload } = await dormitoryRequestService.createRequest(
     { category, item, description },
     userId
   );
 
+  // ==========================================
+  // SOCKET.IO: Emit events sau khi tạo thành công
+  // 1. Emit đến room cho các bạn cùng phòng
+  // 2. Emit broadcast DORMITORY_REQUEST_CREATED để cập nhật trang lịch sử
+  // ==========================================
+  if (req.io) {
+    // Emit vào room cho các bạn cùng phòng
+    if (roomId) {
+      req.io.to(roomId).emit('NEW_REQUEST_CREATED', realtimePayload);
+      console.log(`📡 Emitted NEW_REQUEST_CREATED to room: ${roomId}`);
+    }
+    // Emit broadcast để student thấy yêu cầu vừa tạo trong lịch sử
+    req.io.emit('DORMITORY_REQUEST_CREATED', {
+      requestId: request._id,
+      request: realtimePayload,
+      studentId: userId,
+      message: 'Yêu cầu KTX mới đã được tạo'
+    });
+    console.log(`📡 Emitted DORMITORY_REQUEST_CREATED broadcast`);
+  }
+
   return res.status(201).json({
     success: true,
-    data: result
+    data: request
   });
 });
 
@@ -57,13 +78,13 @@ const getMyDormitoryRequests = catchAsync(async (req, res) => {
  * Staff/Admin xem tất cả yêu cầu
  */
 const getAllDormitoryRequests = catchAsync(async (req, res) => {
-  const { page = 1, limit = 50, status, studentId } = req.query;
+  const { page = 1, limit = 50, status, student } = req.query;
 
   const result = await dormitoryRequestService.getAllRequests({
     page: parseInt(page),
     limit: parseInt(limit),
     status,
-    studentId
+    student
   });
 
   return res.status(200).json({
@@ -117,8 +138,56 @@ const updateRequestStatus = catchAsync(async (req, res) => {
 
   const result = await dormitoryRequestService.updateRequestStatus(id, status, updaterId);
 
+  // ==========================================
+  // SOCKET.IO: Emit khi staff duyệt/từ chối yêu cầu
+  // Chỉ emit khi status là Approved hoặc Rejected
+  // ==========================================
+  if (req.io && (status === 'Approved' || status === 'Rejected')) {
+    req.io.emit('DORMITORY_REQUEST_UPDATED', {
+      requestId: id,
+      request: result,
+      status: status,
+      message: status === 'Approved' ? 'Yêu cầu KTX đã được duyệt' : 'Yêu cầu KTX đã bị từ chối'
+    });
+    console.log(`📡 Emitted DORMITORY_REQUEST_UPDATED - status: ${status}`);
+  }
+
   return res.status(200).json({
     success: true,
+    data: result
+  });
+});
+
+/**
+ * PATCH /api/dormitory/requests/:id/accept
+ * Staff tiếp nhận yêu cầu (Pending -> Under Review)
+ * Tuân thủ: Controller chỉ nhận request, gọi service, trả response
+ * Business logic nằm trong Service layer
+ */
+const acceptRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const staffId = req.userData.id;
+
+  // Gọi Service xử lý business logic
+  const result = await dormitoryRequestService.acceptRequest(id, staffId);
+
+  // ==========================================
+  // SOCKET.IO: Emit khi staff tiếp nhận yêu cầu
+  // Broadcast để cập nhật realtime ở trang student và staff
+  // ==========================================
+  if (req.io) {
+    req.io.emit('DORMITORY_REQUEST_UPDATED', {
+      requestId: id,
+      request: result,
+      status: 'Under Review',
+      message: 'Yêu cầu KTX đã được tiếp nhận'
+    });
+    console.log(`📡 Emitted DORMITORY_REQUEST_UPDATED (accept) - requestId: ${id}`);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Đã tiếp nhận yêu cầu thành công',
     data: result
   });
 });
@@ -137,6 +206,37 @@ const deleteDormitoryRequest = catchAsync(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: 'Đã xóa yêu cầu thành công'
+  });
+});
+
+/**
+ * PATCH /api/dormitory/requests/:id/confirm-repair
+ * Sinh viên xác nhận đã sửa chữa xong
+ */
+const confirmRepair = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userData.id;
+
+  const result = await dormitoryRequestService.confirmRepair(id, userId);
+
+  // ==========================================
+  // SOCKET.IO: Emit khi sinh viên xác nhận sửa chữa
+  // Broadcast để cập nhật realtime ở trang staff
+  // ==========================================
+  if (req.io) {
+    req.io.emit('DORMITORY_REQUEST_UPDATED', {
+      requestId: id,
+      request: result,
+      status: 'Approved',
+      message: 'Sinh viên đã xác nhận sửa chữa hoàn tất'
+    });
+    console.log(`📡 Emitted DORMITORY_REQUEST_UPDATED (confirm repair) - requestId: ${id}`);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Đã xác nhận sửa chữa thành công',
+    data: result
   });
 });
 
@@ -165,7 +265,9 @@ module.exports = {
   getRequestById,
   updateDormitoryRequest,
   updateRequestStatus,
+  acceptRequest,
   deleteDormitoryRequest,
+  confirmRepair,
   
   // Statistics
   getDormitoryRequestsByMonth

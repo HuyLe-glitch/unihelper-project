@@ -51,8 +51,8 @@ const ProfilePanel = () => {
             </div>
             
             <div className="info-group">
-              <label>MSSV</label>
-              <span>{profileData?.studentId || 'N/A'}</span>
+              <label>Email</label>
+              <span>{profileData?.email || 'N/A'}</span>
             </div>
             
             <div className="info-group">

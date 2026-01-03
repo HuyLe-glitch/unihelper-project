@@ -1,2 +1,2 @@
-export { default as SemesterFilter, SEMESTERS } from './SemesterFilter';
+export { default as SemesterFilter } from './SemesterFilter';
 

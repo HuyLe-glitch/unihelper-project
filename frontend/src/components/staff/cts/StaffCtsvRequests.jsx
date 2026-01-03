@@ -1,151 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { authService } from '../../../services';
+import certificateRequestService from '../../../services/certificateRequest';
+import fileService from '../../../services/file';
+import socketService from '../../../services/socket';
 import StaffDormitoryRequests from '../dormitory/StaffDormitoryRequests';
-import { SemesterFilter, SEMESTERS } from '../../common';
+import { SemesterFilter, FilePreview, ConfirmDialog } from '../../common';
+import ActivityLog from './ActivityLog';
+import './ActivityLog.css';
 import './StaffCtsvRequests.css';
 import '../staffPages.css';
-
-// Mock data với đầy đủ thông tin
-const MOCK_REQUESTS = [
-  {
-    id: '01146969',
-    student: {
-      name: 'Nguyễn Văn An',
-      studentId: '2051063001',
-      email: 'nvanan@student.tdtu.edu.vn',
-      phone: '0912345678',
-      faculty: 'Công nghệ thông tin',
-      major: 'Kỹ thuật phần mềm'
-    },
-    certificateType: 'Nghĩa vụ quân sự',
-    certificateName: 'Tạm hoãn nghĩa vụ quân sự',
-    semester: 'HK1 - 2025',
-    requestDate: '16/8/2025',
-    status: 'HỢP LỆ',
-    responseTime: '4:45 CH\n19-08-2025',
-    notes: 'Sinh viên vui lòng đến P. CTHSSV (A0003) nhận bản chính giấy chứng nhận sinh viên. Thời gian từ ngày 19/8/2025 - 04/9/2025. Nếu SV không nhận hồ sơ theo thời gian nêu trên vui lòng liên hệ trực tiếp Phòng để nhận.',
-    attachedFile: '01146969.pdf',
-    processingHistory: [
-      { date: '19/8/2025 16:45', action: 'Đã duyệt yêu cầu', staff: 'Lê Thị Nhàn' },
-      { date: '17/8/2025 09:00', action: 'Đang xem xét hồ sơ', staff: 'Lê Thị Nhàn' },
-      { date: '16/8/2025 14:30', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: '01125588',
-    student: {
-      name: 'Trần Thị Bình',
-      studentId: '2051063002',
-      email: 'ttbinh@student.tdtu.edu.vn',
-      phone: '0923456789',
-      faculty: 'Quản trị kinh doanh',
-      major: 'Marketing'
-    },
-    certificateType: 'Xác nhận sinh viên',
-    certificateName: 'Xác nhận sinh viên đang học',
-    semester: 'HK2 - 2024',
-    requestDate: '10/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    responseTime: null,
-    notes: 'Yêu cầu đang được xử lý bởi Phòng CTSV.',
-    attachedFile: null,
-    processingHistory: [
-      { date: '10/12/2024 10:15', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: '01136977',
-    student: {
-      name: 'Lê Hoàng Nam',
-      studentId: '2051063003',
-      email: 'lhnam@student.tdtu.edu.vn',
-      phone: '0934567890',
-      faculty: 'Điện - Điện tử',
-      major: 'Kỹ thuật điện tử'
-    },
-    certificateType: 'Bổ sung hồ sơ cá nhân',
-    certificateName: 'Bổ sung hồ sơ cá nhân',
-    semester: 'HK1 - 2024',
-    requestDate: '30/8/2024',
-    status: 'HỢP LỆ',
-    responseTime: '2:38 CH\n05-09-2024',
-    notes: 'Sinh viên vui lòng đến P. CTHSSV (A0003) nhận bản chính giấy chứng nhận sinh viên. Thời gian từ ngày 05/9/2024 – 19/9/2024. Nếu SV không nhận hồ sơ theo thời gian nêu trên vui lòng liên hệ trực tiếp Phòng.',
-    attachedFile: '01136977.pdf',
-    processingHistory: [
-      { date: '05/9/2024 14:38', action: 'Đã duyệt yêu cầu', staff: 'Đỗ Minh Thu' },
-      { date: '02/9/2024 08:30', action: 'Đang xem xét hồ sơ', staff: 'Đỗ Minh Thu' },
-      { date: '30/8/2024 11:20', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: '01098765',
-    student: {
-      name: 'Phạm Minh Châu',
-      studentId: '2051063004',
-      email: 'pmchau@student.tdtu.edu.vn',
-      phone: '0945678901',
-      faculty: 'Luật',
-      major: 'Luật kinh tế'
-    },
-    certificateType: 'Bảng điểm',
-    certificateName: 'Bảng điểm tích lũy',
-    semester: 'HK1 - 2024',
-    requestDate: '20/7/2024',
-    status: 'KHÔNG HỢP LỆ',
-    responseTime: '10:30 SA\n25-07-2024',
-    notes: 'Yêu cầu không hợp lệ do sinh viên chưa hoàn thành học phí học kỳ 1.',
-    attachedFile: null,
-    processingHistory: [
-      { date: '25/7/2024 10:30', action: 'Từ chối yêu cầu', staff: 'Trần Văn Hùng' },
-      { date: '22/7/2024 14:00', action: 'Đang xem xét hồ sơ', staff: 'Trần Văn Hùng' },
-      { date: '20/7/2024 09:45', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: '01156789',
-    student: {
-      name: 'Võ Thị Hương',
-      studentId: '2051063005',
-      email: 'vthuong@student.tdtu.edu.vn',
-      phone: '0956789012',
-      faculty: 'Ngoại ngữ',
-      major: 'Ngôn ngữ Anh'
-    },
-    certificateType: 'Thẻ sinh viên',
-    certificateName: 'Cấp lại thẻ sinh viên',
-    semester: 'HK2 - 2024',
-    requestDate: '15/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    responseTime: null,
-    notes: 'Yêu cầu đang chờ xử lý.',
-    attachedFile: null,
-    processingHistory: [
-      { date: '15/12/2024 08:00', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  },
-  {
-    id: '01167890',
-    student: {
-      name: 'Hoàng Đức Trí',
-      studentId: '2051063006',
-      email: 'hdtri@student.tdtu.edu.vn',
-      phone: '0967890123',
-      faculty: 'Khoa học ứng dụng',
-      major: 'Toán ứng dụng'
-    },
-    certificateType: 'Xác nhận sinh viên',
-    certificateName: 'Xác nhận vay vốn ngân hàng',
-    semester: 'HK2 - 2024',
-    requestDate: '14/12/2024',
-    status: 'ĐANG XỬ LÝ',
-    responseTime: null,
-    notes: 'Đang chờ xác minh thông tin.',
-    attachedFile: null,
-    processingHistory: [
-      { date: '14/12/2024 16:30', action: 'Tiếp nhận yêu cầu', staff: 'Hệ thống' }
-    ]
-  }
-];
 
 const STATUS_CONFIG = {
   'ĐANG XỬ LÝ': { className: 'processing', icon: '⏳', color: '#f59e0b' },
@@ -164,26 +27,170 @@ const StaffCtsvRequests = () => {
   }
   
   // Otherwise, render CTSV requests
-  const [requests] = useState(MOCK_REQUESTS);
+  // State cho dữ liệu từ API
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Toast notification
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'confirm',
+    action: null
+  });
+  
+  // Show toast notification
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3000);
+  }, []);
+  
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const selectedRequestRef = useRef(null); // Ref để tránh dependency loop trong socket listener
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
   const [dateSort, setDateSort] = useState('newest');
-  const [showProcessModal, setShowProcessModal] = useState(false);
-  const [processAction, setProcessAction] = useState('');
-  const [processNote, setProcessNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editableNote, setEditableNote] = useState('');
   const [editableFile, setEditableFile] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editableFileInput, setEditableFileInput] = useState(null); // File input khi edit
+  const [isEditingFile, setIsEditingFile] = useState(false);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isSavingFile, setIsSavingFile] = useState(false); // Loading khi save file
+  const [isSavingNote, setIsSavingNote] = useState(false); // Loading khi save note
+  const [wantToDeleteFile, setWantToDeleteFile] = useState(false); // Đánh dấu muốn xóa file
+  const [previewFile, setPreviewFile] = useState(null); // For file preview modal
 
-  // Get selected semester info for filtering
-  const selectedSemester = useMemo(() => 
-    SEMESTERS.find(s => s.id === semesterFilter),
-    [semesterFilter]
-  );
+  // Helper function để transform request từ API response sang format UI
+  const transformRequestFromAPI = useCallback((req) => ({
+    id: req.requestCode || req._id,
+    _id: req._id,
+    student: {
+      name: req.student?.fullName || 'Không xác định',
+      email: req.student?.user?.email || '',
+      phone: req.student?.phone || '',
+      faculty: req.student?.major?.faculty?.name || '',
+      major: req.student?.major?.name || ''
+    },
+    certificateType: req.certificateType?.name || 'Không xác định',
+    certificateName: req.certificateName?.name || 'Không xác định',
+    semester: req.semester || '',
+    requestDate: req.requestDate ? new Date(req.requestDate).toLocaleDateString('vi-VN') : '',
+    status: req.status || 'ĐANG XỬ LÝ',
+    responseTime: req.responseTime ? new Date(req.responseTime).toLocaleString('vi-VN') : null,
+    notes: req.notes || '',
+    staffFile: req.staffFile?.fileName ? req.staffFile : null,
+    processingHistory: req.processingHistory?.map(h => ({
+      action: h.status,
+      staff: h.staffId?.user?.name || h.staffId?.staffType || 'Staff',
+      date: h.timestamp ? new Date(h.timestamp).toLocaleString('vi-VN') : '',
+      notes: h.notes || ''
+    })) || [],
+    // Activity log từ database - tracking mọi hoạt động của staff
+    activityLog: req.activityLog || []
+  }), []);
+
+  // Fetch requests từ API
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await certificateRequestService.getAllRequests();
+      if (response.success && response.data) {
+        // Transform data từ API sang format UI
+        const transformedRequests = response.data.map(transformRequestFromAPI);
+        setRequests(transformedRequests);
+      }
+    } catch (err) {
+      console.error('Error fetching requests:', err);
+      setError(err.response?.data?.message || 'Không thể tải danh sách yêu cầu');
+    } finally {
+      setLoading(false);
+    }
+  }, [transformRequestFromAPI]);
+
+  // Fetch data khi component mount
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  // Sync selectedRequest ref để dùng trong socket listener
+  useEffect(() => {
+    selectedRequestRef.current = selectedRequest;
+  }, [selectedRequest]);
+
+  // Socket.IO realtime updates - khi có yêu cầu mới từ sinh viên
+  useEffect(() => {
+    // Kết nối socket
+    socketService.connect();
+
+    // Lắng nghe sự kiện có yêu cầu CTSV mới từ sinh viên
+    socketService.onCertificateRequestCreated((data) => {
+      console.log('📩 New certificate request from student:', data);
+      // Refresh danh sách khi có yêu cầu mới
+      fetchRequests();
+      // Hiển thị toast thông báo
+      showToast('Có yêu cầu CTSV mới!', 'info');
+    });
+
+    // Lắng nghe sự kiện yêu cầu được cập nhật (để đồng bộ giữa các staff)
+    socketService.onCertificateRequestUpdated((data) => {
+      console.log('📩 Certificate request updated:', data);
+      
+      // Cập nhật trực tiếp trong state thay vì fetch lại toàn bộ
+      // Điều này tránh "refresh" khi chính mình duyệt
+      setRequests(prev => prev.map(req => {
+        if (req._id === data.requestId) {
+          return {
+            ...req,
+            status: data.status || data.request?.status || req.status,
+            responseTime: data.request?.responseTime 
+              ? new Date(data.request.responseTime).toLocaleString('vi-VN') 
+              : req.responseTime
+          };
+        }
+        return req;
+      }));
+
+      // Cập nhật selectedRequest nếu đang được chọn (bởi staff khác)
+      const currentSelected = selectedRequestRef.current;
+      if (currentSelected && data.requestId === currentSelected._id) {
+        if (data.request) {
+          setSelectedRequest(prev => prev ? ({
+            ...prev,
+            status: data.request.status || data.status,
+            notes: data.request.notes || prev.notes,
+            staffFile: data.request.staffFile || prev.staffFile,
+            processingHistory: data.request.processingHistory?.map(h => ({
+              action: h.status,
+              staff: h.staffId?.user?.name || h.staffId?.staffType || 'Staff',
+              date: h.timestamp ? new Date(h.timestamp).toLocaleString('vi-VN') : '',
+              notes: h.notes || ''
+            })) || prev.processingHistory
+          }) : null);
+        }
+      }
+    });
+
+    // Cleanup khi unmount
+    return () => {
+      socketService.off('CERTIFICATE_REQUEST_CREATED');
+      socketService.off('CERTIFICATE_REQUEST_UPDATED');
+    };
+  }, [fetchRequests, showToast]);
+
+  // Get selected semester info for filtering (không cần dùng SEMESTERS nữa - SemesterFilter tự fetch)
+  // Filtering sẽ dựa trên semesterFilter value trực tiếp
 
   // Statistics
   const stats = useMemo(() => ({
@@ -209,7 +216,6 @@ const StaffCtsvRequests = () => {
       result = result.filter(r =>
         r.id.toLowerCase().includes(term) ||
         r.student.name.toLowerCase().includes(term) ||
-        r.student.studentId.toLowerCase().includes(term) ||
         r.student.email.toLowerCase().includes(term)
       );
     }
@@ -224,14 +230,9 @@ const StaffCtsvRequests = () => {
       result = result.filter(r => r.certificateType === typeFilter);
     }
 
-    // Semester filter
-    if (semesterFilter !== 'all' && selectedSemester) {
-      result = result.filter(r => {
-        const requestDate = new Date(r.requestDate.split('/').reverse().join('-'));
-        const startDate = new Date(selectedSemester.startDate);
-        const endDate = new Date(selectedSemester.endDate);
-        return requestDate >= startDate && requestDate <= endDate;
-      });
+    // Semester filter - so sánh trực tiếp với semester name
+    if (semesterFilter !== 'all') {
+      result = result.filter(r => r.semester === semesterFilter);
     }
 
     // Date filter
@@ -250,45 +251,311 @@ const StaffCtsvRequests = () => {
     });
 
     return result;
-  }, [requests, searchTerm, statusFilter, typeFilter, semesterFilter, selectedSemester, dateFilter, dateSort]);
+  }, [requests, searchTerm, statusFilter, typeFilter, semesterFilter, dateFilter, dateSort]);
 
   const handleSelectRequest = (request) => {
     setSelectedRequest(request);
     setEditableNote(request.notes || '');
-    setEditableFile(request.attachedFile || null);
-    setIsEditing(false);
+    setEditableFile(request.staffFile?.fileName || null);
+    setIsEditingFile(false);
+    setIsEditingNote(false);
   };
 
+  // Xử lý duyệt/từ chối yêu cầu - mở dialog xác nhận
   const handleProcess = (action) => {
-    setProcessAction(action);
-    setShowProcessModal(true);
-  };
-
-  const handleSubmitProcess = () => {
-    // Here you would call API to process the request
-    console.log('Processing:', selectedRequest?.id, processAction, processNote);
-    setShowProcessModal(false);
-    setProcessNote('');
-    setProcessAction('');
-  };
-
-  const handleSave = () => {
-    // Here you would call API to save the editable note and file
-    console.log('Saving:', selectedRequest?.id, editableNote, editableFile);
-    // Update the request with new note and file
-    if (selectedRequest) {
-      selectedRequest.notes = editableNote;
-      selectedRequest.attachedFile = editableFile;
+    if (!selectedRequest) return;
+    
+    // Kiểm tra nếu đang edit file mà chưa lưu
+    if (isEditingFile && editableFileInput) {
+      showToast('Vui lòng lưu file trước khi xử lý yêu cầu (ấn nút X để lưu)!', 'warning');
+      return;
     }
-    setIsEditing(false);
+    
+    // Kiểm tra nếu đang edit file và muốn xóa file (chưa lưu)
+    if (isEditingFile && wantToDeleteFile) {
+      showToast('Bạn đang muốn xóa file nhưng chưa lưu. Vui lòng lưu thay đổi trước khi xử lý yêu cầu!', 'warning');
+      return;
+    }
+    
+    // Kiểm tra nếu đang edit ghi chú mà chưa lưu
+    if (isEditingNote && editableNote !== selectedRequest.notes) {
+      showToast('Vui lòng lưu ghi chú trước khi xử lý yêu cầu (ấn nút X để lưu)!', 'warning');
+      return;
+    }
+    
+    // Validation - kiểm tra thông tin ĐÃ LƯU trong database
+    const hasFile = !!selectedRequest.staffFile;
+    const hasNote = !!(selectedRequest.notes?.trim());
+    
+    if (action === 'approve') {
+      // Duyệt: phải có CẢ file VÀ ghi chú đã lưu
+      if (!hasFile || !hasNote) {
+        let missingItems = [];
+        if (!hasFile) missingItems.push('file phản hồi');
+        if (!hasNote) missingItems.push('ghi chú');
+        showToast(`Vui lòng thêm và LƯU ${missingItems.join(' và ')} trước khi duyệt yêu cầu!`, 'error');
+        return;
+      }
+    } else if (action === 'reject') {
+      // Từ chối: bắt buộc phải có ghi chú đã lưu (lý do từ chối)
+      if (!hasNote) {
+        showToast('Vui lòng nhập và LƯU lý do từ chối trong phần "Ghi chú / Lưu ý"!', 'error');
+        return;
+      }
+    }
+    
+    // Mở dialog xác nhận
+    setConfirmDialog({
+      isOpen: true,
+      title: action === 'approve' ? 'Xác nhận duyệt yêu cầu' : 'Xác nhận từ chối yêu cầu',
+      message: action === 'approve' 
+        ? `Bạn có chắc chắn muốn duyệt yêu cầu ${selectedRequest.id} của sinh viên ${selectedRequest.student.name}?`
+        : `Bạn có chắc chắn muốn từ chối yêu cầu ${selectedRequest.id} của sinh viên ${selectedRequest.student.name}?`,
+      type: action === 'approve' ? 'success' : 'danger',
+      action: action
+    });
+  };
+
+  // Xử lý khi xác nhận trong dialog
+  const handleConfirmProcess = async () => {
+    const action = confirmDialog.action;
+    if (!action || !selectedRequest) return;
+    
+    try {
+      setIsSubmitting(true);
+      const status = action === 'approve' ? 'HỢP LỆ' : 'KHÔNG HỢP LỆ';
+      const requestId = selectedRequest._id;
+      
+      // Gọi API cập nhật trạng thái và LẤY RESPONSE
+      const response = await certificateRequestService.updateRequestStatus(requestId, {
+        status,
+        notes: selectedRequest.notes || '',
+        staffFile: selectedRequest.staffFile || null
+      });
+
+      if (response.success && response.data) {
+        // Cập nhật trực tiếp vào state thay vì fetch lại toàn bộ
+        const updatedRequest = {
+          ...selectedRequest,
+          status: response.data.status,
+          responseTime: response.data.responseTime ? new Date(response.data.responseTime).toLocaleString('vi-VN') : null,
+          activityLog: response.data.activityLog || [],
+          processingHistory: response.data.processingHistory?.map(h => ({
+            action: h.status,
+            staff: h.staffId?.user?.name || h.staffId?.staffType || 'Staff',
+            date: h.timestamp ? new Date(h.timestamp).toLocaleString('vi-VN') : '',
+            notes: h.notes || ''
+          })) || []
+        };
+
+        // Cập nhật trong danh sách
+        setRequests(prev => prev.map(req => 
+          req._id === requestId ? updatedRequest : req
+        ));
+
+        // Cập nhật selectedRequest với status mới (GIỮ panel mở)
+        setSelectedRequest(updatedRequest);
+      }
+      
+      // Đóng dialog và reset states
+      setConfirmDialog({ isOpen: false, title: '', message: '', type: 'confirm', action: null });
+      setEditableFileInput(null);
+      
+      showToast(status === 'HỢP LỆ' ? 'Duyệt yêu cầu thành công!' : 'Từ chối yêu cầu thành công!', 'success');
+    } catch (err) {
+      console.error('Error processing request:', err);
+      showToast(err.response?.data?.message || 'Có lỗi xảy ra khi xử lý yêu cầu', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Đóng confirm dialog
+  const handleCancelConfirm = () => {
+    if (!isSubmitting) {
+      setConfirmDialog({ isOpen: false, title: '', message: '', type: 'confirm', action: null });
+    }
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setEditableFile(file.name);
+      setEditableFileInput(file); // Lưu file object để upload sau
+      setWantToDeleteFile(false); // Reset flag vì đang chọn file mới
     }
   };
+
+  // Hàm lưu file lên Firebase và cập nhật vào database
+  const handleSaveFile = async () => {
+    if (!editableFileInput || !selectedRequest) return;
+    
+    try {
+      setIsSavingFile(true);
+      
+      // 1. Upload file lên Firebase Storage
+      const uploadResult = await fileService.uploadFile(editableFileInput, 'certificate-requests');
+      
+      if (uploadResult.success) {
+        // 2. Cập nhật request với file mới và LẤY RESPONSE từ API
+        const updateResponse = await certificateRequestService.updateRequestStatus(selectedRequest._id, {
+          status: selectedRequest.status,
+          notes: selectedRequest.notes || '',
+          staffFile: uploadResult.data
+        });
+        
+        if (updateResponse.success && updateResponse.data) {
+          // 3. Transform response từ API - có đầy đủ activityLog mới
+          const updatedData = {
+            ...selectedRequest,
+            staffFile: updateResponse.data.staffFile,
+            activityLog: updateResponse.data.activityLog || []
+          };
+          
+          // 4. Cập nhật selectedRequest với data mới từ server
+          setSelectedRequest(updatedData);
+          
+          // 5. Cập nhật trong danh sách requests
+          setRequests(prev => prev.map(req => 
+            req._id === selectedRequest._id 
+              ? updatedData
+              : req
+          ));
+          
+          // 6. Cập nhật editableFile để hiển thị đúng
+          setEditableFile(updateResponse.data.staffFile?.fileName);
+          setWantToDeleteFile(false);
+        }
+        
+        showToast('Lưu file thành công!', 'success');
+      }
+    } catch (err) {
+      console.error('Error saving file:', err);
+      showToast(err.response?.data?.message || 'Có lỗi xảy ra khi lưu file', 'error');
+    } finally {
+      setIsSavingFile(false);
+      setIsEditingFile(false);
+      setEditableFileInput(null);
+    }
+  };
+
+  // Hàm xóa file khỏi database
+  const handleDeleteFile = async () => {
+    if (!selectedRequest) return;
+    
+    try {
+      setIsSavingFile(true);
+      
+      // Cập nhật request với staffFile = null và LẤY RESPONSE từ API
+      const updateResponse = await certificateRequestService.updateRequestStatus(selectedRequest._id, {
+        status: selectedRequest.status,
+        notes: selectedRequest.notes || '',
+        staffFile: null
+      });
+      
+      if (updateResponse.success && updateResponse.data) {
+        // Transform response - có đầy đủ activityLog mới
+        const updatedData = {
+          ...selectedRequest,
+          staffFile: null,
+          activityLog: updateResponse.data.activityLog || []
+        };
+        
+        // Cập nhật selectedRequest với data mới từ server
+        setSelectedRequest(updatedData);
+        
+        // Cập nhật trong danh sách requests
+        setRequests(prev => prev.map(req => 
+          req._id === selectedRequest._id 
+            ? updatedData
+            : req
+        ));
+        
+        // Reset states
+        setEditableFile(null);
+        setWantToDeleteFile(false);
+      }
+      
+      showToast('Đã xóa file!', 'success');
+    } catch (err) {
+      console.error('Error deleting file:', err);
+      showToast(err.response?.data?.message || 'Có lỗi xảy ra khi xóa file', 'error');
+    } finally {
+      setIsSavingFile(false);
+      setIsEditingFile(false);
+      setEditableFileInput(null);
+    }
+  };
+
+  // Hàm lưu ghi chú vào database
+  const handleSaveNote = async () => {
+    if (!selectedRequest) return;
+    
+    try {
+      setIsSavingNote(true);
+      
+      // Cập nhật request với note mới và LẤY RESPONSE từ API
+      const updateResponse = await certificateRequestService.updateRequestStatus(selectedRequest._id, {
+        status: selectedRequest.status,
+        notes: editableNote,
+        staffFile: selectedRequest.staffFile || null
+      });
+      
+      if (updateResponse.success && updateResponse.data) {
+        // Transform response - có đầy đủ activityLog mới
+        const updatedData = {
+          ...selectedRequest,
+          notes: editableNote,
+          activityLog: updateResponse.data.activityLog || []
+        };
+        
+        // Cập nhật selectedRequest với data mới từ server
+        setSelectedRequest(updatedData);
+        
+        // Cập nhật trong danh sách requests
+        setRequests(prev => prev.map(req => 
+          req._id === selectedRequest._id 
+            ? updatedData
+            : req
+        ));
+      }
+      
+      showToast('Lưu ghi chú thành công!', 'success');
+    } catch (err) {
+      console.error('Error saving note:', err);
+      showToast(err.response?.data?.message || 'Có lỗi xảy ra khi lưu ghi chú', 'error');
+    } finally {
+      setIsSavingNote(false);
+      setIsEditingNote(false);
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="ctsv-management">
+        <div className="ctsv-loading">
+          <div className="loading-spinner"></div>
+          <p>Đang tải danh sách yêu cầu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="ctsv-management">
+        <div className="ctsv-error">
+          <span className="error-icon">⚠️</span>
+          <p>{error}</p>
+          <button className="btn-retry" onClick={fetchRequests}>
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ctsv-management">
@@ -345,7 +612,7 @@ const StaffCtsvRequests = () => {
           <span className="search-icon">🔍</span>
           <input
             type="text"
-            placeholder="Tìm theo mã, tên SV, MSSV hoặc email..."
+            placeholder="Tìm theo mã yêu cầu, tên SV hoặc email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -382,14 +649,23 @@ const StaffCtsvRequests = () => {
             onDateChange={setDateFilter}
             showInfoBar={false}
           />
-          <select
-            value={dateSort}
-            onChange={(e) => setDateSort(e.target.value)}
-            className="filter-select"
+          {/* Sort Order - Toggle Icon Button */}
+          <button 
+            className="sort-toggle-btn"
+            onClick={() => setDateSort(dateSort === 'newest' ? 'oldest' : 'newest')}
+            title={dateSort === 'newest' ? 'Mới nhất trước' : 'Cũ nhất trước'}
           >
-            <option value="newest">Mới nhất trước</option>
-            <option value="oldest">Cũ nhất trước</option>
-          </select>
+            {dateSort === 'newest' ? (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3 6h6v2H3V6zm0 12v-2h18v2H3zm0-7h12v2H3v-2z"/>
+              </svg>
+            )}
+            <span className="sort-arrow">{dateSort === 'newest' ? '↓' : '↑'}</span>
+          </button>
         </div>
       </div>
 
@@ -468,10 +744,6 @@ const StaffCtsvRequests = () => {
                       <span>{selectedRequest.student.name}</span>
                     </div>
                     <div className="info-item">
-                      <label>MSSV</label>
-                      <span className="code">{selectedRequest.student.studentId}</span>
-                    </div>
-                    <div className="info-item">
                       <label>Email</label>
                       <a href={`mailto:${selectedRequest.student.email}`}>{selectedRequest.student.email}</a>
                     </div>
@@ -519,32 +791,101 @@ const StaffCtsvRequests = () => {
                         <span style={{whiteSpace: 'pre-line'}}>{selectedRequest.responseTime}</span>
                       </div>
                     )}
-                    <div className="info-item full-width">
-                      <label>File đính kèm</label>
-                      {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditing ? (
-                        <div className="file-upload-box" style={{marginTop: '8px'}}>
-                          <input 
-                            type="file" 
-                            id="file-upload-edit" 
-                            accept=".pdf" 
-                            onChange={handleFileChange}
-                            hidden 
-                          />
-                          <label htmlFor="file-upload-edit" className="file-upload-label" style={{padding: '16px'}}>
-                            <span className="upload-icon">📁</span>
-                            <span>{editableFile || 'Click để chọn file'}</span>
-                          </label>
-                        </div>
-                      ) : editableFile ? (
-                        <a href="#" className="file-link">
+                  </div>
+                </section>
+
+                {/* Staff Response Section - File đính kèm từ Staff */}
+                <section className="detail-section staff-response-section">
+                  <h3 className="section-title">
+                    <span className="section-icon">📎</span>
+                    File phản hồi (từ Staff)
+                    {selectedRequest.status === 'ĐANG XỬ LÝ' && !isSavingFile && (
+                      <button 
+                        className={`section-edit-btn ${isEditingFile ? 'close-btn' : ''}`}
+                        onClick={async () => {
+                          if (isEditingFile) {
+                            if (editableFileInput) {
+                              // Có file mới -> upload và lưu vào database
+                              await handleSaveFile();
+                            } else if (wantToDeleteFile && selectedRequest.staffFile) {
+                              // Muốn xóa file hiện tại -> xóa khỏi database
+                              await handleDeleteFile();
+                            } else {
+                              // Không có thay đổi, chỉ đóng edit mode
+                              setIsEditingFile(false);
+                              setEditableFile(null);
+                              setWantToDeleteFile(false);
+                            }
+                          } else {
+                            // Mở edit mode - load file hiện tại nếu có
+                            setIsEditingFile(true);
+                            setWantToDeleteFile(false);
+                            if (selectedRequest.staffFile) {
+                              setEditableFile(selectedRequest.staffFile.fileName);
+                            } else {
+                              setEditableFile(null);
+                            }
+                            setEditableFileInput(null);
+                          }
+                        }}
+                        title={isEditingFile ? 'Lưu và đóng' : 'Chỉnh sửa'}
+                        disabled={isSavingFile}
+                      >
+                        {isEditingFile ? '✕' : '✏️'}
+                      </button>
+                    )}
+                    {isSavingFile && <span className="saving-indicator">Đang lưu...</span>}
+                  </h3>
+                  {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditingFile ? (
+                    <div className="file-upload-box" style={{marginTop: '8px'}}>
+                      <input 
+                        type="file" 
+                        id="file-upload-edit" 
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
+                        onChange={handleFileChange}
+                        hidden 
+                      />
+                      {editableFile ? (
+                        <div className="file-selected">
                           <span className="file-icon">📄</span>
-                          {editableFile}
-                        </a>
+                          <span className="file-name">{editableFile}</span>
+                          <button 
+                            type="button" 
+                            className="file-remove" 
+                            onClick={() => {
+                              setEditableFile(null);
+                              setEditableFileInput(null);
+                              // Đánh dấu muốn xóa file nếu đang có file từ database
+                              if (selectedRequest.staffFile) {
+                                setWantToDeleteFile(true);
+                              }
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
                       ) : (
-                        <span style={{color: 'var(--ctsv-text-muted)', fontStyle: 'italic'}}>Chưa có file đính kèm</span>
+                        <label htmlFor="file-upload-edit" className="file-upload-label" style={{padding: '16px'}}>
+                          <span className="upload-icon">📁</span>
+                          <span>{wantToDeleteFile ? 'File sẽ bị xóa - Click để chọn file mới' : 'Click để chọn file phản hồi'}</span>
+                        </label>
                       )}
                     </div>
-                  </div>
+                  ) : selectedRequest.staffFile ? (
+                    <div 
+                      className="file-display clickable"
+                      onClick={() => setPreviewFile({
+                        url: selectedRequest.staffFile.fileUrl,
+                        name: selectedRequest.staffFile.fileName
+                      })}
+                      title="Click để xem file"
+                    >
+                      <span className="file-icon">📄</span>
+                      <span className="file-name">{selectedRequest.staffFile.fileName}</span>
+                    </div>
+                  ) : (
+                    <span style={{color: 'var(--ctsv-text-muted)', fontStyle: 'italic'}}>Chưa có file phản hồi</span>
+                  )}
                 </section>
 
                 {/* Notes Section */}
@@ -552,74 +893,64 @@ const StaffCtsvRequests = () => {
                   <h3 className="section-title">
                     <span className="section-icon">💬</span>
                     Ghi chú / Lưu ý
+                    {selectedRequest.status === 'ĐANG XỬ LÝ' && !isSavingNote && (
+                      <button 
+                        className={`section-edit-btn ${isEditingNote ? 'close-btn' : ''}`}
+                        onClick={async () => {
+                          if (isEditingNote && editableNote !== selectedRequest.notes) {
+                            // Có thay đổi -> lưu vào database
+                            await handleSaveNote();
+                          } else {
+                            // Toggle edit mode
+                            setIsEditingNote(!isEditingNote);
+                          }
+                        }}
+                        title={isEditingNote ? 'Lưu và đóng' : 'Chỉnh sửa'}
+                        disabled={isSavingNote}
+                      >
+                        {isEditingNote ? '✕' : '✏️'}
+                      </button>
+                    )}
+                    {isSavingNote && <span className="saving-indicator">Đang lưu...</span>}
                   </h3>
-                  {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditing ? (
-                    <textarea
-                      className="notes-editable"
-                      rows="4"
-                      value={editableNote}
-                      onChange={(e) => setEditableNote(e.target.value)}
-                      placeholder="Nhập ghi chú..."
-                    />
+                  {selectedRequest.status === 'ĐANG XỬ LÝ' && isEditingNote ? (
+                    <div className="notes-edit-container">
+                      <textarea
+                        className="notes-editable"
+                        rows="4"
+                        value={editableNote}
+                        onChange={(e) => setEditableNote(e.target.value)}
+                        placeholder="Nhập ghi chú..."
+                      />
+                    </div>
                   ) : (
-                    <div className="notes-box">
+                    <div className={`notes-box ${!editableNote ? 'empty' : ''}`}>
                       {editableNote || 'Không có ghi chú'}
                     </div>
                   )}
                 </section>
 
-                {/* Processing History */}
+                {/* Processing History - ActivityLog Component */}
                 <section className="detail-section">
                   <h3 className="section-title">
                     <span className="section-icon">📜</span>
-                    Lịch sử xử lý
+                    Lịch sử hoạt động
                   </h3>
-                  <div className="history-timeline">
-                    {selectedRequest.processingHistory.map((item, index) => (
-                      <div key={index} className="timeline-item">
-                        <div className="timeline-dot"></div>
-                        <div className="timeline-content">
-                          <span className="timeline-action">{item.action}</span>
-                          <div className="timeline-meta">
-                            <span className="timeline-staff">{item.staff}</span>
-                            <span className="timeline-date">{item.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <ActivityLog 
+                    activityLog={selectedRequest.activityLog || []}
+                  />
                 </section>
               </div>
 
               {/* Action Buttons */}
               {selectedRequest.status === 'ĐANG XỬ LÝ' && (
                 <div className="detail-actions">
-                  {isEditing ? (
-                    <>
-                      <button className="btn-action btn-approve" onClick={handleSave}>
-                        <span>💾</span> Lưu thay đổi
-                      </button>
-                      <button className="btn-action btn-cancel" onClick={() => {
-                        setEditableNote(selectedRequest.notes || '');
-                        setEditableFile(selectedRequest.attachedFile || null);
-                        setIsEditing(false);
-                      }}>
-                        <span>✕</span> Hủy
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="btn-action btn-approve" onClick={() => handleProcess('approve')}>
-                        <span>✓</span> Duyệt yêu cầu
-                      </button>
-                      <button className="btn-action btn-reject" onClick={() => handleProcess('reject')}>
-                        <span>✕</span> Từ chối
-                      </button>
-                      <button className="btn-action btn-request-info" onClick={() => setIsEditing(true)}>
-                        <span>✏️</span> Chỉnh sửa
-                      </button>
-                    </>
-                  )}
+                  <button className="btn-action btn-approve" onClick={() => handleProcess('approve')}>
+                    <span>✓</span> Duyệt yêu cầu
+                  </button>
+                  <button className="btn-action btn-reject" onClick={() => handleProcess('reject')}>
+                    <span>✕</span> Từ chối
+                  </button>
                 </div>
               )}
             </>
@@ -635,69 +966,36 @@ const StaffCtsvRequests = () => {
         </div>
       </div>
 
-      {/* Process Modal */}
-      {showProcessModal && (
-        <div className="modal-overlay" onClick={() => setShowProcessModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                {processAction === 'approve' && '✓ Duyệt yêu cầu'}
-                {processAction === 'reject' && '✕ Từ chối yêu cầu'}
-                {processAction === 'request-info' && '📋 Yêu cầu bổ sung thông tin'}
-              </h3>
-              <button className="btn-close" onClick={() => setShowProcessModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Mã yêu cầu</label>
-                <input type="text" value={`#${selectedRequest?.id}`} readOnly />
-              </div>
-              <div className="form-group">
-                <label>Sinh viên</label>
-                <input type="text" value={`${selectedRequest?.student.name} - ${selectedRequest?.student.studentId}`} readOnly />
-              </div>
-              <div className="form-group">
-                <label>
-                  {processAction === 'approve' && 'Ghi chú phản hồi'}
-                  {processAction === 'reject' && 'Lý do từ chối *'}
-                  {processAction === 'request-info' && 'Thông tin cần bổ sung *'}
-                </label>
-                <textarea
-                  rows="4"
-                  placeholder={
-                    processAction === 'approve' 
-                      ? 'Nhập ghi chú cho sinh viên (không bắt buộc)...'
-                      : 'Nhập nội dung...'
-                  }
-                  value={processNote}
-                  onChange={(e) => setProcessNote(e.target.value)}
-                />
-              </div>
-              {processAction === 'approve' && (
-                <div className="form-group">
-                  <label>Tải lên file phản hồi (PDF)</label>
-                  <div className="file-upload-box">
-                    <input type="file" id="file-upload" accept=".pdf" hidden />
-                    <label htmlFor="file-upload" className="file-upload-label">
-                      <span className="upload-icon">📁</span>
-                      <span>Click để chọn file hoặc kéo thả vào đây</span>
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowProcessModal(false)}>Hủy</button>
-              <button 
-                className={`btn-submit ${processAction === 'approve' ? 'approve' : processAction === 'reject' ? 'reject' : 'info'}`}
-                onClick={handleSubmitProcess}
-              >
-                {processAction === 'approve' && 'Xác nhận duyệt'}
-                {processAction === 'reject' && 'Xác nhận từ chối'}
-                {processAction === 'request-info' && 'Gửi yêu cầu'}
-              </button>
-            </div>
-          </div>
+      {/* File Preview Modal */}
+      <FilePreview
+        isOpen={!!previewFile}
+        fileUrl={previewFile?.url}
+        fileName={previewFile?.name}
+        onClose={() => setPreviewFile(null)}
+      />
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        confirmText={confirmDialog.action === 'approve' ? 'Duyệt yêu cầu' : 'Từ chối'}
+        cancelText="Hủy"
+        onConfirm={handleConfirmProcess}
+        onCancel={handleCancelConfirm}
+        isLoading={isSubmitting}
+      />
+
+      {/* Toast notification */}
+      {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <span className="toast-icon">
+            {toast.type === 'success' && '✓'}
+            {toast.type === 'error' && '✕'}
+            {toast.type === 'warning' && '⚠'}
+          </span>
+          <span className="toast-message">{toast.message}</span>
         </div>
       )}
     </div>

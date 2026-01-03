@@ -2,13 +2,18 @@ const DormitoryRequest = require('../models/DormitoryRequest');
 const EquipmentCategory = require('../models/EquipmentCategory');
 const EquipmentItem = require('../models/EquipmentItem');
 const Student = require('../models/Student');
+const Semester = require('../models/Semester');
 const { AppError } = require('../utils/appError');
+
+// Repositories
+const dormitoryRepository = require('../repositories/dormitoryRepository');
+const studentRepository = require('../repositories/studentRepository');
 
 const monthLabels = [
   '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-const ALLOWED_STATUSES = ['Pending', 'Under Review', 'Approved', 'Rejected'];
+const ALLOWED_STATUSES = ['Pending', 'Under Review', 'Approved'];
 
 class DormitoryRequestService {
 
@@ -55,6 +60,7 @@ class DormitoryRequestService {
 
   /**
    * Tạo yêu cầu KTX mới
+   * @returns {Object} { request, roomId, realtimePayload } - Trả về request, roomId để emit socket, và payload cho realtime
    */
   async createRequest(payload, userId) {
     // Validate sinh viên nội trú
@@ -74,16 +80,28 @@ class DormitoryRequestService {
     }
 
     // Validate item nếu có
+    let foundItem = null;
     if (item) {
-      const foundItem = await EquipmentItem.findOne({ _id: item, category: category });
+      foundItem = await EquipmentItem.findOne({ _id: item, category: category });
       if (!foundItem) {
         throw new AppError('Thiết bị không tồn tại hoặc không thuộc danh mục đã chọn', 400);
       }
     }
 
-    // Tạo request
-    const created = await DormitoryRequest.create({
+    // Lấy học kỳ đang active từ database
+    const activeSemester = await Semester.findOne({ isActive: true }).lean();
+    if (!activeSemester) {
+      throw new AppError('Không có học kỳ nào đang hoạt động. Vui lòng liên hệ quản trị viên.', 400);
+    }
+
+    // Lấy mã yêu cầu tiếp theo từ Repository (tuân thủ kiến trúc 4 lớp)
+    const requestCode = await dormitoryRepository.getNextRequestCode();
+
+    // Tạo request thông qua Repository
+    const created = await dormitoryRepository.create({
+      requestCode,
       student: student._id,
+      semester: activeSemester.name, // Lưu tên học kỳ active
       category,
       item: item || null,
       description: description?.trim() || '',
@@ -91,33 +109,93 @@ class DormitoryRequestService {
       requestDate: new Date()
     });
 
-    return created;
+    // Chuẩn bị payload cho realtime (format giống như getStudentRequests trả về)
+    const realtimePayload = {
+      _id: created._id,
+      requestCode: created.requestCode,
+      semester: created.semester,
+      category: { _id: foundCategory._id, name: foundCategory.name },
+      item: foundItem ? { _id: foundItem._id, name: foundItem.name } : null,
+      description: created.description,
+      status: created.status,
+      requestDate: created.requestDate,
+      createdAt: created.createdAt,
+      // Thông tin người gửi
+      senderName: student.fullName,
+      senderEmail: student.user?.email || '',
+      student: {
+        _id: student._id,
+        fullName: student.fullName,
+        user: { email: student.user?.email || '' }
+      }
+    };
+
+    return {
+      request: created,
+      roomId: student.roomId._id.toString(), // Room ID để emit socket
+      realtimePayload
+    };
   }
 
   /**
-   * Lấy danh sách yêu cầu của sinh viên
+   * Lấy danh sách yêu cầu của sinh viên và các sinh viên cùng phòng
+   * Business Rule: Sinh viên có thể xem tất cả yêu cầu trong phòng của mình
    */
   async getStudentRequests(userId, options = {}) {
-    const student = await this.validateDormitoryResident(userId);
+    // Validate và lấy thông tin student với user email
+    const student = await Student.findOne({ user: userId, isDeleted: false })
+      .populate('roomId', 'name')
+      .populate('user', 'email')
+      .lean();
+
+    if (!student) {
+      throw new AppError('Không tìm thấy thông tin sinh viên', 404);
+    }
+
+    if (!student.isDormResident) {
+      throw new AppError(
+        'Bạn không phải sinh viên nội trú. Chức năng này chỉ dành cho sinh viên đang ở KTX.',
+        403
+      );
+    }
+
+    if (!student.roomId) {
+      throw new AppError(
+        'Bạn chưa được xếp phòng KTX. Vui lòng liên hệ quản lý KTX.',
+        403
+      );
+    }
 
     const { page = 1, limit = 50, status } = options;
     const skip = (page - 1) * limit;
 
-    const filters = { student: student._id };
+    // Lấy danh sách tất cả sinh viên cùng phòng (sử dụng Repository)
+    const roommates = await studentRepository.findByRoom(student.roomId._id);
+    const roommateIds = roommates.map(s => s._id);
+
+    // Build filters cho query
+    const filters = {};
     if (status) filters.status = status;
 
-    const requests = await DormitoryRequest.find(filters)
-      .populate('category', 'name')
-      .populate('item', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    // Query yêu cầu của tất cả sinh viên cùng phòng (sử dụng Repository)
+    const requests = await dormitoryRepository.findByStudents(roommateIds, {
+      skip,
+      limit,
+      filters
+    });
 
-    const total = await DormitoryRequest.countDocuments(filters);
+    const total = await dormitoryRepository.countByStudents(roommateIds, filters);
+
+    // Transform data để thêm thông tin người gửi và đánh dấu yêu cầu của chính mình
+    const transformedRequests = requests.map(req => ({
+      ...req,
+      isOwner: req.student?._id?.toString() === student._id.toString(),
+      senderName: req.student?.fullName || 'Không xác định',
+      senderEmail: req.student?.user?.email || ''
+    }));
 
     return {
-      data: requests,
+      data: transformedRequests,
       pagination: {
         page,
         limit,
@@ -126,8 +204,14 @@ class DormitoryRequestService {
       },
       studentInfo: {
         id: student._id,
+        email: student.user?.email || '',
         fullName: student.fullName,
         roomName: student.roomId?.name || 'Chưa xếp phòng'
+      },
+      roomInfo: {
+        roomId: student.roomId._id,
+        roomName: student.roomId.name,
+        totalRoommates: roommates.length
       }
     };
   }
@@ -136,18 +220,18 @@ class DormitoryRequestService {
    * Lấy tất cả yêu cầu (Staff/Admin)
    */
   async getAllRequests(options = {}) {
-    const { page = 1, limit = 50, status, studentId } = options;
+    const { page = 1, limit = 50, status, student } = options;
     const skip = (page - 1) * limit;
 
     const filters = {};
     if (status) filters.status = status;
-    if (studentId) filters.student = studentId;
+    if (student) filters.student = student;
 
     const requests = await DormitoryRequest.find(filters)
       .populate({
         path: 'student',
-        select: 'fullName studentId',
-        populate: { path: 'roomId', select: 'name' }
+        select: 'fullName user roomId',
+        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
       })
       .populate('category', 'name')
       .populate('item', 'name')
@@ -176,8 +260,8 @@ class DormitoryRequestService {
     const request = await DormitoryRequest.findById(id)
       .populate({
         path: 'student',
-        select: 'fullName studentId user',
-        populate: { path: 'roomId', select: 'name' }
+        select: 'fullName user roomId',
+        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
       })
       .populate('category', 'name')
       .populate('item', 'name')
@@ -281,11 +365,90 @@ class DormitoryRequestService {
     )
       .populate({
         path: 'student',
-        select: 'fullName studentId',
-        populate: { path: 'roomId', select: 'name' }
+        select: 'fullName user',
+        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
       })
       .populate('category', 'name')
       .populate('item', 'name');
+
+    return updated;
+  }
+
+  /**
+   * Staff tiếp nhận yêu cầu (Pending -> Under Review)
+   * Business Rule: Chỉ cho phép tiếp nhận yêu cầu đang ở trạng thái "Pending"
+   * @param {string} requestId - ID yêu cầu
+   * @param {string} staffId - ID staff đang xử lý
+   * @returns {Object} - Request đã cập nhật
+   */
+  async acceptRequest(requestId, staffId) {
+    // Kiểm tra yêu cầu tồn tại
+    const request = await DormitoryRequest.findById(requestId);
+    if (!request) {
+      throw new AppError('Yêu cầu không tồn tại', 404);
+    }
+
+    // Business Rule: Chỉ tiếp nhận được yêu cầu đang ở trạng thái "Pending"
+    if (request.status !== 'Pending') {
+      throw new AppError(
+        `Không thể tiếp nhận yêu cầu khi trạng thái là "${request.status}". Chỉ tiếp nhận được yêu cầu đang chờ xử lý.`,
+        400
+      );
+    }
+
+    // Sử dụng Repository để cập nhật status
+    const updated = await dormitoryRepository.updateStatus(requestId, 'Under Review', staffId);
+
+    // Populate đầy đủ thông tin để trả về
+    const populatedResult = await DormitoryRequest.findById(requestId)
+      .populate({
+        path: 'student',
+        select: 'fullName user roomId',
+        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
+      })
+      .populate('category', 'name')
+      .populate('item', 'name')
+      .lean();
+
+    return populatedResult;
+  }
+
+  /**
+   * Xác nhận sửa chữa - Sinh viên xác nhận đã sửa xong
+   * Business Rule: Chỉ cho phép khi status = 'Under Review'
+   * @param {string} requestId - ID yêu cầu
+   * @param {string} userId - ID user đang đăng nhập
+   * @returns {Object} - Request đã cập nhật
+   */
+  async confirmRepair(requestId, userId) {
+    // Validate sinh viên nội trú
+    const student = await this.validateDormitoryResident(userId);
+
+    // Kiểm tra yêu cầu tồn tại
+    const request = await DormitoryRequest.findById(requestId);
+    if (!request) {
+      throw new AppError('Yêu cầu không tồn tại', 404);
+    }
+
+    // Kiểm tra quyền sở hữu - chỉ chủ yêu cầu mới được xác nhận
+    if (String(request.student) !== String(student._id)) {
+      throw new AppError('Bạn không có quyền xác nhận yêu cầu này', 403);
+    }
+
+    // Kiểm tra status - chỉ cho phép khi đang "Under Review"
+    if (request.status !== 'Under Review') {
+      throw new AppError(
+        `Không thể xác nhận khi trạng thái là "${request.status}". Chỉ xác nhận được khi đang xử lý.`,
+        400
+      );
+    }
+
+    // Sử dụng Repository để cập nhật
+    const updated = await dormitoryRepository.confirmRepair(requestId, student._id);
+
+    if (!updated) {
+      throw new AppError('Không thể cập nhật yêu cầu', 500);
+    }
 
     return updated;
   }

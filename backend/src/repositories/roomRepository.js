@@ -19,7 +19,6 @@ const roomRepository = {
     }
 
     return await Room.find(query)
-      .populate('categoryId', 'name description')
       .sort({ name: 1 });
   },
 
@@ -27,8 +26,7 @@ const roomRepository = {
    * Lấy phòng theo ID
    */
   getRoomById: async (roomId) => {
-    return await Room.findById(roomId)
-      .populate('categoryId', 'name description');
+    return await Room.findById(roomId);
   },
 
   /**
@@ -47,7 +45,7 @@ const roomRepository = {
       roomId,
       updateData,
       { new: true, runValidators: true }
-    ).populate('categoryId', 'name description');
+    );
   },
 
   /**
@@ -118,7 +116,6 @@ const roomRepository = {
     }
 
     return await Room.find(query)
-      .populate('categoryId', 'name description')
       .sort({ name: 1 });
   },
 

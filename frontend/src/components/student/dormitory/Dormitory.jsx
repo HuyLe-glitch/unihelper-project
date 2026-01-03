@@ -20,6 +20,9 @@ const Dormitory = () => {
   // Data states - từ API
   const [categories, setCategories] = useState([]);
   const [itemsByCategory, setItemsByCategory] = useState({}); // { categoryId: [items] }
+  
+  // Thông tin sinh viên và phòng KTX
+  const [studentInfo, setStudentInfo] = useState(null);
 
   // Form state
   const [requestItems, setRequestItems] = useState([
@@ -43,24 +46,35 @@ const Dormitory = () => {
     }, 3000);
   }, []);
 
-  // Fetch categories on mount
+  // Fetch categories và thông tin sinh viên on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       try {
         setIsLoading(true);
-        const res = await dormitoryRequestService.getAllCategories();
-        if (res.success && res.data) {
-          setCategories(res.data);
+        
+        // Fetch categories và student info song song
+        const [categoriesRes, myRequestsRes] = await Promise.all([
+          dormitoryRequestService.getAllCategories(),
+          dormitoryRequestService.getMyRequests({ limit: 1 }) // Chỉ cần studentInfo
+        ]);
+        
+        if (categoriesRes.success && categoriesRes.data) {
+          setCategories(categoriesRes.data);
+        }
+        
+        // Lấy thông tin sinh viên từ response getMyRequests
+        if (myRequestsRes.success && myRequestsRes.studentInfo) {
+          setStudentInfo(myRequestsRes.studentInfo);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        showToast('Không thể tải danh mục. Vui lòng thử lại.', 'error');
+        console.error('Error fetching initial data:', error);
+        showToast('Không thể tải dữ liệu. Vui lòng thử lại.', 'error');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchInitialData();
   }, [showToast]);
 
   // Fetch items when category changes
@@ -316,6 +330,12 @@ const Dormitory = () => {
       <div className="dormitory-card">
         <div className="dormitory-header">
           <h1 className="dormitory-title">Yêu cầu xử lý sự cố ký túc xá</h1>
+          {studentInfo && (
+            <div className="student-room-info">
+              <span className="room-label">Phòng KTX:</span>
+              <span className="room-value">{studentInfo.roomName || 'Chưa xếp phòng'}</span>
+            </div>
+          )}
         </div>
 
         <div className="dormitory-form">

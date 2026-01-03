@@ -1,45 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { semesterService } from '../../../services/semester';
 import './SemesterFilter.css';
-
-// Danh sách học kỳ với thời gian
-const SEMESTERS = [
-  { 
-    id: 'HK1-2025', 
-    name: 'HK1 - 2024-2025', 
-    startDate: '2024-09-02', 
-    endDate: '2025-01-15',
-    label: 'Học kỳ 1 (2024-2025)'
-  },
-  { 
-    id: 'HK2-2024', 
-    name: 'HK2 - 2023-2024', 
-    startDate: '2024-02-19', 
-    endDate: '2024-06-30',
-    label: 'Học kỳ 2 (2023-2024)'
-  },
-  { 
-    id: 'HK1-2024', 
-    name: 'HK1 - 2023-2024', 
-    startDate: '2023-09-04', 
-    endDate: '2024-01-15',
-    label: 'Học kỳ 1 (2023-2024)'
-  },
-  { 
-    id: 'HK3-2024', 
-    name: 'HK Hè - 2024', 
-    startDate: '2024-07-01', 
-    endDate: '2024-08-31',
-    label: 'Học kỳ Hè (2024)'
-  }
-];
 
 /**
  * SemesterFilter Component
  * 
  * Component bộ lọc học kỳ có thể tái sử dụng cho cả Staff CTSV và Staff KTX
+ * Sử dụng dữ liệu thật từ API
  * 
  * @param {Object} props
- * @param {string} props.value - Giá trị học kỳ hiện tại ('all' hoặc semester id)
+ * @param {string} props.value - Giá trị học kỳ hiện tại ('all' hoặc semester id/name)
  * @param {Function} props.onChange - Callback khi thay đổi học kỳ (value) => void
  * @param {string} props.dateValue - Giá trị ngày hiện tại (YYYY-MM-DD format)
  * @param {Function} props.onDateChange - Callback khi thay đổi ngày (value) => void
@@ -58,10 +28,42 @@ const SemesterFilter = ({
   className = '',
   variant = 'default'
 }) => {
+  // State cho danh sách học kỳ từ API
+  const [semesters, setSemesters] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch danh sách học kỳ từ API khi component mount
+  useEffect(() => {
+    const fetchSemesters = async () => {
+      try {
+        setLoading(true);
+        const response = await semesterService.getAllSemesters();
+        if (response.success && response.data) {
+          // Transform data từ API sang format cần thiết
+          const transformedSemesters = response.data.map(sem => ({
+            id: sem._id,
+            name: sem.name, // VD: "HK1 (2025-2026)"
+            startDate: sem.startDate ? sem.startDate.split('T')[0] : '',
+            endDate: sem.endDate ? sem.endDate.split('T')[0] : '',
+            label: sem.name,
+            isActive: sem.isActive
+          }));
+          setSemesters(transformedSemesters);
+        }
+      } catch (error) {
+        console.error('Error fetching semesters:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSemesters();
+  }, []);
+
   // Get selected semester info
   const selectedSemester = useMemo(() => 
-    SEMESTERS.find(s => s.id === value),
-    [value]
+    semesters.find(s => s.id === value || s.name === value),
+    [value, semesters]
   );
 
   // Format date for display (DD/MM/YYYY)
@@ -103,10 +105,13 @@ const SemesterFilter = ({
           value={value}
           onChange={(e) => handleSemesterChange(e.target.value)}
           className="semester-filter__select"
+          disabled={loading}
         >
           <option value="all">📅 Tất cả học kỳ</option>
-          {SEMESTERS.map(sem => (
-            <option key={sem.id} value={sem.id}>{sem.name}</option>
+          {semesters.map(sem => (
+            <option key={sem.id} value={sem.name}>
+              {sem.isActive ? `${sem.name} ✓` : sem.name}
+            </option>
           ))}
         </select>
         {selectedSemester && (
@@ -173,7 +178,6 @@ const SemesterFilter = ({
   );
 };
 
-// Export danh sách học kỳ để các component khác có thể sử dụng cho filtering
-export { SEMESTERS };
+// Export để các component khác có thể sử dụng
 export default SemesterFilter;
 

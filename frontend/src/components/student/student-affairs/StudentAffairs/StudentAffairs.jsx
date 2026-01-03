@@ -293,17 +293,6 @@ const StudentAffairs = () => {
                 readOnly
               />
             </div>
-
-            {studentInfo?.isDormResident && (
-              <div className="sa-form-group">
-                <label>PHÒNG KTX</label>
-                <input
-                  type="text"
-                  value={studentInfo?.roomId?.name || 'Chưa xếp phòng'}
-                  readOnly
-                />
-              </div>
-            )}
           </div>
 
           <div className="note-section">

@@ -923,25 +923,46 @@
   padding: 20px 24px;
   border-top: 1px solid var(--dormitory-border);
   background: #fafbfc;
+  justify-content: flex-end !important;
+  align-items: center;
 }
 
 .btn-action {
-  flex: 1;
-  display: flex;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 20px;
+  padding: 14px 24px;
   border: none;
   border-radius: var(--dormitory-radius-sm);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex: none !important;
+  width: auto !important;
 }
 
 .btn-action span {
   font-size: 16px;
+}
+
+/* Nút Tiếp nhận yêu cầu - màu xanh dương đậm */
+.btn-action.btn-accept {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+  border: none !important;
+}
+
+.btn-action.btn-accept:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5) !important;
+}
+
+.btn-action.btn-accept:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-approve {
@@ -977,8 +998,43 @@
   box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
 }
 
+/* Thông báo chờ sinh viên xác nhận */
+.waiting-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border-radius: var(--dormitory-radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #f59e0b;
+}
+
+.waiting-notice .notice-icon {
+  font-size: 18px;
+}
+
+/* Thông báo đã hoàn thành */
+.completed-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #166534;
+  border-radius: var(--dormitory-radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #22c55e;
+}
+
+.completed-notice .notice-icon {
+  font-size: 18px;
+}
+
 .detail-actions .btn-cancel {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1301,4 +1357,164 @@
   .dormitory-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/* ========================================
+   Custom Dropdown - Room Filter
+   ======================================== */
+.custom-dropdown {
+  position: relative;
+  height: 44px;
+}
+
+.custom-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px;
+  height: 44px;
+  background: #f8fafc;
+  border: 2px solid var(--dormitory-border);
+  border-radius: var(--dormitory-radius-sm);
+  cursor: pointer;
+  min-width: 160px;
+  font-size: 14px;
+  color: var(--dormitory-text);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+.custom-dropdown-trigger:hover {
+  border-color: var(--dormitory-primary);
+  box-shadow: 0 0 0 4px var(--dormitory-primary-light);
+}
+
+.dropdown-value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  color: var(--dormitory-text-muted);
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 200px;
+  background: var(--dormitory-card);
+  border: 1px solid var(--dormitory-border);
+  border-radius: var(--dormitory-radius-sm);
+  box-shadow: var(--dormitory-shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--dormitory-border);
+}
+
+.dropdown-search input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--dormitory-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.dropdown-search input:focus {
+  border-color: var(--dormitory-primary);
+}
+
+.dropdown-items-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--dormitory-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--dormitory-primary-light);
+}
+
+.dropdown-item.active {
+  background: var(--dormitory-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.dropdown-no-result {
+  color: var(--dormitory-text-muted);
+  font-style: italic;
+  cursor: default;
+}
+
+.dropdown-no-result:hover {
+  background: transparent;
+}
+
+/* ========================================
+   Sort Toggle Button
+   ======================================== */
+.sort-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 44px;
+  background: #f8fafc;
+  border: 2px solid var(--dormitory-border);
+  border-radius: var(--dormitory-radius-sm);
+  cursor: pointer;
+  color: var(--dormitory-text);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.sort-toggle-btn:hover {
+  border-color: var(--dormitory-primary);
+  background: var(--dormitory-primary-light);
+  color: var(--dormitory-primary);
+  box-shadow: 0 0 0 4px var(--dormitory-primary-light);
+}
+
+.sort-toggle-btn svg {
+  flex-shrink: 0;
+}
+
+.sort-arrow {
+  font-size: 12px;
+  font-weight: 600;
 }
