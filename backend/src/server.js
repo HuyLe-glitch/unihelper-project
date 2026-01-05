@@ -1,7 +1,7 @@
 const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io');
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -9,9 +9,15 @@ const server = http.createServer(app);
 // ==========================================
 // SOCKET.IO CONFIGURATION
 // ==========================================
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true
   }

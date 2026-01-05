@@ -16,13 +16,29 @@ connectDB();
 
 const app = express();
 
-// --- CORS setup ---
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'], // Frontend dev ports
-    credentials: true, // allow cookies/auth headers
-  })
-);
+// --- CORS setup (Local + Production) ---
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, health checks)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed.replace(/\/$/, '')))) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // --- Middleware setup ---
 app.use(express.json({ limit: '10mb' }));
@@ -74,6 +90,18 @@ app.use('/api/semester-templates', semesterTemplateRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/files', fileRoutes);
+
+
+// --- Health check endpoint (Required for Cloud Run) ---
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    service: 'unihelper-backend',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 
 // --- Health check route ---
