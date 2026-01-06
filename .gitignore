@@ -1,6 +1,10 @@
 node_modules/  
 .env 
 
+# Service Account Keys (SENSITIVE!)
+*-service-account.json
+dialogflow-service-account.json
+firebase-service-account.json
 
 # IDE files
 .idea/

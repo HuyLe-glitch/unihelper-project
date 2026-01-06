@@ -7,3 +7,17 @@ export { SemesterFilter } from './SemesterFilter';
 export { default as RoomTransferDialog } from './RoomTransferDialog';
 export { default as FilePreview } from './FilePreview';
 export { default as ConfirmDialog } from './ConfirmDialog';
+
+// Chatbot components
+export { 
+  Chatbot, 
+  ChatbotToggle, 
+  ChatbotWindow, 
+  ChatbotHeader,
+  ChatbotMessages,
+  ChatbotMessage,
+  ChatbotInput,
+  QuickReplies,
+  TypingIndicator,
+  StatusCard 
+} from './Chatbot';

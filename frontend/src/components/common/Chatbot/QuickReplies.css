@@ -1,0 +1,95 @@
+/* ============================================
+   QUICK REPLIES
+   ============================================ */
+
+.quick-replies {
+  padding: 12px 20px 0;
+  background: transparent;
+}
+
+.quick-replies-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+/* Quick Reply Button */
+.quick-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quick-reply-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.quick-reply-btn:active {
+  transform: translateY(0);
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.quick-reply-btn:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Icon */
+.quick-reply-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Label */
+.quick-reply-label {
+  line-height: 1.2;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .quick-replies {
+    padding: 10px 16px 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .quick-replies-container {
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .quick-reply-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .quick-replies::-webkit-scrollbar {
+    display: none;
+  }
+
+  .quick-replies {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+

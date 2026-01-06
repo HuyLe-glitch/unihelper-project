@@ -68,6 +68,7 @@ const semesterTemplateRoutes = require('./routes/semesterTemplateRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const equipmentRoutes = require('./routes/equipmentRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 
 // --- Mount routes ---
@@ -90,6 +91,7 @@ app.use('/api/semester-templates', semesterTemplateRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 
 // --- Health check endpoint (Required for Cloud Run) ---

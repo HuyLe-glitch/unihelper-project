@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 //import { studentRoutes, staffRoutes, adminRoutes } from './routes';
 import { publicRoutes, studentRoutes, staffRoutes, adminRoutes } from './routes';
+import { Chatbot } from './components/common';
 
 const renderRoutes = (routes) =>
   routes.map(({ path, element, children }) => (
@@ -28,6 +29,9 @@ const App = () => (
       {renderRoutes(adminRoutes)}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    
+    {/* Chatbot - Hiển thị khi đã đăng nhập */}
+    <Chatbot />
   </div>
 );
 
