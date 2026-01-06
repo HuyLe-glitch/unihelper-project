@@ -46,6 +46,11 @@ const chatbotConversationSchema = new mongoose.Schema({
     lastActivityAt: {
       type: Date,
       default: Date.now
+    },
+    // Context cho multi-step form (tạo yêu cầu qua chatbot)
+    formContext: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     }
   },
   isActive: {

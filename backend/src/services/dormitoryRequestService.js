@@ -366,7 +366,7 @@ class DormitoryRequestService {
       .populate({
         path: 'student',
         select: 'fullName user',
-        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
+        populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: '_id email' }]
       })
       .populate('category', 'name')
       .populate('item', 'name');

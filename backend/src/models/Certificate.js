@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 /**
  * Certificate Model - Chứng nhận
  * Tương tự EquipmentItem
+ * 
+ * LƯU Ý: Mapping purpose → Certificate được quản lý trong PurposeMapping model
+ * Không lưu purposeKeywords trực tiếp trong Certificate để tránh duplicate data
  */
 const certificateSchema = new mongoose.Schema({
   name: {

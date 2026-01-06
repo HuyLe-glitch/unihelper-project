@@ -1,4 +1,6 @@
 const certificateRequestService = require('../services/certificateRequestService');
+const studentNotificationService = require('../services/studentNotificationService');
+const userRepository = require('../repositories/userRepository');
 const { catchAsync } = require('../utils/appError');
 
 /**
@@ -19,6 +21,41 @@ class CertificateRequestController {
         request: result.data,
         message: 'Có yêu cầu CTSV mới'
       });
+    }
+
+    // Tạo thông báo cho sinh viên (In-app + Email)
+    if (result.success) {
+      try {
+        // Lấy email của sinh viên
+        const user = await userRepository.findById(userId);
+        const studentEmail = user?.email || null;
+
+        const requestCode = result.data.requestCode;
+        const certificateTypeName = result.data.certificateType?.name || 'Giấy tờ CTSV';
+        const certificateName = result.data.certificateName?.name || certificateTypeName;
+        const semester = requestData.semester || '';
+        
+        // Gọi service - sẽ tạo In-app notification + gửi Email song song
+        await studentNotificationService.createCtsvRequestCreated(userId, {
+          requestCode,
+          requestId: result.data._id,
+          certificateType: certificateTypeName,
+          certificateName: certificateName,
+          semester: semester
+        }, studentEmail);
+        
+        console.log('📬 Created notification for CTSV request:', requestCode);
+        
+        // Emit socket event để cập nhật realtime thông báo ở frontend
+        if (req.io) {
+          req.io.emit('STUDENT_NOTIFICATION_CREATED', {
+            userId: userId,
+            message: 'Có thông báo mới'
+          });
+        }
+      } catch (notifyError) {
+        console.error('Error creating notification:', notifyError);
+      }
     }
 
     res.status(201).json(result);
@@ -87,6 +124,49 @@ class CertificateRequestController {
         status: status,
         message: status === 'HỢP LỆ' ? 'Yêu cầu đã được duyệt' : 'Yêu cầu đã bị từ chối'
       });
+
+      // Tạo thông báo cho sinh viên (In-app + Email)
+      try {
+        // Get User ID and Email from populated student
+        const student = result.data.student;
+        const userId = student?.user?._id || student?.user;
+        const studentEmail = student?.user?.email || null;
+        const requestCode = result.data.requestCode;
+        const certificateTypeName = result.data.certificateType?.name || 'Giấy tờ CTSV';
+        const certificateName = result.data.certificateName?.name || certificateTypeName;
+
+        if (userId) {
+          if (status === 'HỢP LỆ') {
+            // Gọi service - sẽ tạo In-app notification + gửi Email song song
+            await studentNotificationService.createCtsvRequestApproved(userId, {
+              requestCode,
+              requestId: id,
+              certificateType: certificateTypeName,
+              certificateName: certificateName
+            }, studentEmail);
+          } else if (status === 'KHÔNG HỢP LỆ') {
+            // Gọi service - sẽ tạo In-app notification + gửi Email song song
+            await studentNotificationService.createCtsvRequestRejected(userId, {
+              requestCode,
+              requestId: id,
+              certificateType: certificateTypeName,
+              certificateName: certificateName,
+              reason: notes || 'Không hợp lệ'
+            }, studentEmail);
+          }
+          console.log('📬 Created notification for CTSV status update:', requestCode, status);
+          
+          // Emit socket event để cập nhật realtime thông báo ở frontend
+          if (req.io) {
+            req.io.emit('STUDENT_NOTIFICATION_CREATED', {
+              userId: userId,
+              message: 'Có thông báo mới'
+            });
+          }
+        }
+      } catch (notifyError) {
+        console.error('Error creating notification:', notifyError);
+      }
     }
 
     res.status(200).json(result);

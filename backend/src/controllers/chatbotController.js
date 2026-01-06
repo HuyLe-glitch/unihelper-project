@@ -11,11 +11,18 @@ class ChatbotController {
    * Gửi tin nhắn đến chatbot
    */
   sendMessage = catchAsync(async (req, res) => {
+    console.log('📨 Chatbot request received:', {
+      body: req.body,
+      userId: req.userData?.id
+    });
+    
     const { message, sessionId } = req.body;
     const userId = req.userData.id;
 
-    const result = await chatbotService.processMessage(userId, message, sessionId);
+    // Truyền io vào service để emit socket events
+    const result = await chatbotService.processMessage(userId, message, sessionId, req.io);
 
+    console.log('📤 Chatbot response:', result);
     res.status(200).json(result);
   });
 

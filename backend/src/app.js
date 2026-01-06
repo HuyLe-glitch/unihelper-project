@@ -69,6 +69,7 @@ const roomRoutes = require('./routes/roomRoutes');
 const equipmentRoutes = require('./routes/equipmentRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const studentNotificationRoutes = require('./routes/studentNotificationRoutes');
 
 
 // --- Mount routes ---
@@ -92,6 +93,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/student-notifications', studentNotificationRoutes);
 
 
 // --- Health check endpoint (Required for Cloud Run) ---

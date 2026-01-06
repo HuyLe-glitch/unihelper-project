@@ -31,7 +31,27 @@ class CertificateRequestRepository {
   // Tạo yêu cầu chứng nhận mới
   async createRequest(requestData) {
     const request = new CertificateRequest(requestData);
-    return await request.save();
+    const savedRequest = await request.save();
+    
+    // Populate đầy đủ thông tin để trả về (bao gồm student với user, major, faculty)
+    await savedRequest.populate([
+      { path: 'certificateType', select: 'name description' },
+      { path: 'certificateName', select: 'name' },
+      {
+        path: 'student',
+        select: 'fullName phone user major',
+        populate: [
+          { path: 'user', select: 'email' },
+          { 
+            path: 'major', 
+            select: 'name faculty',
+            populate: { path: 'faculty', select: 'name' }
+          }
+        ]
+      }
+    ]);
+    
+    return savedRequest;
   }
 
   // Lấy danh sách yêu cầu theo student
@@ -178,7 +198,21 @@ class CertificateRequestRepository {
     const savedRequest = await request.save();
     
     // Populate staffId trong activityLog và processingHistory
+    // Và student với user để lấy email gửi thông báo
     await savedRequest.populate([
+      {
+        path: 'student',
+        select: 'studentId user',
+        populate: { path: 'user', select: 'name email' }
+      },
+      {
+        path: 'certificateType',
+        select: 'name description'
+      },
+      {
+        path: 'certificateName',
+        select: 'name'
+      },
       {
         path: 'processingHistory.staffId',
         select: 'staffId staffType user',

@@ -10,6 +10,8 @@
 
 const { catchAsync } = require('../utils/appError');
 const dormitoryRequestService = require('../services/dormitoryRequestService');
+const studentNotificationService = require('../services/studentNotificationService');
+const userRepository = require('../repositories/userRepository');
 
 // ==================== DORMITORY REQUEST ENDPOINTS ====================
 
@@ -45,6 +47,40 @@ const createDormitoryRequest = catchAsync(async (req, res) => {
       message: 'Yêu cầu KTX mới đã được tạo'
     });
     console.log(`📡 Emitted DORMITORY_REQUEST_CREATED broadcast`);
+  }
+
+  // Tạo thông báo cho sinh viên (In-app + Email)
+  try {
+    // Lấy email của sinh viên
+    const user = await userRepository.findById(userId);
+    const studentEmail = user?.email || null;
+
+    const requestCode = request.requestCode;
+    const equipmentName = realtimePayload?.item?.name || null;
+    const categoryName = realtimePayload?.category?.name || 'Danh mục';
+    const roomName = realtimePayload?.student?.roomId?.name || 'Phòng KTX';
+    
+    // Gọi service - sẽ tạo In-app notification + gửi Email song song
+    await studentNotificationService.createKtxRequestCreated(userId, {
+      requestCode,
+      requestId: request._id,
+      category: categoryName,
+      item: equipmentName,
+      description: request.description,
+      roomName: roomName
+    }, studentEmail);
+    
+    console.log('📬 Created notification for KTX request:', requestCode);
+    
+    // Emit socket event để cập nhật realtime thông báo ở frontend
+    if (req.io) {
+      req.io.emit('STUDENT_NOTIFICATION_CREATED', {
+        userId: userId,
+        message: 'Có thông báo mới'
+      });
+    }
+  } catch (notifyError) {
+    console.error('Error creating notification:', notifyError);
   }
 
   return res.status(201).json({
@@ -150,6 +186,50 @@ const updateRequestStatus = catchAsync(async (req, res) => {
       message: status === 'Approved' ? 'Yêu cầu KTX đã được duyệt' : 'Yêu cầu KTX đã bị từ chối'
     });
     console.log(`📡 Emitted DORMITORY_REQUEST_UPDATED - status: ${status}`);
+
+    // Tạo thông báo cho sinh viên (In-app + Email)
+    try {
+      // Get User ID and Email from populated student
+      const student = result.student;
+      const userId = student?.user?._id || student?.user;
+      const studentEmail = student?.user?.email || null;
+      const requestCode = result.requestCode;
+      const categoryName = result.category?.name || 'Danh mục';
+      const itemName = result.item?.name || null;
+
+      if (userId) {
+        if (status === 'Approved') {
+          // Gọi service - sẽ tạo In-app notification + gửi Email song song
+          await studentNotificationService.createKtxRequestApproved(userId, {
+            requestCode,
+            requestId: id,
+            category: categoryName,
+            item: itemName,
+            staffNote: result.staffNote || ''
+          }, studentEmail);
+        } else if (status === 'Rejected') {
+          // Gọi service - sẽ tạo In-app notification + gửi Email song song
+          await studentNotificationService.createKtxRequestRejected(userId, {
+            requestCode,
+            requestId: id,
+            category: categoryName,
+            item: itemName,
+            reason: result.rejectionReason || 'Yêu cầu bị từ chối'
+          }, studentEmail);
+        }
+        console.log('📬 Created notification for KTX status update:', requestCode, status);
+        
+        // Emit socket event để cập nhật realtime thông báo ở frontend
+        if (req.io) {
+          req.io.emit('STUDENT_NOTIFICATION_CREATED', {
+            userId: userId,
+            message: 'Có thông báo mới'
+          });
+        }
+      }
+    } catch (notifyError) {
+      console.error('Error creating notification:', notifyError);
+    }
   }
 
   return res.status(200).json({
