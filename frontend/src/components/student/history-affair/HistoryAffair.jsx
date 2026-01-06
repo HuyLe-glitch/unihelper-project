@@ -80,14 +80,41 @@ const HistoryAffair = () => {
 
     // Lắng nghe sự kiện yêu cầu được cập nhật (duyệt/từ chối)
     socketService.onCertificateRequestUpdated((data) => {
-      // Refresh danh sách khi có cập nhật (chỉ xảy ra khi staff DUYỆT/TỪ CHỐI)
-      fetchHistory();
+      // Cập nhật trực tiếp trong state thay vì fetch lại
+      setAffairsHistory(prev => prev.map(item => {
+        if (item.id === data.requestCode || item.id === data.requestId) {
+          return {
+            ...item,
+            status: mapStatusFromBackend(data.status || data.request?.status),
+            responseTime: data.request?.responseTime 
+              ? formatResponseTime(data.request.responseTime)
+              : item.responseTime,
+            staffFile: data.request?.staffFile || item.staffFile
+          };
+        }
+        return item;
+      }));
     });
 
     // Lắng nghe sự kiện yêu cầu mới được tạo (để cập nhật chính trang của mình sau khi gửi)
     socketService.onCertificateRequestCreated((data) => {
-      // Refresh danh sách khi có yêu cầu mới
-      fetchHistory();
+      console.log('📩 New certificate request created:', data);
+      // Thêm trực tiếp vào state mà không fetch lại (tránh loading)
+      if (data.request) {
+        const newItem = {
+          id: data.request.requestCode || data.request._id,
+          certificateType: data.request.certificateType?.name || 'Không xác định',
+          certificateName: data.request.certificateName?.name || 'Không xác định',
+          semester: data.request.semester || '',
+          requestDate: data.request.createdAt || new Date().toISOString(),
+          status: mapStatusFromBackend(data.request.status),
+          responseTime: '-',
+          notes: data.request.notes || '',
+          staffFile: null
+        };
+        // Thêm vào đầu danh sách
+        setAffairsHistory(prev => [newItem, ...prev]);
+      }
     });
 
     // Cleanup khi unmount
@@ -95,7 +122,7 @@ const HistoryAffair = () => {
       socketService.off('CERTIFICATE_REQUEST_UPDATED');
       socketService.off('CERTIFICATE_REQUEST_CREATED');
     };
-  }, [fetchHistory]);
+  }, []);
 
   // States cho filter và search
   const [searchTerm, setSearchTerm] = useState('');

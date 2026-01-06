@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { STAFF_TYPE_LABELS } from '../../../constants';
+import NotificationDropdown from '../NotificationDropdown/NotificationDropdown';
 import './Header.css';
 
 const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
@@ -57,6 +58,11 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
       </div>
 
       <div className="header-right">
+        {/* Notification dropdown - only for students */}
+        {user?.role === 'student' && (
+          <NotificationDropdown />
+        )}
+        
         <div className="user-info-wrapper" ref={dropdownRef}>
           <div 
             className="user-info" 

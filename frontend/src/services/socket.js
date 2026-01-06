@@ -123,6 +123,16 @@ const socketService = {
   },
 
   /**
+   * Lắng nghe sự kiện có thông báo mới cho sinh viên
+   * @param {Function} callback - Hàm xử lý khi có thông báo mới
+   */
+  onStudentNotificationCreated: (callback) => {
+    if (socket) {
+      socket.on('STUDENT_NOTIFICATION_CREATED', callback);
+    }
+  },
+
+  /**
    * Hủy lắng nghe sự kiện
    * @param {string} eventName - Tên sự kiện
    */

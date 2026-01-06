@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Dữ liệu mẫu yêu cầu gần đây
   const recentRequests = [
@@ -60,33 +59,6 @@ const Dashboard = () => {
 
   return (
     <div className="student-dashboard-container">
-      {/* Search and Notifications Bar */}
-      <div className="dashboard-header">
-        <div className="search-notification-bar">
-          <div className="search-box">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Tìm kiếm yêu cầu, thông báo..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
-          <div className="notification-badge">
-            <span className="notification-icon">🔔</span>
-            <span className="badge-count">3</span>
-          </div>
-          <div className="welcome-user">
-            <div className="user-avatar-small">U</div>
-            <div className="welcome-text">
-              <span className="welcome-label">Welcome back</span>
-              <span className="user-name-display">User</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Statistics Overview */}
       <div className="overview-section">
         <h2 className="section-title">Tổng quan</h2>

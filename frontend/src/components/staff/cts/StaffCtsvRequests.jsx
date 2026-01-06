@@ -137,8 +137,21 @@ const StaffCtsvRequests = () => {
     // Lắng nghe sự kiện có yêu cầu CTSV mới từ sinh viên
     socketService.onCertificateRequestCreated((data) => {
       console.log('📩 New certificate request from student:', data);
-      // Refresh danh sách khi có yêu cầu mới
-      fetchRequests();
+      // Thêm trực tiếp vào state mà không fetch lại (tránh loading)
+      if (data.request) {
+        const newRequest = transformRequestFromAPI({
+          _id: data.request._id,
+          requestCode: data.request.requestCode,
+          student: data.request.student || { user: { name: 'Sinh viên mới' }, studentId: '' },
+          certificateType: data.request.certificateType,
+          certificateName: data.request.certificateName,
+          semester: data.request.semester,
+          status: data.request.status,
+          createdAt: data.request.createdAt,
+          notes: data.request.notes
+        });
+        setRequests(prev => [newRequest, ...prev]);
+      }
       // Hiển thị toast thông báo
       showToast('Có yêu cầu CTSV mới!', 'info');
     });

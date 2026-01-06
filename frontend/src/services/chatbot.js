@@ -199,6 +199,9 @@ const detectIntent = (message) => {
   return 'unknown';
 };
 
+// Lưu sessionId để duy trì context conversation
+let currentSessionId = null;
+
 export const chatbotService = {
   /**
    * Gửi tin nhắn đến chatbot
@@ -207,15 +210,49 @@ export const chatbotService = {
    */
   sendMessage: async (message) => {
     try {
+      console.log('🚀 Calling chatbot API with message:', message, 'sessionId:', currentSessionId);
+      
+      // Tạo payload - chỉ gửi sessionId khi có giá trị
+      const payload = { message };
+      if (currentSessionId) {
+        payload.sessionId = currentSessionId;
+      }
+      
       // Try to call backend API first
-      const response = await apiClient.post('/chatbot/message', { message });
+      const response = await apiClient.post('/chatbot/message', payload);
+      
+      console.log('✅ API Response:', response.data);
+      
+      // Lưu sessionId từ response để dùng cho các message tiếp theo
+      if (response.data.data?.sessionId) {
+        currentSessionId = response.data.data.sessionId;
+      }
+      
       return response.data.data;
     } catch (error) {
       // Fallback to local processing if API fails
+      console.error('❌ Chatbot API error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
       console.warn('Chatbot API unavailable, using local fallback');
       return chatbotService.processMessageLocally(message);
     }
   },
+  
+  /**
+   * Reset session (khi đóng chatbot hoặc logout)
+   */
+  resetSession: () => {
+    currentSessionId = null;
+  },
+  
+  /**
+   * Lấy sessionId hiện tại
+   */
+  getSessionId: () => currentSessionId,
 
   /**
    * Xử lý tin nhắn locally (fallback)

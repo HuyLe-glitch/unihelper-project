@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import ChatbotToggle from './ChatbotToggle';
 import ChatbotWindow from './ChatbotWindow';
 import StatusCard from './StatusCard';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuthContext } from '../../../contexts/AuthContext';
 import { chatbotService } from '../../../services/chatbot';
 
 /**
@@ -10,7 +10,7 @@ import { chatbotService } from '../../../services/chatbot';
  * Quản lý state và logic của chatbot
  */
 const Chatbot = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuthContext();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -73,6 +73,63 @@ const Chatbot = () => {
   const handleClose = () => {
     setIsOpen(false);
   };
+
+  // Send message with custom display text
+  const handleSendMessageWithDisplay = useCallback(async (text, displayText = null) => {
+    if (!text.trim()) return;
+
+    // Add user message - hiển thị displayText thay vì action code
+    const userMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: displayText || text,
+      timestamp: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setQuickReplies([]);
+    setIsTyping(true);
+
+    try {
+      // Call chatbot API với text gốc (có thể là action code)
+      const response = await chatbotService.sendMessage(text);
+      
+      // Simulate typing delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+
+      // Add bot response
+      const botMessage = {
+        id: Date.now() + 1,
+        type: 'bot',
+        content: response.message,
+        timestamp: new Date().toISOString(),
+        customContent: response.statusCard ? (
+          <StatusCard type={response.statusCard.type} data={response.statusCard.data} />
+        ) : null
+      };
+      setMessages(prev => [...prev, botMessage]);
+
+      // Update quick replies if provided
+      if (response.quickReplies) {
+        setQuickReplies(response.quickReplies);
+      }
+
+      // Update unread count if chat is closed
+      if (!isOpen) {
+        setUnreadCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: 'bot',
+        content: `<div class="highlight-box"><span class="highlight-box-icon">⚠️</span><div>Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.</div></div>`,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
+  }, [isOpen]);
 
   // Send message
   const handleSendMessage = useCallback(async (text) => {
@@ -148,16 +205,90 @@ const Chatbot = () => {
       'ktx_info': 'Tôi muốn biết thông tin về KTX',
       'document_info': 'Tôi muốn xin giấy tờ',
       'check_status': 'Kiểm tra trạng thái yêu cầu của tôi',
+      'check_ktx_status': 'Kiểm tra trạng thái báo cáo sự cố',
+      'check_document_status': 'Kiểm tra trạng thái yêu cầu giấy tờ',
       'faq': 'Tôi có câu hỏi cần hỏi đáp',
-      'contact': 'Thông tin liên hệ phòng CTSV'
+      'contact': 'Thông tin liên hệ phòng CTSV',
+      'main_menu': 'Quay lại menu chính',
+      // Luồng tư vấn
+      'document_advice': 'Tôi cần tư vấn về giấy tờ',
+      'advice_tax': 'Tôi cần giấy giảm trừ gia cảnh',
+      'advice_military': 'Tôi cần giấy tạm hoãn nghĩa vụ quân sự',
+      'advice_policy': 'Tôi cần giấy hưởng chế độ chính sách',
+      'advice_job': 'Tôi cần giấy xin việc làm',
+      'advice_card': 'Tôi cần làm thẻ sinh viên',
+      // Luồng tạo yêu cầu
+      'create_from_advice': 'Tạo luôn yêu cầu này cho tôi',
+      'create_document_request': 'Tôi muốn tạo yêu cầu chứng nhận',
+      'confirm_request': 'Xác nhận tạo yêu cầu',
+      'cancel_request': 'Hủy tạo yêu cầu'
     };
 
-    const message = actionMessages[reply.action] || reply.label;
-    await handleSendMessage(message);
+    // Xử lý action select_type_xxx và select_name_xxx
+    let message = actionMessages[reply.action] || reply.label;
+    let displayMessage = reply.label; // Text hiển thị trong chat
+    
+    // Nếu action bắt đầu bằng select_type_ hoặc select_name_, gửi đặc biệt
+    if (reply.action?.startsWith('select_type_')) {
+      const typeId = reply.action.replace('select_type_', '');
+      message = `__SELECT_TYPE__${typeId}__${reply.label}`;
+      displayMessage = reply.label;
+    } else if (reply.action?.startsWith('select_name_')) {
+      const nameId = reply.action.replace('select_name_', '');
+      message = `__SELECT_NAME__${nameId}__${reply.label}`;
+      displayMessage = reply.label;
+    } else if (reply.action?.startsWith('select_equipment_')) {
+      // KTX: Chọn thiết bị - gửi action code trực tiếp
+      message = reply.action;
+      displayMessage = reply.label;
+    } else if (reply.action?.startsWith('select_category_')) {
+      // KTX: Chọn danh mục - gửi action code trực tiếp
+      message = reply.action;
+      displayMessage = reply.label;
+    } else if (reply.action === 'create_from_advice') {
+      // Action tạo yêu cầu từ tư vấn - gửi action code
+      message = '__ACTION__create_from_advice';
+      displayMessage = 'Tạo luôn yêu cầu cho tôi';
+    } else if (reply.action === 'create_ktx_from_advice') {
+      // KTX: Action tạo yêu cầu báo sự cố - gửi action code
+      message = 'create_ktx_from_advice';
+      displayMessage = 'Tạo yêu cầu';
+    } else if (reply.action === 'confirm_ktx_request') {
+      // KTX: Xác nhận gửi báo cáo
+      message = 'confirm_ktx_request';
+      displayMessage = 'Xác nhận gửi';
+    } else if (reply.action === 'cancel_ktx_request') {
+      // KTX: Hủy báo cáo
+      message = 'cancel_ktx_request';
+      displayMessage = 'Hủy';
+    } else if (reply.action === 'ktx_report') {
+      // KTX: Quay lại báo sự cố từ đầu
+      message = 'ktx_report';
+      displayMessage = reply.label;
+    } else if (reply.action === 'confirm_request') {
+      // Action xác nhận tạo yêu cầu
+      message = '__ACTION__confirm_request';
+      displayMessage = 'Xác nhận tạo';
+    } else if (reply.action === 'cancel_request') {
+      // Action hủy tạo yêu cầu
+      message = '__ACTION__cancel_request';
+      displayMessage = 'Hủy';
+    } else {
+      displayMessage = actionMessages[reply.action] || reply.label;
+    }
+
+    // Gửi message với displayMessage cho user, nhưng gửi message code đến server
+    await handleSendMessageWithDisplay(message, displayMessage);
   }, [handleSendMessage]);
 
-  // Chỉ hiển thị chatbot khi đã đăng nhập
-  if (!isAuthenticated) {
+  // Chờ loading hoàn thành trước khi quyết định hiển thị
+  // Chỉ hiển thị chatbot cho SINH VIÊN (không hiển thị cho admin/staff)
+  if (loading) {
+    return null; // Đang loading, chưa biết role
+  }
+  
+  const isStudent = user?.role === 'student' || user?.role === 'Student';
+  if (!isAuthenticated || !isStudent) {
     return null;
   }
 
