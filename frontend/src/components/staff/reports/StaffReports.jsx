@@ -16,19 +16,27 @@ import './StaffReports.css';
 
 // Màu cho biểu đồ
 const CHART_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#6B7280'];
-const STATUS_COLORS = {
+
+// CTSV status colors
+const STATUS_COLORS_CTSV = {
   'Đã duyệt': '#10B981',
   'Bị từ chối': '#EF4444',
-  'Đang chờ': '#F59E0B',
-  'Đang xem xét': '#3B82F6'
+  'Đang chờ': '#F59E0B'
+};
+
+// KTX status colors - Trạng thái báo cáo sự cố
+const STATUS_COLORS_KTX = {
+  'Đã gửi': '#F59E0B',      // Pending - Sinh viên gửi yêu cầu
+  'Tiếp nhận': '#3B82F6',   // Under Review - Staff tiếp nhận
+  'Hoàn thành': '#10B981'   // Approved - Đã hoàn thành xử lý
 };
 
 const StaffReports = () => {
   const { user } = useAuthContext();
   
-  // Xác định module dựa trên department của staff
-  // Mặc định là CTSV nếu không xác định được
-  const staffModule = user?.staffProfile?.department === 'KTX' ? 'KTX' : 'CTSV';
+  // Xác định module dựa trên staffType của user
+  // staffType được set từ auth service khi login: 'CTSV' hoặc 'KTX'
+  const staffModule = user?.staffType || 'CTSV'; // Mặc định là CTSV nếu không xác định được
 
   // ==================== STATE ====================
   const [loading, setLoading] = useState(true);
@@ -177,6 +185,42 @@ const StaffReports = () => {
     return 'neutral';
   };
 
+  // Transform KTX status distribution: hiển thị Chờ tiếp nhận, Đã hoàn thành, Tổng đã tiếp nhận
+  const getTransformedStatusDistribution = () => {
+    if (!reportData?.statusDistribution) return [];
+    
+    if (staffModule === 'KTX') {
+      // Tìm các status
+      const pending = reportData.statusDistribution.find(s => s.status === 'Đã gửi');
+      const underReview = reportData.statusDistribution.find(s => s.status === 'Tiếp nhận');
+      const approved = reportData.statusDistribution.find(s => s.status === 'Hoàn thành');
+      
+      // Tính tổng đã tiếp nhận = underReview + approved
+      const receivedCount = (underReview?.count || 0) + (approved?.count || 0);
+      const total = (pending?.count || 0) + receivedCount;
+      
+      return [
+        {
+          status: 'Chờ tiếp nhận',
+          count: pending?.count || 0,
+          percentage: total > 0 ? Math.round(((pending?.count || 0) / total) * 100) : 0
+        },
+        {
+          status: 'Đã hoàn thành',
+          count: approved?.count || 0,
+          percentage: total > 0 ? Math.round(((approved?.count || 0) / total) * 100) : 0
+        },
+        {
+          status: 'Tổng đã tiếp nhận',
+          count: receivedCount,
+          percentage: total > 0 ? Math.round((receivedCount / total) * 100) : 0
+        }
+      ];
+    }
+    
+    return reportData.statusDistribution;
+  };
+
   // ==================== RENDER ====================
   if (loading && !reportData) {
     return (
@@ -205,7 +249,9 @@ const StaffReports = () => {
       {/* HEADER */}
       <div className="reports-header">
         <h1>Báo cáo {staffModule === 'KTX' ? 'Ký túc xá' : 'Công tác sinh viên'}</h1>
-        <p>Tổng quan tình hình xử lý yêu cầu và thống kê</p>
+        <p>{staffModule === 'KTX' 
+          ? 'Tổng quan tình hình xử lý báo cáo sự cố thiết bị' 
+          : 'Tổng quan tình hình xử lý yêu cầu và thống kê'}</p>
       </div>
 
       {/* BỘ LỌC */}
@@ -314,57 +360,117 @@ const StaffReports = () => {
       {reportData && (
         <div className="kpi-section">
           <div className="kpi-cards">
-            <div className="kpi-card total">
-              <div className="kpi-icon">📊</div>
-              <div className="kpi-content">
-                <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
-                <div className="kpi-label">Tổng Yêu cầu</div>
-                <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.total)}`}>
-                  {formatChange(reportData.kpi.changes?.total || 0)} so với kỳ trước
-                </div>
-              </div>
-            </div>
-
-            <div className="kpi-card completed">
-              <div className="kpi-icon">✅</div>
-              <div className="kpi-content">
-                <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
-                <div className="kpi-label">Đã Hoàn thành</div>
-                <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.approved)}`}>
-                  {formatChange(reportData.kpi.changes?.approved || 0)} so với kỳ trước
-                </div>
-              </div>
-            </div>
-
-            <div className="kpi-card processing">
-              <div className="kpi-icon">⏳</div>
-              <div className="kpi-content">
-                <div className="kpi-number">{reportData.kpi.pending?.toLocaleString() || 0}</div>
-                <div className="kpi-label">Đang Xử lý</div>
-              </div>
-            </div>
-
+            {/* ========== CTSV CARDS ========== */}
             {staffModule === 'CTSV' && (
-              <div className="kpi-card rejected">
-                <div className="kpi-icon">❌</div>
-                <div className="kpi-content">
-                  <div className="kpi-number">{reportData.kpi.rejected?.toLocaleString() || 0}</div>
-                  <div className="kpi-label">Đã Từ chối</div>
-                  <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.rejected)}`}>
-                    {formatChange(reportData.kpi.changes?.rejected || 0)} so với kỳ trước
+              <>
+                {/* Card 1: Tổng yêu cầu */}
+                <div className="kpi-card total">
+                  <div className="kpi-icon">📊</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
+                    <div className="kpi-label">Tổng Yêu cầu</div>
+                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.total)}`}>
+                      {formatChange(reportData.kpi.changes?.total || 0)} so với kỳ trước
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Card 2: Đã hoàn thành */}
+                <div className="kpi-card completed">
+                  <div className="kpi-icon">✅</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
+                    <div className="kpi-label">Đã Hoàn thành</div>
+                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.approved)}`}>
+                      {formatChange(reportData.kpi.changes?.approved || 0)} so với kỳ trước
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Đang xử lý */}
+                <div className="kpi-card processing">
+                  <div className="kpi-icon">⏳</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.pending?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đang Xử lý</div>
+                  </div>
+                </div>
+
+                {/* Card 4: Từ chối */}
+                <div className="kpi-card rejected">
+                  <div className="kpi-icon">❌</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.rejected?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đã Từ chối</div>
+                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.rejected)}`}>
+                      {formatChange(reportData.kpi.changes?.rejected || 0)} so với kỳ trước
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
 
+            {/* ========== KTX CARDS ========== */}
             {staffModule === 'KTX' && (
-              <div className="kpi-card under-review">
-                <div className="kpi-icon">🔍</div>
-                <div className="kpi-content">
-                  <div className="kpi-number">{reportData.kpi.underReview?.toLocaleString() || 0}</div>
-                  <div className="kpi-label">Đang Xem xét</div>
+              <>
+                {/* Card 1: Tổng báo cáo sự cố */}
+                <div className="kpi-card total">
+                  <div className="kpi-icon">🔧</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
+                    <div className="kpi-label">Tổng Báo cáo sự cố</div>
+                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.total)}`}>
+                      {formatChange(reportData.kpi.changes?.total || 0)} so với kỳ trước
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* Card 2: Tổng đã tiếp nhận (underReview + approved) */}
+                <div className="kpi-card received">
+                  <div className="kpi-icon">📥</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">
+                      {((reportData.kpi.underReview || 0) + (reportData.kpi.approved || 0)).toLocaleString()}
+                    </div>
+                    <div className="kpi-label">Tổng đã tiếp nhận</div>
+                  </div>
+                </div>
+
+                {/* Card 3: Đã hoàn thành */}
+                <div className="kpi-card completed">
+                  <div className="kpi-icon">✅</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
+                    <div className="kpi-label">Đã hoàn thành</div>
+                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.approved)}`}>
+                      {formatChange(reportData.kpi.changes?.approved || 0)} so với kỳ trước
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4: Đang xử lý */}
+                <div className="kpi-card processing">
+                  <div className="kpi-icon">📋</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.underReview?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đang xử lý</div>
+                  </div>
+                </div>
+
+                {/* Card 5: Chờ tiếp nhận - có badge cảnh báo */}
+                <div className="kpi-card pending-warning">
+                  <div className="kpi-icon">📨</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number-wrapper">
+                      <div className="kpi-number">{reportData.kpi.pending?.toLocaleString() || 0}</div>
+                      {(reportData.kpi.pending || 0) > 0 && (
+                        <span className="kpi-badge warning">Cần xử lý</span>
+                      )}
+                    </div>
+                    <div className="kpi-label">Chờ tiếp nhận</div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -374,19 +480,19 @@ const StaffReports = () => {
       {reportData && reportData.trendData && reportData.trendData.length > 0 && (
         <div className="trend-section">
           <div className="section-header">
-            <h2>Xu hướng Xử lý Yêu cầu</h2>
+            <h2>{staffModule === 'KTX' ? 'Xu hướng Báo cáo sự cố' : 'Xu hướng Xử lý Yêu cầu'}</h2>
             <div className="chart-legend">
               <div className="legend-item">
                 <div className="legend-color new"></div>
-                <span>Yêu cầu Mới</span>
+                <span>{staffModule === 'KTX' ? 'Báo cáo mới' : 'Yêu cầu Mới'}</span>
               </div>
               <div className="legend-item">
                 <div className="legend-color approved"></div>
-                <span>Đã duyệt</span>
+                <span>{staffModule === 'KTX' ? 'Hoàn thành' : 'Đã duyệt'}</span>
               </div>
               <div className="legend-item">
-                <div className="legend-color rejected"></div>
-                <span>{staffModule === 'KTX' ? 'Đang chờ' : 'Bị từ chối'}</span>
+                <div className="legend-color received"></div>
+                <span>{staffModule === 'KTX' ? 'Đã tiếp nhận' : 'Bị từ chối'}</span>
               </div>
             </div>
           </div>
@@ -394,7 +500,13 @@ const StaffReports = () => {
           <div className="trend-chart">
             <ResponsiveContainer width="100%" height={400}>
               <LineChart
-                data={reportData.trendData}
+                data={staffModule === 'KTX' 
+                  ? reportData.trendData.map(item => ({
+                      ...item,
+                      received: (item.underReview || 0) + (item.approved || 0)
+                    }))
+                  : reportData.trendData
+                }
                 margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -435,12 +547,12 @@ const StaffReports = () => {
                 />
                 <Line 
                   type="monotone" 
-                  dataKey={staffModule === 'KTX' ? 'pending' : 'rejected'} 
-                  name={staffModule === 'KTX' ? 'Đang chờ' : 'Bị từ chối'}
-                  stroke="#ef4444" 
+                  dataKey={staffModule === 'KTX' ? 'received' : 'rejected'} 
+                  name={staffModule === 'KTX' ? 'Đã tiếp nhận' : 'Bị từ chối'}
+                  stroke={staffModule === 'KTX' ? '#06b6d4' : '#ef4444'} 
                   strokeWidth={3}
-                  dot={{ fill: '#ef4444', strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, fill: '#ef4444' }}
+                  dot={{ fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444', strokeWidth: 2, r: 5 }}
+                  activeDot={{ r: 8, fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -509,51 +621,62 @@ const StaffReports = () => {
             <div className="chart-container">
               <h3>Phân bổ theo Trạng thái</h3>
               <div className="donut-chart-wrapper">
-                {reportData.statusDistribution?.length > 0 ? (
-                  <>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={reportData.statusDistribution}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={2}
-                          dataKey="count"
-                          nameKey="status"
-                        >
-                          {reportData.statusDistribution.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={STATUS_COLORS[entry.status] || CHART_COLORS[index]} 
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value, name, props) => [
-                            `${value} yêu cầu (${props.payload.percentage}%)`,
-                            props.payload.status
-                          ]}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="chart-legend-vertical">
-                      {reportData.statusDistribution.map((item, index) => (
-                        <div key={index} className="legend-item">
-                          <div 
-                            className="legend-color" 
-                            style={{ backgroundColor: STATUS_COLORS[item.status] || CHART_COLORS[index] }}
-                          ></div>
-                          <span>{item.status} ({item.percentage}%)</span>
-                          <span className="legend-count">{item.count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="no-data">Không có dữ liệu</div>
-                )}
+                {(() => {
+                  const statusData = getTransformedStatusDistribution();
+                  const statusColors = staffModule === 'KTX' 
+                    ? { 
+                        'Chờ tiếp nhận': '#F59E0B',      // Vàng
+                        'Đã hoàn thành': '#10B981',      // Xanh lá
+                        'Tổng đã tiếp nhận': '#3B82F6'   // Xanh dương
+                      }
+                    : STATUS_COLORS_CTSV;
+                  
+                  return statusData?.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={statusData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={2}
+                            dataKey="count"
+                            nameKey="status"
+                          >
+                            {statusData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={statusColors[entry.status] || CHART_COLORS[index]} 
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            formatter={(value, name, props) => [
+                              `${value} yêu cầu (${props.payload.percentage}%)`,
+                              props.payload.status
+                            ]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="chart-legend-vertical">
+                        {statusData.map((item, index) => (
+                          <div key={index} className="legend-item">
+                            <div 
+                              className="legend-color" 
+                              style={{ backgroundColor: statusColors[item.status] || CHART_COLORS[index] }}
+                            ></div>
+                            <span>{item.status} ({item.percentage}%)</span>
+                            <span className="legend-count">{item.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="no-data">Không có dữ liệu</div>
+                  );
+                })()}
               </div>
             </div>
           </div>

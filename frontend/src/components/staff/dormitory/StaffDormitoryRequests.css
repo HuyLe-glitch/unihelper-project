@@ -59,6 +59,17 @@
   box-shadow: var(--dormitory-shadow);
 }
 
+.dormitory-header__info {
+  width: 100%;
+}
+
+.dormitory-header__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .dormitory-header__info h1 {
   margin: 0;
   font-size: 26px;
@@ -1364,7 +1375,7 @@
    ======================================== */
 .custom-dropdown {
   position: relative;
-  height: 44px;
+  min-height: 48px;
 }
 
 .custom-dropdown-trigger {
@@ -1373,7 +1384,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 0 14px;
-  height: 44px;
+  min-height: 48px;
   background: #f8fafc;
   border: 2px solid var(--dormitory-border);
   border-radius: var(--dormitory-radius-sm);
@@ -1383,7 +1394,7 @@
   color: var(--dormitory-text);
   transition: all 0.3s ease;
   box-sizing: border-box;
-  line-height: 1;
+  line-height: 1.5;
 }
 
 .custom-dropdown-trigger:hover {

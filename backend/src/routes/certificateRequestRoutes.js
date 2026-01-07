@@ -56,6 +56,12 @@ router.get('/stats',
   certificateRequestController.getRequestStats
 );
 
+// GET /api/certificate-requests/export-csv - Xuất dữ liệu ra file CSV (Staff/Admin only)
+router.get('/export-csv',
+  restrictTo('STAFF', 'ADMIN'),
+  certificateRequestController.exportRequestsCSV
+);
+
 // =============== STAFF/ADMIN ROUTES ===============
 
 // GET /api/certificate-requests - Lấy tất cả yêu cầu (Staff/Admin only)

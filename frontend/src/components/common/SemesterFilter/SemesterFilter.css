@@ -205,20 +205,26 @@
 }
 
 /* ========================================
-   INFO BAR
+   INFO BAR - Tách riêng, không kéo dãn dropdown
    ======================================== */
 .semester-filter__info-bar {
+  position: absolute;
+  top: 100%;
+  left: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 16px 24px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  margin-top: 4px;
   background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border: 2px solid #ddd6fe;
-  border-radius: var(--sf-radius);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
-  animation: sfFadeIn 0.3s ease;
-  grid-column: 1 / -1; /* Span full width in grid */
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.15);
+  animation: sfFadeIn 0.2s ease;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 5;
 }
 
 @keyframes sfFadeIn {
@@ -229,48 +235,25 @@
 .semester-filter__info-content {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .semester-filter__icon {
-  font-size: 22px;
-}
-
-.semester-filter__label {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--sf-primary-dark);
-}
-
-.semester-filter__divider {
-  color: #c4b5fd;
-  font-weight: 300;
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .semester-filter__dates {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--sf-text);
 }
 
-.semester-filter__date-label {
-  color: var(--sf-text-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.semester-filter__arrow {
-  color: var(--sf-primary);
-  font-weight: 700;
-  margin: 0 4px;
-  font-size: 16px;
+.semester-filter__semester-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-primary-dark);
+  padding-left: 20px;
 }
 
 .semester-filter__clear-semester-btn {
@@ -351,5 +334,182 @@
   .semester-filter__clear-semester-btn {
     width: 100%;
   }
+}
+
+/* ========================================
+   CUSTOM DROPDOWN (NEW)
+   ======================================== */
+.semester-filter__dropdown {
+  position: relative;
+  min-height: 48px;
+}
+
+.semester-filter__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px;
+  min-height: 48px;
+  background: #f8fafc;
+  border: 2px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  cursor: pointer;
+  min-width: 180px;
+  font-size: 14px;
+  color: var(--sf-text);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.semester-filter__trigger:hover {
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+.semester-filter__trigger.open {
+  border-color: var(--sf-primary);
+  background: white;
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+.semester-filter__trigger.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.semester-filter__trigger-icon {
+  font-size: 16px;
+}
+
+.semester-filter__trigger-value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.semester-filter__trigger-arrow {
+  font-size: 10px;
+  color: var(--sf-text-muted);
+  transition: transform 0.3s ease;
+}
+
+.semester-filter__trigger-arrow.open {
+  transform: rotate(180deg);
+}
+
+.semester-filter__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.semester-filter__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  box-shadow: var(--sf-shadow);
+  z-index: 100;
+  overflow: hidden;
+  animation: sfDropdownSlide 0.2s ease;
+}
+
+@keyframes sfDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.semester-filter__search {
+  padding: 10px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.semester-filter__search input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.semester-filter__search input::placeholder {
+  color: #9ca3af;
+}
+
+.semester-filter__search input:focus {
+  border-color: var(--sf-primary);
+}
+
+.semester-filter__items {
+  max-height: 176px; /* Giới hạn ~4 dòng (44px mỗi item) */
+  overflow-y: auto;
+}
+
+/* Custom scrollbar cho items list */
+.semester-filter__items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.semester-filter__items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.semester-filter__items::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.semester-filter__items::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+.semester-filter__item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--sf-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.semester-filter__item:hover {
+  background: var(--sf-primary-light);
+}
+
+.semester-filter__item.active {
+  background: var(--sf-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.semester-filter__no-result {
+  color: var(--sf-text-muted);
+  font-style: italic;
+  cursor: default;
+}
+
+.semester-filter__no-result:hover {
+  background: transparent;
 }
 

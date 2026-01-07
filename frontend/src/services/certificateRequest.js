@@ -84,6 +84,34 @@ const certificateRequestService = {
   getDashboardInvalid: async () => {
     const response = await apiClient.get('/certificate-requests/dashboard/invalid');
     return response.data;
+  },
+
+  /**
+   * Xuất dữ liệu ra file CSV (Staff/Admin only)
+   * @param {Object} filters - { status, semester, startDate, endDate }
+   * @returns {Promise<Blob>} - File CSV dạng Blob
+   */
+  exportCSV: async (filters = {}) => {
+    const params = new URLSearchParams();
+    
+    if (filters.status && filters.status !== 'all') {
+      params.append('status', filters.status);
+    }
+    if (filters.semester && filters.semester !== 'all') {
+      params.append('semester', filters.semester);
+    }
+    if (filters.startDate) {
+      params.append('startDate', filters.startDate);
+    }
+    if (filters.endDate) {
+      params.append('endDate', filters.endDate);
+    }
+
+    const url = `/certificate-requests/export-csv${params.toString() ? '?' + params.toString() : ''}`;
+    
+    return await apiClient.get(url, {
+      responseType: 'blob'
+    });
   }
 };
 

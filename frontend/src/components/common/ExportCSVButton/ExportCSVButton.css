@@ -1,0 +1,110 @@
+/* ========================================
+   Export CSV Button Styles
+   ======================================== */
+
+.export-csv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
+}
+
+.export-csv-btn:hover:not(.disabled):not(.loading) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.export-csv-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.export-csv-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #9ca3af;
+}
+
+.export-csv-btn.loading {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.export-csv-icon {
+  flex-shrink: 0;
+}
+
+.export-csv-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: export-spin 0.8s linear infinite;
+}
+
+@keyframes export-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Variant: Outline */
+.export-csv-btn.outline {
+  background: transparent;
+  border: 2px solid #10b981;
+  color: #10b981;
+  box-shadow: none;
+}
+
+.export-csv-btn.outline:hover:not(.disabled):not(.loading) {
+  background: #10b981;
+  color: white;
+}
+
+/* Variant: Small */
+.export-csv-btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.export-csv-btn.small .export-csv-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Variant: Icon only */
+.export-csv-btn.icon-only {
+  padding: 10px;
+}
+
+.export-csv-btn.icon-only span:not(.export-csv-spinner) {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .export-csv-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .export-csv-btn span:not(.export-csv-spinner) {
+    display: none;
+  }
+  
+  .export-csv-btn .export-csv-icon {
+    margin: 0;
+  }
+}

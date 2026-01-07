@@ -5,6 +5,7 @@ import { facultyService } from '../../../services/faculty';
 import { majorService } from '../../../services/major';
 import StudentFormModal from './StudentFormModal';
 import RoomTransferDialog from '../../common/RoomTransferDialog';
+import ExportCSVButton from '../../common/ExportCSVButton';
 import './StudentManagement.css';
 
 /**
@@ -519,6 +520,19 @@ const StudentManagement = () => {
               <option value="yes">Có ở KTX</option>
               <option value="no">Không ở KTX</option>
             </select>
+
+            {/* Nút Export CSV - Tất cả sinh viên */}
+            <ExportCSVButton 
+              exportFunction={studentService.exportCSV}
+              filename="DS_SinhVien.csv"
+              title="Xuất danh sách sinh viên ra file CSV"
+              filters={{
+                faculty: filterFaculty !== 'all' ? filterFaculty : undefined,
+                major: filterMajor !== 'all' ? filterMajor : undefined,
+                isDormResident: filterDormStatus === 'yes' ? true : filterDormStatus === 'no' ? false : undefined
+              }} 
+              variant="icon-only"
+            />
           </div>
         )}
 
@@ -595,6 +609,18 @@ const StudentManagement = () => {
                 </>
               )}
             </div>
+
+            {/* Nút Export CSV - Sinh viên KTX */}
+            <ExportCSVButton 
+              exportFunction={studentService.exportCSV}
+              filename="DS_SinhVien_KTX.csv"
+              title="Xuất danh sách sinh viên KTX ra file CSV"
+              filters={{ 
+                isDormResident: true,
+                roomId: filterRoom !== 'all' ? filterRoom : undefined
+              }}
+              variant="icon-only"
+            />
           </div>
         )}
       </div>

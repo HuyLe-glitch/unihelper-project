@@ -1,5 +1,12 @@
 const studentService = require('../services/studentService');
 const { validationResult } = require('express-validator');
+const {
+  formatDateOnlyVN,
+  generateCSVFilename,
+  jsonToCSV,
+  studentCSVFields,
+  studentDormCSVFields
+} = require('../utils/csvExporter');
 
 /**
  * Student Controller - Thin Controller
@@ -254,6 +261,87 @@ class StudentController {
       const { studentIds, targetRoomId } = req.body;
       const result = await studentService.transferStudentsRoom(studentIds, targetRoomId);
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * GET /api/students/export-csv
+   * Xuất danh sách sinh viên ra file CSV
+   * Query params:
+   * - isDormResident: true/false - Lọc theo tình trạng KTX
+   * - faculty: ID khoa - Lọc theo khoa
+   * - major: ID ngành - Lọc theo ngành
+   * - roomId: ID phòng - Lọc theo phòng
+   */
+  exportStudentsCSV = async (req, res, next) => {
+    try {
+      const { isDormResident, faculty, major, roomId } = req.query;
+      const isDormExport = isDormResident === 'true';
+      
+      // Build filters cho service
+      const filters = {};
+      if (isDormResident !== undefined) {
+        filters.isDormResident = isDormExport;
+      }
+      if (faculty) {
+        filters.faculty = faculty;
+      }
+      if (major) {
+        filters.major = major;
+      }
+      if (roomId) {
+        filters.roomId = roomId;
+      }
+
+      // Lấy dữ liệu từ service
+      const result = await studentService.getDataForCSVExport(filters);
+
+      // Map dữ liệu cho CSV - khác nhau tùy loại
+      const csvData = result.data.map(student => {
+        const baseData = {
+          studentId: student.studentId || '',
+          fullName: student.fullName || '',
+          email: student.user?.email || '',
+          phone: student.phone || '',
+          citizenId: student.citizenId || '',
+          dateOfBirth: formatDateOnlyVN(student.dateOfBirth),
+          address: student.address || '',
+          facultyName: student.major?.faculty?.name || '',
+          majorName: student.major?.name || '',
+          createdAt: formatDateOnlyVN(student.createdAt)
+        };
+
+        if (isDormExport) {
+          // Sinh viên KTX - có cột Phòng
+          return {
+            ...baseData,
+            roomName: student.roomId?.name || ''
+          };
+        } else {
+          // Tất cả sinh viên - có cột Ở KTX
+          return {
+            ...baseData,
+            isDormResident: student.isDormResident ? 'Có' : 'Không'
+          };
+        }
+      });
+
+      // Chọn bộ fields phù hợp
+      const fields = isDormExport ? studentDormCSVFields : studentCSVFields;
+
+      // Tạo CSV string
+      const csvString = jsonToCSV(csvData, fields);
+
+      // Tạo tên file
+      const prefix = isDormExport ? 'DS_SinhVien_KTX' : 'DS_SinhVien';
+      const filename = generateCSVFilename(prefix);
+
+      // Set headers và gửi response
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvString);
     } catch (error) {
       next(error);
     }

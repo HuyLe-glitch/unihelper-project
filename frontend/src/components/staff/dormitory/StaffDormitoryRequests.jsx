@@ -5,6 +5,7 @@ import dormitoryRequestService from '../../../services/dormitoryRequest';
 import { roomService } from '../../../services/room';
 import socketService from '../../../services/socket';
 import SemesterFilter from '../../common/SemesterFilter/SemesterFilter';
+import ExportCSVButton from '../../common/ExportCSVButton';
 
 /**
  * StaffDormitoryRequests - Giao diện quản lý yêu cầu KTX cho Staff
@@ -37,6 +38,9 @@ const StaffDormitoryRequests = () => {
   // State cho room dropdown
   const [isRoomDropdownOpen, setIsRoomDropdownOpen] = useState(false);
   const [roomSearchTerm, setRoomSearchTerm] = useState('');
+  
+  // State cho status dropdown
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   
   // State cho xử lý
   const [processing, setProcessing] = useState(false);
@@ -299,7 +303,20 @@ const StaffDormitoryRequests = () => {
       {/* Header */}
       <header className="dormitory-header">
         <div className="dormitory-header__info">
-          <h1>Quản lý yêu cầu sửa chữa KTX</h1>
+          <div className="dormitory-header__title-row">
+            <h1>Quản lý yêu cầu sửa chữa KTX</h1>
+            <ExportCSVButton 
+              exportFunction={dormitoryRequestService.exportCSV}
+              filename="DS_SuCo_KTX.csv"
+              label="Xuất CSV"
+              filters={{
+                status: statusFilter,
+                semester: semesterFilter,
+                startDate: dateFilter,
+                roomId: roomFilter
+              }}
+            />
+          </div>
           <p>Xử lý và theo dõi các yêu cầu sửa chữa thiết bị từ sinh viên</p>
         </div>
       </header>
@@ -361,17 +378,69 @@ const StaffDormitoryRequests = () => {
           )}
         </div>
         <div className="filter-group">
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="Pending">Gửi yêu cầu</option>
-            <option value="Under Review">Đang xử lý</option>
-            <option value="Approved">Hoàn thành</option>
-          </select>
+          {/* Status Filter - Custom Dropdown */}
+          <div className="custom-dropdown">
+            <div 
+              className="custom-dropdown-trigger"
+              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+            >
+              <span className="dropdown-value">
+                {statusFilter === 'all' 
+                  ? 'Tất cả trạng thái' 
+                  : STATUS_CONFIG[statusFilter]?.label || statusFilter
+                }
+              </span>
+              <span className={`dropdown-arrow ${isStatusDropdownOpen ? 'open' : ''}`}>▼</span>
+            </div>
+            {isStatusDropdownOpen && (
+              <>
+                <div 
+                  className="dropdown-backdrop" 
+                  onClick={() => setIsStatusDropdownOpen(false)}
+                />
+                <div className="custom-dropdown-menu">
+                  <div className="dropdown-items-list">
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => {
+                        setStatusFilter('all');
+                        setIsStatusDropdownOpen(false);
+                      }}
+                    >
+                      📋 Tất cả trạng thái
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'Pending' ? 'active' : ''}`}
+                      onClick={() => {
+                        setStatusFilter('Pending');
+                        setIsStatusDropdownOpen(false);
+                      }}
+                    >
+                      📨 Gửi yêu cầu
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'Under Review' ? 'active' : ''}`}
+                      onClick={() => {
+                        setStatusFilter('Under Review');
+                        setIsStatusDropdownOpen(false);
+                      }}
+                    >
+                      ⏳ Đang xử lý
+                    </div>
+                    <div 
+                      className={`dropdown-item ${statusFilter === 'Approved' ? 'active' : ''}`}
+                      onClick={() => {
+                        setStatusFilter('Approved');
+                        setIsStatusDropdownOpen(false);
+                      }}
+                    >
+                      ✓ Hoàn thành
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Room Filter - Custom Dropdown */}
           <div className="custom-dropdown">
@@ -449,7 +518,7 @@ const StaffDormitoryRequests = () => {
             onChange={setSemesterFilter}
             dateValue={dateFilter}
             onDateChange={setDateFilter}
-            showInfoBar={false}
+            showInfoBar={true}
           />
 
           {/* Sort Order - Toggle Icon Button */}

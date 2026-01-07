@@ -205,6 +205,39 @@ const studentService = {
       return { success: true, data: response.data.data.profile };
     }
     return response.data;
+  },
+
+  // ==========================================
+  // EXPORT CSV API
+  // ==========================================
+
+  /**
+   * Xuất danh sách sinh viên ra file CSV
+   * @param {Object} filters - { isDormResident, faculty, major, roomId }
+   * @returns {Blob} - CSV file blob
+   */
+  exportCSV: async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+    if (filters.isDormResident !== undefined) {
+      queryParams.append('isDormResident', filters.isDormResident);
+    }
+    if (filters.faculty && filters.faculty !== 'all') {
+      queryParams.append('faculty', filters.faculty);
+    }
+    if (filters.major && filters.major !== 'all') {
+      queryParams.append('major', filters.major);
+    }
+    if (filters.roomId && filters.roomId !== 'all') {
+      queryParams.append('roomId', filters.roomId);
+    }
+    
+    const queryString = queryParams.toString();
+    const url = `/students/export-csv${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiClient.get(url, {
+      responseType: 'blob'
+    });
+    return response;
   }
 };
 

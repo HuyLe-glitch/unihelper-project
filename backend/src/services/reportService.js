@@ -267,7 +267,8 @@ function formatDailyTrendDataKTX(data, startDate, endDate) {
     dataMap[item._id] = {
       new: item.total,
       approved: item.approved,
-      pending: item.pending
+      pending: item.pending,
+      underReview: item.underReview
     };
   });
 
@@ -281,7 +282,8 @@ function formatDailyTrendDataKTX(data, startDate, endDate) {
       name: dayName,
       new: dataMap[dateStr]?.new || 0,
       approved: dataMap[dateStr]?.approved || 0,
-      pending: dataMap[dateStr]?.pending || 0
+      pending: dataMap[dateStr]?.pending || 0,
+      underReview: dataMap[dateStr]?.underReview || 0
     });
     
     current.setDate(current.getDate() + 1);
@@ -298,7 +300,8 @@ function formatWeeklyTrendDataKTX(data) {
     name: `Tuần ${index + 1}`,
     new: item.total,
     approved: item.approved,
-    pending: item.pending
+    pending: item.pending,
+    underReview: item.underReview
   }));
 }
 
@@ -310,7 +313,8 @@ function formatMonthlyTrendDataKTX(data) {
     name: `T${item._id.month}/${item._id.year}`,
     new: item.total,
     approved: item.approved,
-    pending: item.pending
+    pending: item.pending,
+    underReview: item.underReview
   }));
 }
 
@@ -333,6 +337,8 @@ function formatDistribution(data) {
 function formatStatusDistribution(data, module) {
   const total = data.reduce((sum, item) => sum + item.count, 0);
   
+  // CTSV: Hệ thống giấy chứng nhận
+  // KTX: Hệ thống báo cáo sự cố thiết bị
   const statusLabels = module === 'CTSV' 
     ? {
         'HỢP LỆ': 'Đã duyệt',
@@ -340,9 +346,9 @@ function formatStatusDistribution(data, module) {
         'ĐANG XỬ LÝ': 'Đang chờ'
       }
     : {
-        'Approved': 'Đã duyệt',
-        'Pending': 'Đang chờ',
-        'Under Review': 'Đang xem xét'
+        'Approved': 'Hoàn thành',     // Đã xử lý xong sự cố
+        'Pending': 'Đã gửi',          // Sinh viên đã gửi báo cáo
+        'Under Review': 'Tiếp nhận'   // Staff đã tiếp nhận
       };
 
   return data.map(item => ({

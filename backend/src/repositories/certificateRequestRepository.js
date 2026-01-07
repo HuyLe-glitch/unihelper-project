@@ -305,6 +305,54 @@ class CertificateRequestRepository {
       .select('requestCode certificateType certificateName requestDate status')
       .sort({ createdAt: -1 });
   }
+
+  /**
+   * Lấy dữ liệu cho export CSV (không phân trang)
+   * @param {Object} filters - Bộ lọc (status, semester, startDate, endDate)
+   * @returns {Promise<Array>} - Danh sách yêu cầu đầy đủ thông tin
+   */
+  async getDataForCSVExport(filters = {}) {
+    const query = {};
+
+    // Filter theo status
+    if (filters.status && filters.status !== 'all') {
+      query.status = filters.status;
+    }
+
+    // Filter theo semester
+    if (filters.semester && filters.semester !== 'all') {
+      query.semester = filters.semester;
+    }
+
+    // Filter theo ngày
+    if (filters.startDate || filters.endDate) {
+      query.createdAt = {};
+      if (filters.startDate) {
+        query.createdAt.$gte = new Date(filters.startDate);
+      }
+      if (filters.endDate) {
+        query.createdAt.$lte = new Date(filters.endDate);
+      }
+    }
+
+    return await CertificateRequest.find(query)
+      .populate('certificateType', 'name')
+      .populate('certificateName', 'name')
+      .populate({
+        path: 'student',
+        select: 'fullName studentId phone user major',
+        populate: [
+          { path: 'user', select: 'email' },
+          { 
+            path: 'major', 
+            select: 'name faculty',
+            populate: { path: 'faculty', select: 'name' }
+          }
+        ]
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+  }
 }
 
 module.exports = new CertificateRequestRepository();

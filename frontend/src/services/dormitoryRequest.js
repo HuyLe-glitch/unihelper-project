@@ -143,6 +143,34 @@ const dormitoryRequestService = {
   updateRequestStatus: async (requestId, status) => {
     const response = await apiClient.patch(`/dormitory/requests/${requestId}/status`, { status });
     return response.data;
+  },
+
+  // ==========================================
+  // EXPORT APIs
+  // ==========================================
+
+  /**
+   * Export danh sách yêu cầu ra file CSV (STAFF/ADMIN)
+   * @param {Object} filters - { status, semester, startDate, endDate, roomId }
+   * @returns {Promise} - Response với blob data
+   */
+  exportCSV: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.semester && filters.semester !== 'all') params.append('semester', filters.semester);
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.roomId && filters.roomId !== 'all') params.append('roomId', filters.roomId);
+
+    const queryString = params.toString();
+    const url = `/dormitory/requests/export-csv${queryString ? `?${queryString}` : ''}`;
+
+    // Sử dụng responseType: 'blob' để nhận file
+    const response = await apiClient.get(url, {
+      responseType: 'blob'
+    });
+    
+    return response;
   }
 };
 

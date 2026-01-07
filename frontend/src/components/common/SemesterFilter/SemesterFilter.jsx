@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { semesterService } from '../../../services/semester';
 import './SemesterFilter.css';
 
@@ -6,7 +6,7 @@ import './SemesterFilter.css';
  * SemesterFilter Component
  * 
  * Component bộ lọc học kỳ có thể tái sử dụng cho cả Staff CTSV và Staff KTX
- * Sử dụng dữ liệu thật từ API
+ * Sử dụng dữ liệu thật từ API - Custom Dropdown với Search
  * 
  * @param {Object} props
  * @param {string} props.value - Giá trị học kỳ hiện tại ('all' hoặc semester id/name)
@@ -31,6 +31,11 @@ const SemesterFilter = ({
   // State cho danh sách học kỳ từ API
   const [semesters, setSemesters] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // State cho custom dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
 
   // Fetch danh sách học kỳ từ API khi component mount
   useEffect(() => {
@@ -60,11 +65,39 @@ const SemesterFilter = ({
     fetchSemesters();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Get selected semester info
   const selectedSemester = useMemo(() => 
     semesters.find(s => s.id === value || s.name === value),
     [value, semesters]
   );
+
+  // Filter semesters based on search
+  const filteredSemesters = useMemo(() => {
+    if (!searchTerm) return semesters;
+    const term = searchTerm.toLowerCase();
+    return semesters.filter(sem => 
+      sem.name.toLowerCase().includes(term) ||
+      sem.label.toLowerCase().includes(term)
+    );
+  }, [semesters, searchTerm]);
+
+  // Get display value
+  const displayValue = useMemo(() => {
+    if (value === 'all') return 'Tất cả học kỳ';
+    return selectedSemester?.name || value;
+  }, [value, selectedSemester]);
 
   // Format date for display (DD/MM/YYYY)
   const formatDateDisplay = (dateStr) => {
@@ -76,6 +109,8 @@ const SemesterFilter = ({
   // Handle semester change - reset date filter when semester changes
   const handleSemesterChange = (newValue) => {
     onChange(newValue);
+    setIsDropdownOpen(false);
+    setSearchTerm('');
     if (onDateChange) {
       onDateChange(''); // Reset date filter when semester changes
     }
@@ -97,28 +132,81 @@ const SemesterFilter = ({
     handleSemesterChange('all');
   };
 
+  const toggleDropdown = () => {
+    if (!loading) {
+      setIsDropdownOpen(!isDropdownOpen);
+      if (!isDropdownOpen) setSearchTerm('');
+    }
+  };
+
   return (
     <div className={`semester-filter ${variant} ${className}`}>
-      {/* Semester Dropdown */}
-      <div className="semester-filter__select-wrapper">
-        <select
-          value={value}
-          onChange={(e) => handleSemesterChange(e.target.value)}
-          className="semester-filter__select"
-          disabled={loading}
+      {/* Semester Custom Dropdown */}
+      <div className="semester-filter__dropdown" ref={dropdownRef}>
+        <div 
+          className={`semester-filter__trigger ${isDropdownOpen ? 'open' : ''} ${loading ? 'disabled' : ''}`}
+          onClick={toggleDropdown}
         >
-          <option value="all">📅 Tất cả học kỳ</option>
-          {semesters.map(sem => (
-            <option key={sem.id} value={sem.name}>
-              {sem.isActive ? `${sem.name} ✓` : sem.name}
-            </option>
-          ))}
-        </select>
-        {selectedSemester && (
-          <div className="semester-filter__tooltip">
-            <span className="semester-filter__date-range">
-              📅 {formatDateDisplay(selectedSemester.startDate)} → {formatDateDisplay(selectedSemester.endDate)}
-            </span>
+          <span className="semester-filter__trigger-icon">📅</span>
+          <span className="semester-filter__trigger-value">{displayValue}</span>
+          <span className={`semester-filter__trigger-arrow ${isDropdownOpen ? 'open' : ''}`}>▼</span>
+        </div>
+        
+        {isDropdownOpen && (
+          <>
+            <div 
+              className="semester-filter__backdrop" 
+              onClick={() => setIsDropdownOpen(false)}
+            />
+            <div className="semester-filter__menu">
+              <div className="semester-filter__search">
+                <input
+                  type="text"
+                  placeholder="Tìm học kỳ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              </div>
+              <div className="semester-filter__items">
+                {!searchTerm && (
+                  <div 
+                    className={`semester-filter__item ${value === 'all' ? 'active' : ''}`}
+                    onClick={() => handleSemesterChange('all')}
+                  >
+                    📅 Tất cả học kỳ
+                  </div>
+                )}
+                {filteredSemesters.length === 0 ? (
+                  <div className="semester-filter__item semester-filter__no-result">
+                    Không tìm thấy học kỳ
+                  </div>
+                ) : (
+                  filteredSemesters.map(sem => (
+                    <div 
+                      key={sem.id}
+                      className={`semester-filter__item ${sem.name === value || sem.id === value ? 'active' : ''}`}
+                      onClick={() => handleSemesterChange(sem.name)}
+                    >
+                      {sem.isActive ? `${sem.name} ✓` : sem.name}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Semester Info Bar - nằm ngay dưới dropdown trigger, trong cùng wrapper */}
+        {showInfoBar && selectedSemester && value !== 'all' && !isDropdownOpen && (
+          <div className="semester-filter__info-bar">
+            <div className="semester-filter__info-content">
+              <span className="semester-filter__icon">📅</span>
+              <span className="semester-filter__dates">
+                {formatDateDisplay(selectedSemester.startDate)} - {formatDateDisplay(selectedSemester.endDate)}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -148,30 +236,6 @@ const SemesterFilter = ({
               ×
             </button>
           )}
-        </div>
-      )}
-
-      {/* Semester Info Bar */}
-      {showInfoBar && selectedSemester && (
-        <div className="semester-filter__info-bar">
-          <div className="semester-filter__info-content">
-            <span className="semester-filter__icon">📚</span>
-            <span className="semester-filter__label">{selectedSemester.label}</span>
-            <span className="semester-filter__divider">|</span>
-            <span className="semester-filter__dates">
-              <span className="semester-filter__date-label">Từ:</span> {formatDateDisplay(selectedSemester.startDate)}
-              <span className="semester-filter__arrow">→</span>
-              <span className="semester-filter__date-label">Đến:</span> {formatDateDisplay(selectedSemester.endDate)}
-            </span>
-          </div>
-          <button 
-            className="semester-filter__clear-semester-btn"
-            onClick={handleClearSemester}
-            title="Xóa bộ lọc học kỳ"
-            type="button"
-          >
-            Xóa bộ lọc
-          </button>
         </div>
       )}
     </div>

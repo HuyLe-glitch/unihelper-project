@@ -219,6 +219,20 @@ class CertificateRequestService {
       data: requests
     };
   }
+
+  /**
+   * Lấy dữ liệu cho export CSV
+   * @param {Object} filters - Bộ lọc (status, semester, startDate, endDate)
+   * @returns {Promise<Object>} - Dữ liệu đã được transform cho CSV
+   */
+  async getDataForCSVExport(filters = {}) {
+    const requests = await certificateRequestRepository.getDataForCSVExport(filters);
+    
+    return {
+      success: true,
+      data: requests
+    };
+  }
 }
 
 module.exports = new CertificateRequestService();

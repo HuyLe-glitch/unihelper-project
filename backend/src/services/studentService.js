@@ -1158,6 +1158,56 @@ class StudentService {
       throw this.createError('Lỗi khi chuyển phòng: ' + error.message, 500);
     }
   }
+
+  /**
+   * Lấy dữ liệu sinh viên để xuất CSV
+   * @param {Object} filters - { isDormResident, faculty, major, roomId }
+   * @returns {Object} - { success, data }
+   */
+  async getDataForCSVExport(filters = {}) {
+    const { faculty, major, roomId, isDormResident } = filters;
+    
+    // Build query filters
+    const queryFilters = {};
+    
+    // Filter theo tình trạng KTX
+    if (isDormResident !== undefined) {
+      queryFilters.isDormResident = isDormResident;
+    }
+    
+    // Filter theo phòng
+    if (roomId) {
+      queryFilters.roomId = roomId;
+    }
+    
+    // Lấy tất cả sinh viên theo filter cơ bản
+    let { docs } = await studentRepository.findAll({ 
+      skip: 0, 
+      limit: 100000, // Lấy hết 
+      filters: queryFilters 
+    });
+    
+    // Filter theo major (nếu có)
+    if (major) {
+      docs = docs.filter(student => {
+        const studentMajorId = student.major?._id?.toString() || student.major?.toString();
+        return studentMajorId === major;
+      });
+    }
+    
+    // Filter theo faculty (nếu có và không có major)
+    if (faculty && !major) {
+      docs = docs.filter(student => {
+        const studentFacultyId = student.major?.faculty?._id?.toString() || student.major?.faculty?.toString();
+        return studentFacultyId === faculty;
+      });
+    }
+
+    return {
+      success: true,
+      data: docs
+    };
+  }
 }
 
 module.exports = new StudentService();

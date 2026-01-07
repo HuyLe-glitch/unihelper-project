@@ -2,6 +2,13 @@ const certificateRequestService = require('../services/certificateRequestService
 const studentNotificationService = require('../services/studentNotificationService');
 const userRepository = require('../repositories/userRepository');
 const { catchAsync } = require('../utils/appError');
+const { 
+  jsonToCSV, 
+  certificateRequestCSVFields, 
+  mapCertificateStatus, 
+  formatDateVN, 
+  generateCSVFilename 
+} = require('../utils/csvExporter');
 
 /**
  * Certificate Request Controller - Presentation Layer
@@ -204,6 +211,50 @@ class CertificateRequestController {
     const result = await certificateRequestService.getDashboardRequestsByStatus(userId, 'KHÔNG HỢP LỆ');
 
     res.status(200).json(result);
+  });
+
+  /**
+   * GET /api/certificate-requests/export-csv - Xuất dữ liệu ra file CSV
+   * Staff/Admin only
+   */
+  exportRequestsCSV = catchAsync(async (req, res) => {
+    const { status, semester, startDate, endDate } = req.query;
+
+    // Lấy dữ liệu từ service
+    const result = await certificateRequestService.getDataForCSVExport({
+      status,
+      semester,
+      startDate,
+      endDate
+    });
+
+    // Transform dữ liệu cho CSV
+    const csvData = result.data.map(request => ({
+      requestCode: request.requestCode || '',
+      studentId: request.student?.studentId || '',
+      studentName: request.student?.fullName || '',
+      studentEmail: request.student?.user?.email || '',
+      studentPhone: request.student?.phone || '',
+      facultyName: request.student?.major?.faculty?.name || '',
+      majorName: request.student?.major?.name || '',
+      certificateType: request.certificateType?.name || '',
+      certificateName: request.certificateName?.name || '',
+      note: request.notes || '',
+      status: mapCertificateStatus(request.status),
+      requestDate: formatDateVN(request.createdAt),
+      processedDate: formatDateVN(request.responseTime),
+      createdAt: formatDateVN(request.createdAt),
+      updatedAt: formatDateVN(request.updatedAt)
+    }));
+
+    // Tạo CSV string
+    const csvString = jsonToCSV(csvData, certificateRequestCSVFields);
+    const filename = generateCSVFilename('DS_YeuCau_CTSV');
+
+    // Set headers và trả về file
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.status(200).send(csvString);
   });
 }
 

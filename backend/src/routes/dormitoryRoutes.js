@@ -10,6 +10,10 @@ router.use(protect);
 // ==================== REQUEST ROUTES ====================
 // Sinh viên gửi yêu cầu sự cố KTX, sử dụng EquipmentCategory từ /api/equipment
 
+// GET /api/dormitory/requests/export-csv - Export danh sách yêu cầu ra CSV (STAFF/ADMIN)
+// Đặt trước route có :id để tránh conflict
+router.get('/requests/export-csv', restrictTo('STAFF', 'ADMIN'), dormitoryController.exportRequestsCSV);
+
 // GET /api/dormitory/requests/my - Lấy yêu cầu của sinh viên đang đăng nhập (STUDENT)
 router.get('/requests/my', restrictTo('STUDENT'), dormitoryController.getMyDormitoryRequests);
 

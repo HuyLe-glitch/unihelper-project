@@ -335,6 +335,45 @@ const getDormitoryRequestsByMonth = catchAsync(async (req, res) => {
   });
 });
 
+// ==================== EXPORT CSV ====================
+
+/**
+ * GET /api/dormitory/requests/export-csv
+ * Export danh sách yêu cầu ra file CSV
+ * Chỉ Staff/Admin mới được phép export
+ */
+const exportRequestsCSV = catchAsync(async (req, res) => {
+  const { 
+    jsonToCSV, 
+    dormitoryRequestCSVFields,
+    generateCSVFilename 
+  } = require('../utils/csvExporter');
+
+  // Lấy filters từ query params
+  const filters = {
+    status: req.query.status,
+    semester: req.query.semester,
+    startDate: req.query.startDate,
+    endDate: req.query.endDate,
+    roomId: req.query.roomId
+  };
+
+  // Lấy dữ liệu từ Service (đã transform sẵn)
+  const data = await dormitoryRequestService.getDataForCSVExport(filters);
+
+  // Convert sang CSV
+  const csv = jsonToCSV(data, dormitoryRequestCSVFields);
+
+  // Tạo tên file
+  const filename = generateCSVFilename('DS_SuCo_KTX');
+
+  // Set headers để browser tải file
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+  return res.status(200).send(csv);
+});
+
 // ==================== EXPORTS ====================
 
 module.exports = {
@@ -350,5 +389,8 @@ module.exports = {
   confirmRepair,
   
   // Statistics
-  getDormitoryRequestsByMonth
+  getDormitoryRequestsByMonth,
+  
+  // Export
+  exportRequestsCSV
 };

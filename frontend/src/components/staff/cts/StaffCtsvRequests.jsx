@@ -5,6 +5,7 @@ import fileService from '../../../services/file';
 import socketService from '../../../services/socket';
 import StaffDormitoryRequests from '../dormitory/StaffDormitoryRequests';
 import { SemesterFilter, FilePreview, ConfirmDialog } from '../../common';
+import ExportCSVButton from '../../common/ExportCSVButton';
 import ActivityLog from './ActivityLog';
 import './ActivityLog.css';
 import './StaffCtsvRequests.css';
@@ -575,14 +576,20 @@ const StaffCtsvRequests = () => {
       {/* Header */}
       <header className="ctsv-header">
         <div className="ctsv-header__info">
-          <h1>Quản lý yêu cầu CTSV</h1>
+          <div className="ctsv-header__title-row">
+            <h1>Quản lý yêu cầu CTSV</h1>
+            <ExportCSVButton 
+              exportFunction={certificateRequestService.exportCSV}
+              filename="DS_YeuCau_CTSV.csv"
+              label="Xuất CSV"
+              filters={{
+                status: statusFilter,
+                semester: semesterFilter,
+                startDate: dateFilter
+              }}
+            />
+          </div>
           <p>Xử lý và theo dõi các yêu cầu chứng nhận từ sinh viên</p>
-        </div>
-        <div className="ctsv-header__actions">
-          <button className="btn-export">
-            <span className="btn-icon">📊</span>
-            Xuất báo cáo
-          </button>
         </div>
       </header>
 
@@ -660,7 +667,7 @@ const StaffCtsvRequests = () => {
             onChange={setSemesterFilter}
             dateValue={dateFilter}
             onDateChange={setDateFilter}
-            showInfoBar={false}
+            showInfoBar={true}
           />
           {/* Sort Order - Toggle Icon Button */}
           <button 

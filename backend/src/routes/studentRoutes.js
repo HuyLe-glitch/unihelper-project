@@ -33,6 +33,13 @@ router.get(
   studentController.getStats
 );
 
+// GET /api/students/export-csv - Xuất danh sách sinh viên ra CSV
+router.get(
+  '/export-csv',
+  restrictTo('ADMIN'),
+  studentController.exportStudentsCSV
+);
+
 // GET /api/students/dormitory - Lấy sinh viên ở KTX
 router.get(
   '/dormitory',

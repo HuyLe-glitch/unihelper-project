@@ -506,6 +506,86 @@ class DormitoryRequestService {
       { $sort: { year: 1, "_id.month": 1 } }
     ]);
   }
+
+  // ==========================================
+  // EXPORT CSV
+  // ==========================================
+
+  /**
+   * Lấy dữ liệu để export CSV
+   * @param {Object} filters - Bộ lọc (status, semester, startDate, endDate, roomId)
+   * @returns {Array} - Mảng dữ liệu đã transform sẵn cho CSV
+   */
+  async getDataForCSVExport(filters = {}) {
+    const {
+      formatDateVN,
+      mapDormitoryStatus
+    } = require('../utils/csvExporter');
+
+    // Build query filters
+    const query = {};
+    
+    if (filters.status && filters.status !== 'all') {
+      query.status = filters.status;
+    }
+    
+    if (filters.semester && filters.semester !== 'all') {
+      query.semester = filters.semester;
+    }
+    
+    if (filters.startDate && filters.endDate) {
+      query.requestDate = {
+        $gte: new Date(filters.startDate),
+        $lte: new Date(filters.endDate)
+      };
+    } else if (filters.startDate) {
+      query.requestDate = { $gte: new Date(filters.startDate) };
+    } else if (filters.endDate) {
+      query.requestDate = { $lte: new Date(filters.endDate) };
+    }
+
+    // Query với populate đầy đủ thông tin
+    const requests = await DormitoryRequest.find(query)
+      .populate({
+        path: 'student',
+        select: 'studentId fullName phone user roomId',
+        populate: [
+          { path: 'user', select: 'email' },
+          { path: 'roomId', select: 'name' }
+        ]
+      })
+      .populate('category', 'name')
+      .populate('item', 'name')
+      .sort({ requestDate: -1 })
+      .lean();
+
+    // Filter theo roomId nếu có (sau khi populate)
+    let filteredRequests = requests;
+    if (filters.roomId && filters.roomId !== 'all') {
+      filteredRequests = requests.filter(
+        req => req.student?.roomId?._id?.toString() === filters.roomId
+      );
+    }
+
+    // Transform data cho CSV
+    return filteredRequests.map(req => ({
+      requestCode: req.requestCode || '',
+      studentId: req.student?.studentId || '',
+      studentName: req.student?.fullName || '',
+      studentEmail: req.student?.user?.email || '',
+      studentPhone: req.student?.phone || '',
+      roomName: req.student?.roomId?.name || '',
+      categoryName: req.category?.name || '',
+      itemName: req.item?.name || '',
+      description: req.description || '',
+      status: mapDormitoryStatus(req.status),
+      semester: req.semester || '',
+      requestDate: formatDateVN(req.requestDate),
+      confirmDate: formatDateVN(req.confirmDate),
+      createdAt: formatDateVN(req.createdAt),
+      updatedAt: formatDateVN(req.updatedAt)
+    }));
+  }
 }
 
 module.exports = new DormitoryRequestService();

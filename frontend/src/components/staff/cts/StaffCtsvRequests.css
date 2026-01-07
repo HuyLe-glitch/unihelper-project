@@ -124,6 +124,17 @@
   box-shadow: var(--ctsv-shadow);
 }
 
+.ctsv-header__info {
+  width: 100%;
+}
+
+.ctsv-header__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .ctsv-header__info h1 {
   margin: 0;
   font-size: 26px;
