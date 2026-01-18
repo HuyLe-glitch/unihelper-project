@@ -3,7 +3,7 @@
    ============================================ */
 
 .chatbot-input {
-  padding: 16px 20px 12px;
+  padding: 8px 12px 6px;
   background: white;
   border-top: 1px solid #e5e7eb;
   border-radius: 0 0 16px 16px;
@@ -12,12 +12,12 @@
 .chatbot-input-container {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 8px;
   background: #f3f4f6;
-  border-radius: 24px;
-  padding: 8px 8px 8px 18px;
+  border-radius: 20px;
+  padding: 4px 4px 4px 14px;
   transition: all 0.2s ease;
-  border: 2px solid transparent;
+  border: 1.5px solid transparent;
 }
 
 .chatbot-input-container:focus-within {
@@ -31,12 +31,12 @@
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.4;
   color: #1f2937;
   resize: none;
-  max-height: 120px;
-  padding: 6px 0;
+  max-height: 80px;
+  padding: 4px 0;
   font-family: inherit;
 }
 
@@ -55,8 +55,8 @@
 
 /* Send Button */
 .chatbot-send-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #e5e7eb;
   border: none;
@@ -70,8 +70,8 @@
 }
 
 .chatbot-send-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   color: #9ca3af;
   transition: all 0.2s ease;
 }
@@ -108,11 +108,11 @@
 /* Input Hint */
 .chatbot-input-hint {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .chatbot-input-hint span {
-  font-size: 11px;
+  font-size: 10px;
   color: #9ca3af;
 }
 
@@ -122,13 +122,13 @@
 
 @media (max-width: 768px) {
   .chatbot-input {
-    padding: 12px 16px 10px;
+    padding: 6px 10px 4px;
     border-radius: 0 0 12px 12px;
   }
 
   .chatbot-input-container {
-    padding: 6px 6px 6px 14px;
-    border-radius: 20px;
+    padding: 4px 4px 4px 12px;
+    border-radius: 18px;
   }
 
   .chatbot-input-field {
@@ -136,13 +136,13 @@
   }
 
   .chatbot-send-btn {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
   }
 
   .chatbot-send-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 
   .chatbot-input-hint {

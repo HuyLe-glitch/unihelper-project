@@ -3,32 +3,73 @@
    ============================================ */
 
 .quick-replies {
-  padding: 12px 20px 0;
+  padding: 6px 12px 8px;
   background: transparent;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Scrollbar luôn hiện, màu nhẹ */
+.quick-replies::-webkit-scrollbar {
+  height: 3px;
+  display: block;
+}
+
+.quick-replies::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.quick-replies::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.4);
+  border-radius: 3px;
+}
+
+/* Firefox scrollbar - luôn hiện */
+.quick-replies {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.4) rgba(0, 0, 0, 0.05);
 }
 
 .quick-replies-container {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
+  flex-wrap: nowrap;
   gap: 8px;
-  justify-content: flex-start;
+  width: max-content;
 }
 
 /* Quick Reply Button */
 .quick-reply-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 5px;
+  padding: 6px 12px;
   background: white;
   border: 1.5px solid #e5e7eb;
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 500;
   color: #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
+  max-width: none;
+  width: auto;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* Label - đảm bảo hiển thị đầy đủ */
+.quick-reply-label {
+  line-height: 1.2;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+  max-width: none;
 }
 
 .quick-reply-btn:hover {
@@ -55,41 +96,18 @@
   line-height: 1;
 }
 
-/* Label */
-.quick-reply-label {
-  line-height: 1.2;
-}
-
 /* ============================================
    RESPONSIVE
    ============================================ */
 
 @media (max-width: 768px) {
   .quick-replies {
-    padding: 10px 16px 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .quick-replies-container {
-    flex-wrap: nowrap;
-    padding-bottom: 4px;
+    padding: 6px 12px 0;
   }
 
   .quick-reply-btn {
-    padding: 7px 12px;
-    font-size: 12px;
-    flex-shrink: 0;
-  }
-
-  /* Hide scrollbar but keep functionality */
-  .quick-replies::-webkit-scrollbar {
-    display: none;
-  }
-
-  .quick-replies {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    padding: 5px 10px;
+    font-size: 11px;
   }
 }
 

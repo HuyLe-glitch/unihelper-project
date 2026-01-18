@@ -1,0 +1,228 @@
+/* ==========================================
+   STUDENT FORM CUSTOM DROPDOWN
+   Prefix: sf-cd (student-form-custom-dropdown)
+   ========================================== */
+
+.sf-cd-container {
+  position: relative;
+  width: 100%;
+}
+
+.sf-cd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 46px;
+  box-sizing: border-box;
+}
+
+.sf-cd-trigger:hover {
+  border-color: #667eea;
+}
+
+.sf-cd-trigger.sf-cd-open {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.sf-cd-value {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sf-cd-placeholder {
+  color: #a0aec0;
+}
+
+.sf-cd-arrow {
+  font-size: 10px;
+  color: #718096;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sf-cd-arrow-up {
+  transform: rotate(180deg);
+}
+
+.sf-cd-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: sf-cd-fadeIn 0.15s ease;
+}
+
+@keyframes sf-cd-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sf-cd-option {
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sf-cd-option:last-child {
+  border-bottom: none;
+}
+
+.sf-cd-option:hover {
+  background: #f7fafc;
+  color: #667eea;
+}
+
+.sf-cd-option.sf-cd-selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.sf-cd-no-options {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #a0aec0;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Disabled State */
+.sf-cd-disabled .sf-cd-trigger {
+  background: #f7fafc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.sf-cd-disabled .sf-cd-trigger:hover {
+  border-color: #e2e8f0;
+}
+
+.sf-cd-disabled .sf-cd-value {
+  color: #a0aec0;
+}
+
+/* Error State */
+.sf-cd-error .sf-cd-trigger {
+  border-color: #fc8181;
+}
+
+.sf-cd-error .sf-cd-trigger:hover {
+  border-color: #f56565;
+}
+
+/* Custom scrollbar */
+.sf-cd-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sf-cd-menu::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.sf-cd-menu::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.sf-cd-menu::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* ==========================================
+   RESPONSIVE - Tablet (max 1024px)
+   ========================================== */
+@media (max-width: 1024px) {
+  .sf-cd-trigger {
+    padding: 11px 12px;
+    min-height: 44px;
+  }
+
+  .sf-cd-value {
+    font-size: 13px;
+  }
+
+  .sf-cd-option {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .sf-cd-menu {
+    max-height: 180px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - Mobile (max 768px)
+   ========================================== */
+@media (max-width: 768px) {
+  .sf-cd-trigger {
+    padding: 12px 14px;
+    min-height: 46px;
+  }
+
+  .sf-cd-value {
+    font-size: 14px;
+  }
+
+  .sf-cd-option {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .sf-cd-menu {
+    max-height: 160px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - Small Mobile (max 480px)
+   ========================================== */
+@media (max-width: 480px) {
+  .sf-cd-trigger {
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+
+  .sf-cd-value {
+    font-size: 13px;
+  }
+
+  .sf-cd-option {
+    padding: 11px 12px;
+    font-size: 13px;
+  }
+
+  .sf-cd-menu {
+    max-height: 150px;
+  }
+}

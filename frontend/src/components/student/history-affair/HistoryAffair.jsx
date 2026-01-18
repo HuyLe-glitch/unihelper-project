@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import certificateRequestService from '../../../services/certificateRequest';
 import socketService from '../../../services/socket';
+import { FilePreview } from '../../common';
+import HACustomDropdown from './HACustomDropdown';
 import './HistoryAffair.css';
 
 const HistoryAffair = () => {
@@ -129,6 +131,9 @@ const HistoryAffair = () => {
   const [semesterFilter, setSemesterFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortOrder, setSortOrder] = useState('newest');
+  
+  // State cho file preview modal
+  const [previewFile, setPreviewFile] = useState(null);
 
   const handleCreateRequest = () => {
     navigate('/student/student-affairs/');
@@ -142,9 +147,9 @@ const HistoryAffair = () => {
   // Hàm lấy label và class cho status
   const getStatusInfo = (status) => {
     const statusMap = {
-      valid: { label: 'Hợp lệ', class: 'status-valid', icon: '✓' },
-      processing: { label: 'Đang xử lý', class: 'status-processing', icon: '⟳' },
-      invalid: { label: 'Không hợp lệ', class: 'status-invalid', icon: '✕' },
+      valid: { label: 'Hợp lệ', class: 'status-valid' },
+      processing: { label: 'Đang xử lý', class: 'status-processing' },
+      invalid: { label: 'Không hợp lệ', class: 'status-invalid' },
     };
     return statusMap[status] || statusMap.processing;
   };
@@ -286,30 +291,30 @@ const HistoryAffair = () => {
 
           {/* Semester Filter */}
           <div className="filter-group">
-            <select
+            <HACustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả học kỳ' },
+                ...semesters.map(sem => ({ value: sem, label: sem }))
+              ]}
               value={semesterFilter}
-              onChange={(e) => setSemesterFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả học kỳ</option>
-              {semesters.map(sem => (
-                <option key={sem} value={sem}>{sem}</option>
-              ))}
-            </select>
+              onChange={setSemesterFilter}
+              placeholder="Tất cả học kỳ"
+            />
           </div>
 
           {/* Status Filter */}
           <div className="filter-group">
-            <select
+            <HACustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả trạng thái' },
+                { value: 'valid', label: 'Hợp lệ' },
+                { value: 'processing', label: 'Đang xử lý' },
+                { value: 'invalid', label: 'Không hợp lệ' }
+              ]}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="valid">✓ Hợp lệ</option>
-              <option value="processing">⟳ Đang xử lý</option>
-              <option value="invalid">✕ Không hợp lệ</option>
-            </select>
+              onChange={setStatusFilter}
+              placeholder="Tất cả trạng thái"
+            />
           </div>
 
           {/* Sort Order - Toggle Icon Button */}
@@ -368,7 +373,6 @@ const HistoryAffair = () => {
                       </td>
                       <td className="cell-status">
                         <span className={`status-badge ${statusInfo.class}`}>
-                          <span className="status-icon">{statusInfo.icon}</span>
                           {statusInfo.label}
                         </span>
                       </td>
@@ -385,9 +389,17 @@ const HistoryAffair = () => {
                       </td>
                       <td className="cell-file">
                         {item.staffFile ? (
-                          <a href={item.staffFile.filePath || '#'} className="file-link" target="_blank" rel="noopener noreferrer">
+                          <button 
+                            className="file-preview-btn"
+                            onClick={() => setPreviewFile({
+                              url: item.staffFile.fileUrl || item.staffFile.filePath,
+                              name: item.staffFile.fileName
+                            })}
+                            title="Click để xem file"
+                          >
+                            <span className="file-icon">📄</span>
                             <span className="file-name">{item.staffFile.fileName}</span>
-                          </a>
+                          </button>
                         ) : (
                           <span className="no-file">-</span>
                         )}
@@ -409,6 +421,14 @@ const HistoryAffair = () => {
           </table>
         </div>
       </div>
+
+      {/* File Preview Modal */}
+      <FilePreview
+        isOpen={!!previewFile}
+        fileUrl={previewFile?.url}
+        fileName={previewFile?.name}
+        onClose={() => setPreviewFile(null)}
+      />
     </div>
   );
 };

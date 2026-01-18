@@ -273,23 +273,23 @@
 
 /* Filter & Search Bar */
 .ctsv-filters {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: flex-start !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 12px;
   background: var(--ctsv-card);
   padding: 16px 20px;
   padding-bottom: 50px; /* Thêm không gian cho tooltip */
   border-radius: var(--ctsv-radius);
   box-shadow: var(--ctsv-shadow);
-  flex-wrap: nowrap !important;
-  overflow: visible !important; /* Cho phép tooltip hiển thị */
+  flex-wrap: wrap; /* Cho phép wrap khi không đủ chỗ */
+  overflow: visible; /* Cho phép tooltip hiển thị */
   position: relative;
   min-height: 80px;
 }
 
 .search-box {
-  width: 320px;
+  flex: 0 0 280px; /* Cố định 280px */
   height: 44px;
   position: relative;
   display: flex;
@@ -300,7 +300,6 @@
   border-radius: var(--ctsv-radius-sm);
   background: #f8fafc;
   transition: all 0.3s ease;
-  flex-shrink: 0;
   box-sizing: border-box;
 }
 
@@ -361,15 +360,43 @@
   color: var(--ctsv-danger);
 }
 
-.filter-group {
+/* ====== CTSV FILTER GROUP - UNIQUE CLASS ====== */
+.ctsv-filter-group {
   display: flex !important;
   flex-direction: row !important;
-  gap: 10px;
+  gap: 10px !important;
   align-items: center !important;
-  flex-wrap: nowrap !important;
-  flex: 1;
-  overflow: visible;
-  position: relative;
+  flex-wrap: wrap !important; /* Cho phép wrap khi không đủ chỗ */
+  flex: 1 1 auto !important;
+  min-width: 0 !important; /* Cho phép shrink */
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Tất cả các phần tử trong ctsv-filter-group */
+.ctsv-filter-group > .ctsv-custom-dropdown,
+.ctsv-filter-group > .semester-filter__dropdown,
+.ctsv-filter-group > .semester-filter__date-wrapper,
+.ctsv-filter-group > .sort-toggle-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.ctsv-filter-group > .ctsv-custom-dropdown {
+  min-width: 120px !important;
+}
+
+.ctsv-filter-group > .semester-filter__dropdown {
+  min-width: 150px !important;
+}
+
+.ctsv-filter-group > .semester-filter__date-wrapper {
+  min-width: 140px !important;
+}
+
+.ctsv-filter-group > .sort-toggle-btn {
+  flex-shrink: 0 !important;
 }
 
 .filter-select {
@@ -655,6 +682,11 @@
 .empty-state p {
   color: var(--ctsv-text-muted);
   font-size: 14px;
+}
+
+/* Overlay for mobile modal */
+.ctsv-detail-overlay {
+  display: none;
 }
 
 /* Right Panel - Detail View */
@@ -1626,8 +1658,10 @@
 
 @media (max-width: 1024px) {
   .ctsv-management {
-    margin-left: -70px;
-    padding-left: 100px;
+    margin-left: 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 100%;
   }
   
   .ctsv-main {
@@ -1647,6 +1681,74 @@
   .ctsv-stats {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  /* Filters cho tablet - cho phép wrap khi thiếu chỗ */
+  .ctsv-filters {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    padding-bottom: 20px;
+    min-height: auto;
+    overflow: visible;
+    align-items: center;
+  }
+  
+  .search-box {
+    flex: 0 0 250px;
+    min-width: 200px;
+  }
+  
+  /* Filter-group wrap các bộ lọc bên trong */
+  .ctsv-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  
+  /* Các dropdown giữ kích thước cố định */
+  .ctsv-filter-group .ctsv-custom-dropdown,
+  .ctsv-filter-group .semester-filter__dropdown,
+  .ctsv-filter-group .semester-filter__date-wrapper {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .sort-toggle-btn {
+    flex: 0 0 auto;
+  }
+  
+  /* Modal-style detail panel on tablet */
+  .ctsv-detail-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: overlayFadeIn 0.2s ease;
+  }
+  
+  .ctsv-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 40px);
+    max-width: 600px;
+    max-height: calc(100vh - 80px);
+    z-index: 1000;
+    border-radius: 16px;
+    animation: modalSlideIn 0.3s ease;
+  }
+  
+  .ctsv-detail-panel:not(.has-content) {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1663,6 +1765,16 @@
     padding: 20px;
   }
   
+  .ctsv-header__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .ctsv-header__info h1 {
+    font-size: 20px;
+  }
+  
   .ctsv-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
@@ -1672,49 +1784,390 @@
     padding: 16px;
   }
   
+  .stat-card__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
   .stat-card__number {
     font-size: 24px;
   }
   
-  .filter-select {
-    min-width: 100px;
+  .stat-card__label {
+    font-size: 12px;
   }
   
+  .stat-card__badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  
+  /* Filters responsive - giữ trên 1 hàng, cho phép wrap tự nhiên */
+  .ctsv-filters {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    padding-bottom: 20px;
+    min-height: auto;
+    overflow: hidden; /* Không cho tràn */
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .search-box {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .ctsv-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .filter-select {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  /* Custom dropdown responsive */
+  .ctsv-custom-dropdown {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  /* Semester filter trong ctsv-filter-group */
+  .ctsv-filter-group .semester-filter__dropdown {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  .ctsv-filter-group .semester-filter__date-wrapper {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  .ctsv-filter-group .semester-filter__date-wrapper {
+    width: 100%;
+  }
+  
+  .sort-toggle-btn {
+    flex-shrink: 0;
+  }
+  
+  /* Info grid responsive */
   .info-grid {
     grid-template-columns: 1fr;
   }
   
   .detail-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+  }
+  
+  .detail-actions .btn-action {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .detail-actions .btn-cancel {
+    flex: 1 1 100%;
+    order: 3;
   }
   
   .modal-content {
     margin: 16px;
   }
+  
+  /* Panel adjustments */
+  .panel-header {
+    padding: 12px 16px;
+  }
+  
+  .request-list {
+    padding: 12px;
+  }
+  
+  .request-card {
+    padding: 14px;
+  }
+  
+  .detail-content {
+    padding: 16px;
+  }
+  
+  .detail-header {
+    padding: 16px;
+  }
+  
+  .detail-title h2 {
+    font-size: 16px;
+  }
+  
+  /* Modal-style detail panel on mobile */
+  .ctsv-detail-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: overlayFadeIn 0.2s ease;
+  }
+  
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .ctsv-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 32px);
+    max-width: 500px;
+    max-height: calc(100vh - 100px);
+    z-index: 1000;
+    border-radius: 16px;
+    animation: modalSlideIn 0.3s ease;
+  }
+  
+  .ctsv-detail-panel:not(.has-content) {
+    display: none;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  
+  .ctsv-detail-panel .detail-content {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+  
+  .btn-close {
+    display: flex !important;
+  }
 }
 
 @media (max-width: 640px) {
   .ctsv-filters {
-    flex-direction: row;
+    padding: 12px;
   }
   
   .search-box {
-    min-width: 100%;
+    flex: 1 1 200px;
+    min-width: 180px;
+    height: 44px;
   }
   
-  .filter-group {
+  .ctsv-filter-group {
+    display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
   }
   
   .filter-select {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .ctsv-custom-dropdown {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  /* Semester filter */
+  .ctsv-filter-group .semester-filter {
+    flex: 0 0 auto;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .ctsv-filter-group .semester-filter__dropdown {
+    flex: 0 0 auto;
     min-width: 140px;
+  }
+  
+  .ctsv-filter-group .semester-filter__date-wrapper {
+    flex: 0 0 auto;
+    min-width: 140px;
+  }
+  
+  .sort-toggle-btn {
+    flex: 0 0 auto;
+  }
+  
+  .student-brief {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .request-meta {
+    flex-direction: column;
+    gap: 4px;
   }
 }
 
 @media (max-width: 480px) {
+  .ctsv-management {
+    padding: 12px;
+    gap: 12px;
+  }
+  
   .ctsv-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .stat-card__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .stat-card__number {
+    font-size: 20px;
+  }
+  
+  .stat-card__label {
+    font-size: 11px;
+  }
+  
+  .ctsv-header {
+    padding: 16px;
+  }
+  
+  .ctsv-header__info h1 {
+    font-size: 18px;
+  }
+  
+  /* Ở 480px, các filter chiếm full width */
+  .ctsv-filters {
+    padding: 12px;
+    overflow: hidden;
+  }
+  
+  .search-box {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .ctsv-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .ctsv-filter-group .ctsv-custom-dropdown,
+  .ctsv-filter-group .semester-filter__dropdown,
+  .ctsv-filter-group .semester-filter__date-wrapper,
+  .filter-select {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    max-width: calc(50% - 3px);
+  }
+  
+  .sort-toggle-btn {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  
+  /* Request card mobile */
+  .request-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .request-code {
+    font-size: 13px;
+  }
+  
+  .status-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  
+  /* Detail panel mobile */
+  .detail-header {
+    padding: 12px;
+  }
+  
+  .detail-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .detail-title h2 {
+    font-size: 14px;
+  }
+  
+  .detail-content {
+    padding: 12px;
+  }
+  
+  .detail-section {
+    padding: 14px;
+  }
+  
+  .section-title {
+    font-size: 13px;
+  }
+  
+  .info-item label {
+    font-size: 11px;
+  }
+  
+  .info-item span {
+    font-size: 13px;
+  }
+  
+  /* Toast mobile */
+  .toast-notification {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
   }
 }
 

@@ -53,8 +53,12 @@ class DormitoryRepository {
   // Update findById method
   async findById(id) {
     return DormitoryRequest.findById(id)
-      .populate('student')
-      .populate('category', 'name') // Add this line
+      .populate({
+        path: 'student',
+        populate: { path: 'roomId', select: 'name' }
+      })
+      .populate('roomId', 'name') // Populate roomId tại thời điểm tạo yêu cầu
+      .populate('category', 'name')
       .lean()
       .exec();
   }
@@ -81,9 +85,13 @@ class DormitoryRepository {
     return DormitoryRequest.find(query)
       .populate({
         path: 'student',
-        select: 'fullName user',
-        populate: { path: 'user', select: 'email' }
+        select: 'fullName user roomId',
+        populate: [
+          { path: 'user', select: 'email' },
+          { path: 'roomId', select: 'name' }
+        ]
       })
+      .populate('roomId', 'name') // Populate roomId tại thời điểm tạo yêu cầu
       .populate('category', 'name')
       .populate('item', 'name')
       .sort({ createdAt: -1 })
@@ -130,6 +138,7 @@ class DormitoryRepository {
         { path: 'roomId', select: 'name' }
       ]
     })
+    .populate('roomId', 'name') // Populate roomId tại thời điểm tạo yêu cầu
     .populate('category', 'name')
     .populate('item', 'name')
     .exec();

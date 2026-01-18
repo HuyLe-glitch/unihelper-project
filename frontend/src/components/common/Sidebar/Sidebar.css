@@ -173,35 +173,73 @@
   }
 }
 
-@media (max-width: 768px) {
+/* Tablet & Mobile - Sidebar overlay mode */
+@media (max-width: 1024px) {
   .sidebar {
-    width: 70px;
-    overflow: hidden;
+    position: fixed;
+    width: 250px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1100;
+    overflow: visible;
   }
 
-  .sidebar:hover {
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Remove collapsed behavior on tablet/mobile */
+  .sidebar.collapsed {
     width: 250px;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.collapsed.mobile-open {
+    transform: translateX(0);
   }
 
   .menu-label,
   .app-name,
   .expand-arrow {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .sidebar:hover .menu-label,
-  .sidebar:hover .app-name,
-  .sidebar:hover .expand-arrow {
-    opacity: 1;
+    opacity: 1 !important;
   }
 
   .submenu {
-    display: none;
+    display: block !important;
   }
 
-  .sidebar:hover .submenu {
-    display: block;
+  /* Sidebar backdrop */
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1099;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .sidebar-header {
+    padding: 0 16px;
+  }
+
+  .menu-item {
+    padding: 14px 16px;
   }
 }
 

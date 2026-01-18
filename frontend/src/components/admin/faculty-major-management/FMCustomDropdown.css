@@ -1,0 +1,242 @@
+/* ==========================================
+   FM CUSTOM DROPDOWN - Faculty Major Management
+   Prefix: fm-cd to avoid conflicts
+   ========================================== */
+
+.fm-cd-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 350px;
+}
+
+.fm-cd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fm-cd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: white;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.fm-cd-trigger:hover {
+  border-color: #667eea;
+}
+
+.fm-cd-trigger.fm-cd-open {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.fm-cd-trigger-disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fm-cd-trigger-disabled:hover {
+  border-color: #dee2e6;
+}
+
+.fm-cd-value {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-cd-arrow {
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.fm-cd-arrow-up {
+  transform: rotate(180deg);
+}
+
+.fm-cd-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  animation: fm-cd-fadeIn 0.15s ease;
+}
+
+@keyframes fm-cd-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fm-cd-option {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-cd-option:hover {
+  background: #f8f9ff;
+  color: #667eea;
+}
+
+.fm-cd-option-selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.fm-cd-option-selected:hover {
+  background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+  color: white;
+}
+
+.fm-cd-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fm-cd-menu::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 3px;
+}
+
+.fm-cd-menu::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+
+.fm-cd-menu::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+.fm-cd-disabled {
+  pointer-events: none;
+}
+
+/* ==========================================
+   RESPONSIVE - Tablet (max-width: 1024px)
+   ========================================== */
+@media (max-width: 1024px) {
+  .fm-cd-wrapper {
+    min-width: 160px;
+  }
+  
+  .fm-cd-trigger {
+    padding: 10px 14px;
+    min-height: 44px;
+  }
+  
+  .fm-cd-value {
+    font-size: 13px;
+  }
+  
+  .fm-cd-option {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - Mobile (max-width: 768px)
+   ========================================== */
+@media (max-width: 768px) {
+  .fm-cd-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+  
+  .fm-cd-label {
+    font-size: 11px;
+  }
+  
+  .fm-cd-trigger {
+    padding: 10px 12px;
+    min-height: 42px;
+  }
+  
+  .fm-cd-value {
+    font-size: 13px;
+  }
+  
+  .fm-cd-menu {
+    max-height: 200px;
+  }
+  
+  .fm-cd-option {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - Small Mobile (max-width: 480px)
+   ========================================== */
+@media (max-width: 480px) {
+  .fm-cd-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+  
+  .fm-cd-label {
+    font-size: 10px;
+  }
+  
+  .fm-cd-trigger {
+    padding: 8px 10px;
+    min-height: 40px;
+    border-radius: 8px;
+  }
+  
+  .fm-cd-value {
+    font-size: 12px;
+  }
+  
+  .fm-cd-menu {
+    border-radius: 8px;
+    max-height: 180px;
+  }
+  
+  .fm-cd-option {
+    padding: 10px;
+    font-size: 12px;
+  }
+}

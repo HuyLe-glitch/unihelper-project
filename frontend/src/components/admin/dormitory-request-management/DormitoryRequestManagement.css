@@ -938,3 +938,471 @@
 .toast-message {
   flex: 1;
 }
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+/* Mobile overlay mode */
+.main-content.mobile .dormitory-request-management {
+  margin-left: 0;
+  padding-left: 20px;
+  padding-right: 20px;
+  width: 100%;
+}
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .dormitory-request-management {
+    padding: 20px;
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+  }
+
+  .main-content.sidebar-collapsed .dormitory-request-management {
+    margin-left: 0;
+    padding-left: 20px;
+  }
+
+  .header-content {
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .tabs-container {
+    margin-bottom: 20px;
+    padding: 6px;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .tab-icon {
+    font-size: 18px;
+  }
+
+  .tab-badge {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  .stats-grid {
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 18px;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+    width: 55px;
+    height: 55px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .search-and-filters {
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .search-box {
+    min-width: 200px;
+    height: 44px;
+  }
+
+  .content-section {
+    padding: 20px;
+  }
+
+  .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .item-card {
+    padding: 20px;
+  }
+
+  .item-title {
+    font-size: 16px;
+  }
+
+  .delete-dialog {
+    max-width: 90%;
+  }
+}
+
+/* Mobile (max 767px) */
+@media (max-width: 767px) {
+  .dormitory-request-management {
+    padding: 15px;
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .header-content {
+    padding: 18px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+
+  .tabs-container {
+    padding: 6px;
+    margin-bottom: 15px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tab {
+    width: 100%;
+    padding: 12px 16px;
+    justify-content: flex-start;
+  }
+
+  .tab-icon {
+    font-size: 18px;
+  }
+
+  .tab-text {
+    font-size: 14px;
+    flex: 1;
+    text-align: left;
+  }
+
+  .tab-badge {
+    margin-left: auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    font-size: 30px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .stat-content h3 {
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .search-and-filters {
+    padding: 15px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .search-box {
+    flex: 1;
+    width: 100%;
+    min-width: 100%;
+    height: 46px;
+  }
+
+  .filters-grid {
+    width: 100%;
+    flex: 1;
+  }
+
+  .content-section {
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .items-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .item-card {
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .item-title {
+    font-size: 16px;
+  }
+
+  .type-tag {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .item-description {
+    font-size: 13px;
+  }
+
+  .item-stats {
+    gap: 15px;
+    padding-top: 10px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .item-stat .stat-value {
+    font-size: 18px;
+  }
+
+  .item-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .btn-action {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .btn-view {
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .btn-edit {
+    flex: 1;
+    order: 2;
+  }
+
+  .btn-delete {
+    flex: 1;
+    order: 3;
+  }
+
+  .btn-quick-add {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    top: 10px;
+    right: 10px;
+  }
+
+  /* Delete Dialog responsive */
+  .delete-overlay {
+    padding: 15px;
+    align-items: flex-end;
+  }
+
+  .delete-dialog {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .delete-dialog-header {
+    padding: 16px 20px;
+  }
+
+  .delete-dialog-header .delete-icon {
+    font-size: 24px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 16px;
+  }
+
+  .delete-dialog-content {
+    padding: 20px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 14px;
+  }
+
+  .delete-dialog-actions {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .delete-dialog-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Toast responsive */
+  .toast-notification {
+    left: 15px;
+    right: 15px;
+    bottom: 20px;
+    max-width: none;
+  }
+
+  /* No data */
+  .no-data {
+    padding: 40px 15px;
+  }
+
+  .no-data-icon {
+    font-size: 50px;
+  }
+
+  .no-data p {
+    font-size: 14px;
+  }
+}
+
+/* Small Mobile (max 480px) */
+@media (max-width: 480px) {
+  .dormitory-request-management {
+    padding: 12px;
+  }
+
+  .header-content {
+    padding: 15px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+  }
+
+  .tabs-container {
+    padding: 5px;
+  }
+
+  .tab {
+    padding: 10px 12px;
+  }
+
+  .tab-icon {
+    font-size: 16px;
+  }
+
+  .tab-text {
+    font-size: 13px;
+  }
+
+  .tab-badge {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-icon {
+    font-size: 26px;
+    width: 45px;
+    height: 45px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .search-and-filters {
+    padding: 12px;
+  }
+
+  .search-box {
+    height: 44px;
+    padding: 0 12px 0 40px;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 18px;
+  }
+
+  .search-input {
+    font-size: 14px;
+  }
+
+  .content-section {
+    padding: 12px;
+  }
+
+  .item-card {
+    padding: 15px;
+  }
+
+  .item-title {
+    font-size: 15px;
+  }
+
+  .type-tag {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .item-description {
+    font-size: 12px;
+  }
+
+  .item-stat .stat-value {
+    font-size: 16px;
+  }
+
+  .btn-action {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .delete-dialog-header {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-content {
+    padding: 16px;
+  }
+
+  .delete-dialog-actions {
+    padding: 12px 16px;
+  }
+}

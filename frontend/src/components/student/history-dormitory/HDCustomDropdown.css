@@ -1,0 +1,217 @@
+/* ============================================
+   HD CUSTOM DROPDOWN - History Dormitory
+   Prefix: hd-cd để tránh conflict CSS
+   ============================================ */
+
+.hd-cd-wrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.hd-cd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 12px;
+  padding-right: 32px;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: left;
+  min-width: 0;
+}
+
+.hd-cd-trigger:hover {
+  border-color: #667eea;
+}
+
+.hd-cd-trigger:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.hd-cd-trigger.hd-cd-open {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.hd-cd-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.hd-cd-placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.hd-cd-arrow {
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+  position: absolute;
+  right: 12px;
+}
+
+.hd-cd-arrow-up {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.hd-cd-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: hdDropdownSlideDown 0.2s ease;
+}
+
+@keyframes hdDropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hd-cd-option {
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f3f5;
+  /* Text wrap cho options dài */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.hd-cd-option:last-child {
+  border-bottom: none;
+}
+
+.hd-cd-option:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.hd-cd-option-selected {
+  background: #f0f0ff;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.hd-cd-option-selected:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Disabled State */
+.hd-cd-disabled .hd-cd-trigger {
+  background: #e9ecef;
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+.hd-cd-disabled .hd-cd-trigger:hover {
+  border-color: #dee2e6;
+}
+
+/* Custom Scrollbar */
+.hd-cd-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hd-cd-menu::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 3px;
+}
+
+.hd-cd-menu::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+
+.hd-cd-menu::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .hd-cd-trigger {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 10px;
+    padding-right: 28px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  .hd-cd-option {
+    padding: 12px 12px;
+    font-size: 14px;
+  }
+  
+  .hd-cd-menu {
+    max-height: 180px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hd-cd-trigger {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 10px;
+    padding-right: 26px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  
+  .hd-cd-arrow {
+    font-size: 9px;
+    right: 10px;
+  }
+  
+  .hd-cd-option {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .hd-cd-menu {
+    max-height: 160px;
+    border-radius: 6px;
+  }
+}

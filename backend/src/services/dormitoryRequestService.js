@@ -98,9 +98,11 @@ class DormitoryRequestService {
     const requestCode = await dormitoryRepository.getNextRequestCode();
 
     // Tạo request thông qua Repository
+    // Lưu roomId tại thời điểm tạo yêu cầu để giữ lịch sử chính xác khi sinh viên chuyển phòng
     const created = await dormitoryRepository.create({
       requestCode,
       student: student._id,
+      roomId: student.roomId._id, // Lưu phòng tại thời điểm tạo yêu cầu
       semester: activeSemester.name, // Lưu tên học kỳ active
       category,
       item: item || null,
@@ -114,6 +116,8 @@ class DormitoryRequestService {
       _id: created._id,
       requestCode: created.requestCode,
       semester: created.semester,
+      // Thêm roomId để hiển thị phòng đúng khi sinh viên chuyển phòng
+      roomId: student.roomId,
       category: { _id: foundCategory._id, name: foundCategory.name },
       item: foundItem ? { _id: foundItem._id, name: foundItem.name } : null,
       description: created.description,
@@ -126,7 +130,8 @@ class DormitoryRequestService {
       student: {
         _id: student._id,
         fullName: student.fullName,
-        user: { email: student.user?.email || '' }
+        user: { email: student.user?.email || '' },
+        roomId: student.roomId // Phòng hiện tại của sinh viên
       }
     };
 

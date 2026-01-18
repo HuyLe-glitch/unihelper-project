@@ -26,6 +26,15 @@
   position: relative;
 }
 
+/* Adjust when sidebar is collapsed (70px) - ONLY for desktop > 1024px */
+@media (min-width: 1025px) {
+  .sidebar.collapsed ~ * .student-affairs,
+  .main-content.sidebar-collapsed .student-affairs {
+    margin-left: -70px; /* Offset sidebar collapsed */
+    padding-left: 90px; /* Compensate for smaller offset */
+  }
+}
+
 .student-affairs-container {
   width: 100%;
   max-width: 100%;
@@ -163,11 +172,13 @@
 }
 
 .form-group-certificate {
-  display: flex;
+  display: grid;
+  grid-template-columns: 180px 1fr;
   align-items: center;
   gap: 15px;
   margin-bottom: 15px;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -176,9 +187,16 @@
   color: #000;
   font-size: 14px;
   text-transform: uppercase;
-  min-width: 220px;
   text-align: left;
-  flex-shrink: 0;
+}
+
+/* Grid cell tự động có overflow visible - dropdown menu sẽ hiển thị đúng */
+.form-group-certificate .sa-cd-wrapper,
+.form-group-certificate .select-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  /* KHÔNG dùng overflow: hidden ở đây vì dropdown menu cần hiển thị */
 }
 
 .required {
@@ -188,24 +206,27 @@
 .select-container {
   position: relative;
   flex: 1;
-  min-width: 250px;
+  min-width: 0;
+  width: 100%;
 }
 
 .select-input {
   width: 100%;
-  min-width: 250px;
-  padding: 8px 35px 8px 12px;
+  min-width: 0;
+  padding: 10px 35px 10px 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #f8f9fa;
+  border-radius: 8px;
+  background: #fff;
   font-size: 14px;
   color: #000;
   cursor: pointer;
-  height: 38px;
+  height: auto;
+  min-height: 42px;
   box-sizing: border-box;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  /* Text overflow handling */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -219,11 +240,13 @@
 
 /* Style for dropdown options */
 .select-input option {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: white;
   color: #000;
   font-size: 14px;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 /* Add dropdown arrow */
@@ -304,18 +327,29 @@
   margin-left: 0;
 }
 
+/* Semester display input - không có dropdown icon */
+.semester-display {
+  background-color: #f8f9fa !important;
+  cursor: default !important;
+}
+
+/* Confirmation wrapper - thẳng hàng với các field khác */
+.confirmation-wrapper {
+  padding-left: 195px; /* Thẳng hàng với input của các field (180px label + 15px gap) */
+}
+
 /* Special spacing for confirmation section */
 .confirmation-row {
-  margin-top: 20px !important;
-  margin-bottom: 20px !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding-left: 235px;
 }
 
 .confirmation-row .form-checkbox {
   margin-left: 0;
+  margin-top: 2px;
 }
 
 .form-checkbox {
@@ -365,10 +399,66 @@
    RESPONSIVE DESIGN
    ============================================ */
 
+/* Large Desktop (> 1200px) - Default styles above */
+
+/* Desktop (max-width: 1200px) */
+@media (max-width: 1200px) {
+  .student-affairs {
+    padding-right: 25px;
+  }
+  
+  .sa-form-group label,
+  .form-group-certificate label {
+    min-width: 180px;
+  }
+}
+
+/* Tablet/Mobile - Overlay sidebar mode */
+@media (max-width: 1024px) {
+  .student-affairs {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  
+  .student-affairs-container {
+    gap: 24px;
+  }
+  
+  .info-section {
+    border-radius: 16px;
+  }
+  
+  .info-form, .certificate-form {
+    padding: 24px 28px;
+  }
+  
+  .note-section {
+    padding: 16px 28px;
+  }
+  
+  .sa-form-group label,
+  .form-group-certificate label {
+    min-width: 160px;
+    font-size: 13px;
+  }
+  
+  .section-header {
+    padding: 18px 24px;
+  }
+  
+  .section-header h2 {
+    font-size: 17px;
+  }
+}
+
 /* Tablet (max-width: 768px) */
 @media (max-width: 768px) {
   .student-affairs {
-    padding: 15px;
+    padding: 16px !important;
   }
   
   .student-affairs-container {
@@ -376,30 +466,58 @@
   }
   
   .info-section {
+    border-radius: 12px;
     width: 100%;
   }
   
   .info-form, .certificate-form {
-    padding: 25px 20px;
+    padding: 20px;
   }
   
   .note-section {
-    padding: 15px 20px;
+    padding: 14px 20px;
   }
   
+  /* Stack form fields vertically */
   .form-group,
   .sa-form-group {
     flex-direction: column !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
     gap: 8px;
   }
   
   .form-group-certificate {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
+  /* Đảm bảo dropdown không tràn trên mobile nhưng menu vẫn hiển thị */
+  .form-group-certificate .sa-cd-wrapper,
+  .form-group-certificate .select-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    /* KHÔNG dùng overflow: hidden ở wrapper vì dropdown menu cần hiển thị */
+  }
+  
+  .form-group-certificate .sa-cd-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .form-group-certificate .sa-cd-value {
+    min-width: 0 !important;
+    max-width: calc(100% - 30px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
   .form-checkbox {
     align-self: flex-start;
   }
@@ -409,6 +527,12 @@
   .form-group-certificate label {
     min-width: auto;
     font-size: 13px;
+    text-align: left;
+  }
+  
+  .sa-form-group input[type="text"],
+  .text-input {
+    width: 100%;
   }
   
   .section-header h2 {
@@ -416,40 +540,85 @@
   }
   
   .section-header {
-    padding: 15px 20px;
+    padding: 16px 20px;
+  }
+
+  .confirmation-wrapper {
+    padding-left: 0;
   }
   
   .confirmation-row {
     padding-left: 0;
+    flex-direction: row;
+    align-items: flex-start;
   }
   
   .select-container,
+  .select-input,
   .text-input,
   .textarea-input {
-    width: 100%;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .select-input {
+    padding: 12px 35px 12px 12px;
+    min-height: 44px;
+    height: auto !important;
+    font-size: 14px;
+    border-radius: 8px;
+    background: #fff;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .select-input option {
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  .info-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .info-note p {
+    min-width: auto;
   }
 }
 
 /* Mobile (max-width: 480px) */
 @media (max-width: 480px) {
   .student-affairs {
-    padding: 12px;
+    padding: 12px !important;
   }
   
   .student-affairs-container {
-    gap: 15px;
+    gap: 16px;
+  }
+  
+  .info-section {
+    border-radius: 10px;
   }
   
   .info-form, .certificate-form {
-    padding: 20px 15px;
+    padding: 16px 14px;
   }
   
   .note-section {
-    padding: 12px 15px;
+    padding: 12px 14px;
   }
   
   .section-header {
-    padding: 15px;
+    padding: 14px 16px;
   }
   
   .section-header h2 {
@@ -462,32 +631,96 @@
     font-size: 12px;
   }
   
+  .sa-form-group input[type="text"],
+  .text-input {
+    padding: 12px 14px;
+    font-size: 14px;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .select-input {
+    padding: 12px 35px 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+    height: auto !important;
+    border-radius: 8px;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+
+  .select-input option {
+    padding: 12px 14px;
+    font-size: 14px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  /* QUAN TRỌNG: Đảm bảo dropdown không tràn trên mobile nhỏ nhưng menu vẫn hiển thị */
+  .form-group-certificate .sa-cd-wrapper,
+  .form-group-certificate .select-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    /* KHÔNG dùng overflow: hidden ở wrapper */
+  }
+  
+  .form-group-certificate .sa-cd-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .form-group-certificate .sa-cd-value {
+    min-width: 0 !important;
+    max-width: calc(100% - 30px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .note-text {
+    font-size: 11px;
+  }
+  
   .submit-btn {
     width: 100%;
-    padding: 12px 20px;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  .confirmation-label {
+    font-size: 13px !important;
   }
 }
 
 /* ============================================
-   SIDEBAR COLLAPSED STATE HANDLING
+   SIDEBAR STATE HANDLING - DESKTOP ONLY
+   We adjust our negative margin and padding accordingly.
    ============================================ */
 
-/* 
-   When Layout component collapses sidebar (70px width),
-   it adds 'sidebar-collapsed' class to .main-content.
-   We adjust our negative margin and padding accordingly.
-*/
+/* Desktop only - Sidebar Collapsed State (70px) */
+@media (min-width: 1025px) {
+  .main-content.sidebar-collapsed .student-affairs {
+    margin-left: -70px !important;
+    padding-left: 90px !important;
+  }
 
-/* Sidebar Collapsed State (70px) */
-.main-content.sidebar-collapsed .student-affairs {
-  margin-left: -70px !important; /* Collapsed sidebar width */
-  padding-left: 90px !important; /* 70px sidebar + 20px spacing */
+  /* Sidebar Expanded State (250px) - Default */
+  .main-content.sidebar-expanded .student-affairs {
+    margin-left: -250px !important;
+    padding-left: 270px !important;
+  }
 }
 
-/* Sidebar Expanded State (250px) - Default */
-.main-content.sidebar-expanded .student-affairs {
-  margin-left: -250px !important; /* Expanded sidebar width */
-  padding-left: 270px !important; /* 250px sidebar + 20px spacing */
+/* Tablet/Mobile - No sidebar offset needed */
+@media (max-width: 1024px) {
+  .main-content.sidebar-collapsed .student-affairs,
+  .main-content.sidebar-expanded .student-affairs {
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+  }
 }
 
 /* Ensure all child elements inherit box-sizing */

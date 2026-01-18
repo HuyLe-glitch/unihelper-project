@@ -337,7 +337,7 @@
 .requests-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* Đảm bảo độ rộng cột cố định theo tỷ lệ */
+  table-layout: auto; /* Cho phép cột tự điều chỉnh theo nội dung */
 }
 
 /* Table Header */
@@ -346,7 +346,7 @@
 }
 
 .requests-table thead th {
-  padding: 16px 14px;
+  padding: 16px 12px;
   font-size: 13px;
   font-weight: 700;
   color: white;
@@ -358,33 +358,33 @@
   z-index: 10;
 }
 
-/* Định nghĩa độ rộng tỷ lệ % để bảng trải đều 100% */
+/* Định nghĩa độ rộng min-width cố định để tránh các cột bị đè */
 .requests-table thead th:nth-child(1),
-.requests-table tbody td:nth-child(1) { width: 9%; text-align: center; } /* Mã yêu cầu */
+.requests-table tbody td:nth-child(1) { min-width: 80px; width: 80px; text-align: center; } /* Mã yêu cầu */
 
 .requests-table thead th:nth-child(2),
-.requests-table tbody td:nth-child(2) { width: 12%; text-align: left; } /* Loại chứng nhận */
+.requests-table tbody td:nth-child(2) { min-width: 130px; width: 130px; text-align: left; } /* Loại chứng nhận */
 
 .requests-table thead th:nth-child(3),
-.requests-table tbody td:nth-child(3) { width: 14%; text-align: left; } /* Tên chứng nhận */
+.requests-table tbody td:nth-child(3) { min-width: 150px; width: 150px; text-align: left; } /* Tên chứng nhận */
 
 .requests-table thead th:nth-child(4),
-.requests-table tbody td:nth-child(4) { width: 12%; text-align: center; } /* Học kỳ xét */
+.requests-table tbody td:nth-child(4) { min-width: 110px; width: 110px; text-align: center; } /* Học kỳ xét */
 
 .requests-table thead th:nth-child(5),
-.requests-table tbody td:nth-child(5) { width: 10%; text-align: center; } /* Ngày yêu cầu */
+.requests-table tbody td:nth-child(5) { min-width: 100px; width: 100px; text-align: center; } /* Ngày yêu cầu */
 
 .requests-table thead th:nth-child(6),
-.requests-table tbody td:nth-child(6) { width: 11%; text-align: center; } /* Trạng thái */
+.requests-table tbody td:nth-child(6) { min-width: 100px; width: 100px; text-align: center; } /* Trạng thái */
 
 .requests-table thead th:nth-child(7),
-.requests-table tbody td:nth-child(7) { width: 9%; text-align: center; } /* Phản hồi lúc */
+.requests-table tbody td:nth-child(7) { min-width: 100px; width: 100px; text-align: center; } /* Phản hồi lúc */
 
 .requests-table thead th:nth-child(8),
-.requests-table tbody td:nth-child(8) { width: 15%; text-align: left; } /* Lưu ý - flexible */
+.requests-table tbody td:nth-child(8) { min-width: 150px; width: 150px; text-align: left; } /* Lưu ý */
 
 .requests-table thead th:nth-child(9),
-.requests-table tbody td:nth-child(9) { width: 8%; text-align: center; } /* File đính kèm */
+.requests-table tbody td:nth-child(9) { min-width: 180px; width: 180px; text-align: center; } /* File phản hồi */
 
 /* Table Body */
 .requests-table tbody tr {
@@ -402,7 +402,7 @@
 }
 
 .requests-table td {
-  padding: 16px 14px;
+  padding: 16px 16px;
   font-size: 14px;
   color: #495057;
   vertical-align: middle;
@@ -423,17 +423,19 @@
 .cell-type {
   color: #495057;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .cell-name {
   color: #2c3e50;
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .cell-semester {
@@ -489,34 +491,31 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 13px;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.status-icon {
-  font-size: 14px;
+  min-width: fit-content;
 }
 
 .status-valid {
   background: #d4edda;
   color: #155724;
-  border: 2px solid #c3e6cb;
+  border: 1px solid #c3e6cb;
 }
 
 .status-processing {
   background: #fff3cd;
   color: #856404;
-  border: 2px solid #ffeaa7;
+  border: 1px solid #ffeaa7;
 }
 
 .status-invalid {
   background: #f8d7da;
   color: #721c24;
-  border: 2px solid #f5c6cb;
+  border: 1px solid #f5c6cb;
 }
 
 /* File Link */
@@ -533,6 +532,49 @@
 .file-link:hover {
   color: #764ba2;
   text-decoration: underline;
+}
+
+/* File Preview Button */
+.file-preview-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 100%;
+}
+
+.file-preview-btn:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.file-preview-btn:hover .file-icon,
+.file-preview-btn:hover .file-name {
+  color: white;
+}
+
+.file-preview-btn .file-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #667eea;
+  transition: color 0.2s ease;
+}
+
+.file-preview-btn .file-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
 }
 
 .file-icon {
@@ -626,6 +668,20 @@
 
 /* Large Tablet (769px - 1024px) */
 @media (max-width: 1024px) {
+  .history-affair-container {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .main-content.sidebar-expanded .history-affair-container,
+  .main-content.sidebar-collapsed .history-affair-container,
+  .main-content.mobile .history-affair-container {
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
@@ -653,224 +709,431 @@
     width: 55px;
     height: 55px;
   }
+  
+  .header-content {
+    padding: 20px;
+  }
 }
 
 /* Tablet (481px - 768px) */
 @media (max-width: 768px) {
   .history-affair-container {
     padding: 15px;
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-expanded .history-affair-container,
+  .main-content.sidebar-collapsed .history-affair-container,
+  .main-content.mobile .history-affair-container {
+    margin-left: 0 !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
   }
 
   .header-content {
-    padding: 20px;
+    padding: 18px 16px;
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 20px;
     justify-content: center;
   }
 
   .create-btn {
     width: 100%;
     justify-content: center;
-    padding: 14px 20px;
+    padding: 12px 18px;
+    font-size: 14px;
   }
 
   /* Stats Grid - 2 columns on tablet */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
 
   .stat-card {
-    padding: 18px;
+    padding: 14px;
     min-height: auto;
-    gap: 15px;
+    gap: 12px;
   }
 
   .stat-icon {
-    font-size: 28px;
-    width: 50px;
-    height: 50px;
+    font-size: 24px;
+    width: 44px;
+    height: 44px;
   }
 
   .stat-value {
-    font-size: 26px;
+    font-size: 22px;
   }
 
   .stat-label {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   /* Filters - Stack vertically */
   .filters-section {
-    padding: 20px;
+    padding: 16px;
   }
 
   .filters-wrapper {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
 
   .search-group {
-    grid-column: 1;
+    grid-column: 1 / -1; /* Search chiếm toàn bộ hàng */
+  }
+  
+  .filter-group {
+    min-width: 0; /* Cho phép thu nhỏ */
+  }
+  
+  .search-input,
+  .filter-select {
+    padding: 10px 14px;
+    font-size: 14px;
+    min-width: 0;
+  }
+  
+  .filter-select {
+    /* Text không bị tràn */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-right: 32px;
+  }
+  
+  .sort-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .sort-group {
+    grid-column: 1 / -1; /* Sort chiếm toàn bộ hàng */
   }
 
-  /* Table adjustments */
+  /* Table adjustments - scroll hint */
+  .table-section {
+    position: relative;
+  }
+  
+  .table-section::after {
+    content: '← Vuốt để xem thêm →';
+    display: block;
+    text-align: center;
+    padding: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+  }
+  
+  .table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+
   .requests-table {
-    min-width: 1000px;
+    min-width: 1100px; /* Tăng để các cột không bị đè */
   }
 
   .requests-table thead th {
-    padding: 14px 12px;
-    font-size: 12px;
+    padding: 12px 10px;
+    font-size: 11px;
+    white-space: nowrap; /* Giữ text trên 1 dòng */
   }
 
   .requests-table td {
-    padding: 14px 12px;
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+  
+  .cell-id strong {
     font-size: 13px;
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .file-preview-btn {
+    padding: 5px 8px;
+  }
+  
+  .file-preview-btn .file-name {
+    font-size: 11px;
+    max-width: 80px;
   }
 }
 
 /* Mobile (max 480px) */
 @media (max-width: 480px) {
   .history-affair-container {
-    padding: 12px;
+    padding: 10px;
+  }
+  
+  .main-content.sidebar-expanded .history-affair-container,
+  .main-content.sidebar-collapsed .history-affair-container,
+  .main-content.mobile .history-affair-container {
+    margin-left: 0 !important;
+    padding: 10px !important;
   }
 
   .header-content {
-    padding: 18px;
+    padding: 14px 12px;
+    gap: 10px;
   }
 
   .page-title {
+    font-size: 18px;
+  }
+  
+  .page-title .title-icon {
     font-size: 20px;
   }
 
   .create-btn {
-    padding: 12px 18px;
-    font-size: 14px;
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  
+  .btn-icon {
+    font-size: 16px;
   }
 
-  /* Stats Grid - 2 columns on mobile */
+  /* Stats Grid - 2 columns compact on mobile */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 8px;
   }
 
   .stat-card {
-    padding: 15px;
-    flex-direction: column;
-    text-align: center;
+    padding: 12px 10px;
+    flex-direction: row;
+    text-align: left;
     gap: 10px;
+    border-radius: 8px;
   }
 
   .stat-icon {
-    font-size: 28px;
-    width: 50px;
-    height: 50px;
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .stat-label {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   /* Filters */
   .filters-section {
-    padding: 16px;
+    padding: 12px;
+    border-radius: 8px;
   }
 
   .filters-wrapper {
-    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .search-group {
+    grid-column: 1 / -1;
+  }
+  
+  .sort-group {
+    grid-column: 1 / -1;
   }
 
   .search-input,
   .filter-select {
-    padding: 10px 14px;
-    font-size: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    min-width: 0;
+  }
+  
+  .filter-select {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-right: 30px;
   }
 
   .filter-label {
-    font-size: 12px;
+    font-size: 11px;
+  }
+  
+  .sort-toggle-btn {
+    padding: 10px 14px;
+    font-size: 13px;
   }
 
-  /* Table */
+  /* Table - compact */
   .table-section {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+  }
+  
+  .table-section::after {
+    font-size: 11px;
+    padding: 6px;
   }
 
   .requests-table {
-    min-width: 800px;
+    min-width: 1100px; /* Tăng để các cột không bị đè */
   }
 
   .requests-table thead th {
-    padding: 12px 10px;
-    font-size: 11px;
+    padding: 10px 8px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    white-space: nowrap; /* Giữ text trên 1 dòng */
   }
 
   .requests-table td {
-    padding: 12px 10px;
-    font-size: 12px;
+    padding: 10px 8px;
+    font-size: 11px;
   }
 
   .cell-id strong {
-    font-size: 13px;
+    font-size: 12px;
   }
-
+  
+  .cell-type,
   .cell-name {
-    max-width: 150px;
-    font-size: 13px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  
+  .cell-semester,
+  .cell-date,
+  .cell-response {
+    font-size: 10px;
   }
 
   .cell-notes {
-    max-width: 200px;
+    max-width: 120px;
   }
 
   .notes-content {
-    font-size: 12px;
-    max-height: 80px;
+    font-size: 10px;
+    max-height: 60px;
   }
 
   .status-badge {
-    padding: 6px 12px;
-    font-size: 11px;
+    padding: 3px 6px;
+    font-size: 9px;
+    border-radius: 10px;
   }
 
   .action-btn {
-    padding: 6px 12px;
-    font-size: 11px;
+    padding: 5px 10px;
+    font-size: 10px;
   }
 
-  .file-name {
-    font-size: 11px;
+  .file-preview-btn {
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+  
+  .file-preview-btn .file-icon {
+    font-size: 14px;
+  }
+  
+  .file-preview-btn .file-name {
+    font-size: 10px;
+    max-width: 60px;
+  }
+  
+  .no-file {
+    font-size: 10px;
+  }
+  
+  /* No data state */
+  .no-data {
+    padding: 40px 16px;
+  }
+  
+  .no-data-icon {
+    font-size: 48px;
+  }
+  
+  .no-data-content p {
+    font-size: 14px;
   }
 }
 
 /* Very Small Mobile (max 360px) */
 @media (max-width: 360px) {
+  .history-affair-container {
+    padding: 8px;
+  }
+  
+  .header-content {
+    padding: 12px 10px;
+  }
+  
+  .page-title {
+    font-size: 16px;
+  }
+
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
   }
 
   .stat-card {
-    flex-direction: row;
-    text-align: left;
-    justify-content: flex-start;
+    padding: 10px 8px;
+    gap: 8px;
   }
 
   .stat-icon {
-    font-size: 24px;
-    width: 45px;
-    height: 45px;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
   }
 
   .stat-value {
-    font-size: 22px;
+    font-size: 16px;
+  }
+  
+  .stat-label {
+    font-size: 9px;
+  }
+  
+  .filters-section {
+    padding: 10px;
+  }
+  
+  .search-input,
+  .filter-select {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .requests-table {
+    min-width: 700px;
+  }
+  
+  .requests-table thead th {
+    padding: 8px 6px;
+    font-size: 9px;
+  }
+  
+  .requests-table td {
+    padding: 8px 6px;
+    font-size: 10px;
   }
 }
 
@@ -894,6 +1157,13 @@
 .main-content.sidebar-expanded .history-affair-container {
   margin-left: -250px !important; /* Expanded sidebar width */
   padding-left: 270px !important; /* 250px sidebar + 20px spacing */
+}
+
+/* Mobile State - Sidebar overlay mode */
+.main-content.mobile .history-affair-container {
+  margin-left: 0 !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
 }
 
 /* Ensure all child elements inherit box-sizing */

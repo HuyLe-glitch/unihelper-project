@@ -6,9 +6,9 @@
   position: fixed;
   bottom: 100px;
   right: 24px;
-  width: 400px;
-  height: 580px;
-  max-height: calc(100vh - 140px);
+  width: 420px;
+  height: 600px;
+  max-height: calc(100vh - 130px);
   background: white;
   border-radius: 16px;
   box-shadow: 
@@ -57,8 +57,8 @@
 
 @media (max-width: 1024px) and (min-width: 769px) {
   .chatbot-window {
-    width: 380px;
-    height: 520px;
+    width: 400px;
+    height: 560px;
     bottom: 90px;
     right: 20px;
   }

@@ -4,7 +4,7 @@ import { getMenuConfig } from '../../../constants';
 import { authService } from '../../../services';
 import './Sidebar.css';
 
-const Sidebar = ({ userRole = 'student', isCollapsed = false }) => {
+const Sidebar = ({ userRole = 'student', isCollapsed = false, className = '' }) => {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState({});
 
@@ -56,7 +56,7 @@ const Sidebar = ({ userRole = 'student', isCollapsed = false }) => {
   };
 
   return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${className}`}>
       <div className="sidebar-header">
         <div className="app-logo">
           <div className="logo-icon">🎓</div>

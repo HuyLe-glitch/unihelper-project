@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import SFCustomDropdown from './SFCustomDropdown';
 import './StudentFormModal.css';
 
 /**
@@ -326,18 +327,17 @@ const StudentFormModal = ({
               <label>
                 Khoa <span className="required">*</span>
               </label>
-              <select
+              <SFCustomDropdown
                 name="facultyId"
                 value={formData.facultyId}
                 onChange={handleChange}
-              >
-                <option value="">-- Chọn khoa --</option>
-                {faculties.map(faculty => (
-                  <option key={faculty._id} value={faculty._id}>
-                    {faculty.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="-- Chọn khoa --"
+                hasError={!!errors.facultyId}
+                options={faculties.map(faculty => ({
+                  value: faculty._id,
+                  label: faculty.name
+                }))}
+              />
               {errors.facultyId && <span className="error-message">{errors.facultyId}</span>}
             </div>
 
@@ -346,21 +346,18 @@ const StudentFormModal = ({
               <label>
                 Chuyên ngành <span className="required">*</span>
               </label>
-              <select
+              <SFCustomDropdown
                 name="major"
                 value={formData.major}
                 onChange={handleChange}
+                placeholder={!formData.facultyId ? '-- Vui lòng chọn Khoa trước --' : '-- Chọn chuyên ngành --'}
                 disabled={!formData.facultyId}
-              >
-                <option value="">
-                  {!formData.facultyId ? '-- Vui lòng chọn Khoa trước --' : '-- Chọn chuyên ngành --'}
-                </option>
-                {filteredMajors.map(major => (
-                  <option key={major._id} value={major._id}>
-                    {major.name}
-                  </option>
-                ))}
-              </select>
+                hasError={!!errors.major}
+                options={filteredMajors.map(major => ({
+                  value: major._id,
+                  label: major.name
+                }))}
+              />
               {errors.major && <span className="error-message">{errors.major}</span>}
             </div>
 
@@ -383,18 +380,17 @@ const StudentFormModal = ({
                 <label>
                   Phòng KTX <span className="required">*</span>
                 </label>
-                <select
+                <SFCustomDropdown
                   name="roomId"
                   value={formData.roomId}
                   onChange={handleChange}
-                >
-                  <option value="">-- Chọn phòng --</option>
-                  {availableRooms.map(room => (
-                    <option key={room._id} value={room._id}>
-                      {room.name} (Còn {room.available} chỗ)
-                    </option>
-                  ))}
-                </select>
+                  placeholder="-- Chọn phòng --"
+                  hasError={!!errors.roomId}
+                  options={availableRooms.map(room => ({
+                    value: room._id,
+                    label: `${room.name} (Còn ${room.available} chỗ)`
+                  }))}
+                />
                 {errors.roomId && <span className="error-message">{errors.roomId}</span>}
                 {availableRooms.length === 0 && (
                   <span className="field-hint" style={{ color: '#e53e3e' }}>

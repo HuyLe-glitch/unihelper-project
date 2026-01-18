@@ -140,24 +140,76 @@ const detectIntent = async (sessionId, text) => {
 /**
  * Trích xuất giá trị từ Dialogflow parameters
  * @param {Object} parameters - Parameters từ Dialogflow response
+ * @param {Array} outputContexts - OutputContexts từ Dialogflow (optional, để lấy entity value)
  * @returns {Object} - Object với các giá trị đã trích xuất
  */
-const extractParameters = (parameters) => {
+const extractParameters = (parameters, outputContexts = []) => {
   const extracted = {};
   
   for (const [key, value] of Object.entries(parameters)) {
-    if (value.stringValue) {
-      extracted[key] = value.stringValue;
+    // FIX: Dùng !== undefined thay vì truthy check để không bỏ qua empty string
+    if (value.stringValue !== undefined && value.stringValue !== null) {
+      // Nếu stringValue rỗng, thử tìm trong outputContexts
+      if (value.stringValue === '') {
+        const entityFromContext = extractEntityFromContexts(key, outputContexts);
+        if (entityFromContext) {
+          extracted[key] = entityFromContext;
+          console.log(`   🔄 Extracted "${key}" from outputContexts: "${entityFromContext}"`);
+        }
+        // Nếu không tìm thấy trong context, bỏ qua (không set empty string)
+      } else {
+        extracted[key] = value.stringValue;
+      }
     } else if (value.numberValue !== undefined) {
       extracted[key] = value.numberValue;
     } else if (value.listValue) {
-      extracted[key] = value.listValue.values.map(v => v.stringValue || v.numberValue);
+      const listValues = value.listValue.values.map(v => v.stringValue || v.numberValue).filter(v => v);
+      if (listValues.length > 0) {
+        extracted[key] = listValues;
+      }
     } else if (value.structValue) {
       extracted[key] = value.structValue.fields;
     }
   }
 
   return extracted;
+};
+
+/**
+ * Trích xuất entity value từ outputContexts
+ * Dialogflow thường lưu entity value trong context với key dạng:
+ * - "<param_name>" (resolved value)
+ * - "<param_name>.original" (original text từ user)
+ * @param {string} paramName - Tên parameter cần tìm
+ * @param {Array} outputContexts - Mảng outputContexts từ Dialogflow
+ * @returns {string|null} - Entity value nếu tìm thấy
+ */
+const extractEntityFromContexts = (paramName, outputContexts) => {
+  if (!outputContexts || outputContexts.length === 0) return null;
+  
+  for (const ctx of outputContexts) {
+    const fields = ctx.parameters?.fields;
+    if (!fields) continue;
+    
+    // Ưu tiên tìm resolved value (không có .original)
+    if (fields[paramName]) {
+      const value = fields[paramName];
+      if (value.stringValue && value.stringValue !== '') {
+        return value.stringValue;
+      }
+    }
+    
+    // Fallback: tìm .original
+    const originalKey = `${paramName}.original`;
+    if (fields[originalKey]) {
+      const value = fields[originalKey];
+      if (value.stringValue && value.stringValue !== '') {
+        return value.stringValue;
+      }
+    }
+  }
+  
+  return null;
 };
 
 /**
@@ -296,12 +348,163 @@ const findReferenceValueFromMessage = async (message, entityTypeName = 'purpose'
   return null;
 };
 
+/**
+ * Tìm entity match tốt nhất từ message trong cả certificate_type và certificate_name
+ * Ưu tiên: certificate_name (cụ thể hơn) > certificate_type (loại chung)
+ * @param {string} message - Message gốc từ user
+ * @returns {Object|null} - { entityType: 'type'|'name', referenceValue: string } hoặc null
+ */
+const findBestEntityMatch = async (message) => {
+  const messageLower = message.toLowerCase().normalize('NFC');
+  
+  console.log(`🔍 findBestEntityMatch - Message: "${message}"`);
+
+  // Lấy entities từ cả 2 loại
+  const [typeEntities, nameEntities] = await Promise.all([
+    getEntitySynonyms('certificate_type'),
+    getEntitySynonyms('certificate_name')
+  ]);
+
+  console.log(`   📋 certificate_type entities: ${typeEntities.length}`);
+  console.log(`   📋 certificate_name entities: ${nameEntities.length}`);
+
+  // Helper function để tìm match với độ dài synonym
+  const findMatchWithLength = (entities) => {
+    let bestMatch = null;
+    let maxLength = 0;
+
+    for (const entity of entities) {
+      for (const synonym of entity.synonyms) {
+        const synonymParts = synonym.includes(',') 
+          ? synonym.split(',').map(s => s.trim()) 
+          : [synonym];
+        
+        for (const part of synonymParts) {
+          const partLower = part.toLowerCase().normalize('NFC');
+          
+          if (messageLower.includes(partLower) && partLower.length > 2) {
+            // Ưu tiên match dài hơn (cụ thể hơn)
+            if (partLower.length > maxLength) {
+              maxLength = partLower.length;
+              bestMatch = {
+                referenceValue: entity.referenceValue,
+                matchedSynonym: part,
+                matchLength: partLower.length
+              };
+            }
+          }
+        }
+      }
+    }
+    return bestMatch;
+  };
+
+  // Tìm trong certificate_name trước (ưu tiên cụ thể)
+  const nameMatch = findMatchWithLength(nameEntities);
+  
+  // Tìm trong certificate_type
+  const typeMatch = findMatchWithLength(typeEntities);
+
+  console.log(`   🔎 certificate_name match:`, nameMatch);
+  console.log(`   🔎 certificate_type match:`, typeMatch);
+
+  // Ưu tiên match có độ dài dài hơn
+  if (nameMatch && typeMatch) {
+    if (nameMatch.matchLength >= typeMatch.matchLength) {
+      console.log(`   ✅ Best match: certificate_name → "${nameMatch.referenceValue}"`);
+      return { entityType: 'name', referenceValue: nameMatch.referenceValue };
+    } else {
+      console.log(`   ✅ Best match: certificate_type → "${typeMatch.referenceValue}"`);
+      return { entityType: 'type', referenceValue: typeMatch.referenceValue };
+    }
+  }
+
+  if (nameMatch) {
+    console.log(`   ✅ Match found: certificate_name → "${nameMatch.referenceValue}"`);
+    return { entityType: 'name', referenceValue: nameMatch.referenceValue };
+  }
+
+  if (typeMatch) {
+    console.log(`   ✅ Match found: certificate_type → "${typeMatch.referenceValue}"`);
+    return { entityType: 'type', referenceValue: typeMatch.referenceValue };
+  }
+
+  console.log(`   ❌ No match found in both entities`);
+  return null;
+};
+
+/**
+ * Lấy parameter từ Dialogflow Context
+ * Dùng để lấy dữ liệu từ context khi user gõ tự nhiên (VD: "Ok tạo đi")
+ * @param {Array} outputContexts - Mảng contexts từ Dialogflow response
+ * @param {string} contextName - Tên context cần tìm (VD: "session_tao_yeu_cau")
+ * @param {string} paramName - Tên parameter cần lấy (VD: "purpose")
+ * @returns {string|null} - Giá trị parameter hoặc null
+ */
+const getParamFromContext = (outputContexts, contextName, paramName) => {
+  if (!outputContexts || outputContexts.length === 0) return null;
+  
+  // Tìm context theo tên (context name có dạng: projects/.../contexts/<name>)
+  const context = outputContexts.find(ctx => 
+    ctx.name && ctx.name.includes(`/contexts/${contextName}`)
+  );
+  
+  if (!context?.parameters?.fields) return null;
+  
+  console.log(`🔍 getParamFromContext - Looking for "${paramName}" in context "${contextName}"`);
+  
+  // Lấy giá trị parameter
+  const param = context.parameters.fields[paramName];
+  if (!param) {
+    console.log(`   ❌ Parameter "${paramName}" not found in context`);
+    return null;
+  }
+  
+  // Xử lý stringValue
+  if (param.stringValue && param.stringValue !== '') {
+    console.log(`   ✅ Found stringValue: "${param.stringValue}"`);
+    return param.stringValue;
+  }
+  
+  // Xử lý listValue (array) - lấy phần tử đầu tiên
+  if (param.listValue && param.listValue.values && param.listValue.values.length > 0) {
+    const firstValue = param.listValue.values[0];
+    if (firstValue.stringValue && firstValue.stringValue !== '') {
+      console.log(`   ✅ Found listValue[0]: "${firstValue.stringValue}"`);
+      return firstValue.stringValue;
+    }
+  }
+  
+  // Thử lấy từ .original nếu không có resolved value
+  const originalParam = context.parameters.fields[`${paramName}.original`];
+  if (originalParam) {
+    if (originalParam.stringValue && originalParam.stringValue !== '') {
+      console.log(`   ✅ Found .original stringValue: "${originalParam.stringValue}"`);
+      return originalParam.stringValue;
+    }
+    // Xử lý listValue cho .original
+    if (originalParam.listValue && originalParam.listValue.values && originalParam.listValue.values.length > 0) {
+      const firstValue = originalParam.listValue.values[0];
+      if (firstValue.stringValue && firstValue.stringValue !== '') {
+        console.log(`   ✅ Found .original listValue[0]: "${firstValue.stringValue}"`);
+        return firstValue.stringValue;
+      }
+    }
+  }
+  
+  console.log(`   ❌ No valid value found for "${paramName}"`);
+  return null;
+};
+
 module.exports = {
   detectIntent,
   extractParameters,
+  extractEntityFromContexts,
   isDialogflowAvailable,
   getEntitySynonyms,
   findReferenceValueFromMessage,
+  findBestEntityMatch,
+  getParamFromContext,  // Thêm mới: lấy param từ Dialogflow Context
   projectId,
   languageCode
 };

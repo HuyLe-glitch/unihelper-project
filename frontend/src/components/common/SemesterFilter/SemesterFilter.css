@@ -130,7 +130,7 @@
   min-width: 160px;
   width: 160px;
   height: 44px;
-  padding: 0 40px 0 14px;
+  padding: 0 60px 0 14px; /* padding-right cho X button và calendar */
   border: 2px solid var(--sf-border);
   border-radius: var(--sf-radius);
   font-size: 14px;
@@ -155,21 +155,24 @@
   box-shadow: 0 0 0 4px var(--sf-primary-light);
 }
 
-/* Calendar icon styling */
+/* Calendar icon styling - đặt ở góc phải, nhỏ gọn */
 .semester-filter__date-input::-webkit-calendar-picker-indicator {
   cursor: pointer;
   opacity: 1 !important;
   visibility: visible !important;
   display: block !important;
-  width: 22px;
-  height: 22px;
-  padding: 4px;
-  border-radius: 6px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  right: 10px;
+  border-radius: 4px;
   background-color: transparent;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 20px 20px;
+  background-size: 16px 16px;
   filter: none !important;
   transition: all 0.2s ease;
 }
@@ -179,23 +182,24 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
 }
 
-/* Clear date button */
+/* Clear date button - nhỏ gọn, nằm bên trái calendar icon */
 .semester-filter__clear-btn {
   position: absolute;
-  right: 40px;
-  width: 22px;
-  height: 22px;
+  right: 32px; /* Đặt bên trái calendar icon */
+  width: 16px;
+  height: 16px;
   border: none;
   background: var(--sf-danger-light);
   border-radius: 50%;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--sf-danger);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 1;
 }
 
 .semester-filter__clear-btn:hover {
@@ -321,10 +325,21 @@
     width: 100%;
   }
   
+  /* Chuyển info-bar thành position relative để đẩy các phần tử khác xuống */
   .semester-filter__info-bar {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    margin-top: 8px;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     text-align: center;
+  }
+  
+  .semester-filter__dropdown {
+    min-height: auto;
+    width: 100%;
   }
   
   .semester-filter__info-content {

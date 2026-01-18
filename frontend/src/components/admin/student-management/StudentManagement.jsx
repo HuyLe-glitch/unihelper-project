@@ -6,6 +6,7 @@ import { majorService } from '../../../services/major';
 import StudentFormModal from './StudentFormModal';
 import RoomTransferDialog from '../../common/RoomTransferDialog';
 import ExportCSVButton from '../../common/ExportCSVButton';
+import SMCustomDropdown from './SMCustomDropdown';
 import './StudentManagement.css';
 
 /**
@@ -479,47 +480,48 @@ const StudentManagement = () => {
         {/* Tab "Tất cả sinh viên" - Bộ lọc Khoa + Chuyên ngành */}
         {activeTab === 'students' && (
           <div className="filters-grid">
-            <select
+            <SMCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả khoa' },
+                ...faculties.map(faculty => ({
+                  value: faculty._id,
+                  label: faculty.name
+                }))
+              ]}
               value={filterFaculty}
-              onChange={(e) => handleFilterChange('faculty', e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả khoa</option>
-              {faculties.map(faculty => (
-                <option key={faculty._id} value={faculty._id}>
-                  {faculty.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleFilterChange('faculty', value)}
+              placeholder="Chọn khoa"
+            />
 
             {/* Chuyên ngành - Disabled khi chưa chọn Khoa cụ thể */}
-            <select
+            <SMCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả chuyên ngành' },
+                ...filteredMajorsByFaculty.map(major => ({
+                  value: major._id,
+                  label: major.name
+                }))
+              ]}
               value={filterMajor}
-              onChange={(e) => handleFilterChange('major', e.target.value)}
-              className={`filter-select ${filterFaculty === 'all' ? 'disabled' : ''}`}
+              onChange={(value) => handleFilterChange('major', value)}
+              placeholder="Chọn chuyên ngành"
               disabled={filterFaculty === 'all'}
-            >
-              <option value="all">Tất cả chuyên ngành</option>
-              {filteredMajorsByFaculty.map(major => (
-                <option key={major._id} value={major._id}>
-                  {major.name}
-                </option>
-              ))}
-            </select>
+            />
 
             {/* Bộ lọc Ở KTX */}
-            <select
+            <SMCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả (KTX)' },
+                { value: 'yes', label: 'Có ở KTX' },
+                { value: 'no', label: 'Không ở KTX' }
+              ]}
               value={filterDormStatus}
-              onChange={(e) => {
-                setFilterDormStatus(e.target.value);
+              onChange={(value) => {
+                setFilterDormStatus(value);
                 setCurrentPage(1);
               }}
-              className="filter-select"
-            >
-              <option value="all">Tất cả (KTX)</option>
-              <option value="yes">Có ở KTX</option>
-              <option value="no">Không ở KTX</option>
-            </select>
+              placeholder="Chọn trạng thái KTX"
+            />
 
             {/* Nút Export CSV - Tất cả sinh viên */}
             <ExportCSVButton 

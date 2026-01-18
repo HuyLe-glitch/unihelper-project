@@ -12,6 +12,12 @@ const dormitoryRequestSchema = new mongoose.Schema({
         ref: 'Student',
         required: true
     },
+    // Phòng KTX tại thời điểm tạo yêu cầu (để lưu trữ lịch sử chính xác khi sinh viên chuyển phòng)
+    roomId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Room'
+        // Không required để tương thích data cũ - fallback về student.roomId nếu không có
+    },
     // Học kỳ - lấy từ semester active khi tạo yêu cầu
     semester: {
         type: String,

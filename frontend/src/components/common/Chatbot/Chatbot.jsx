@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import ChatbotToggle from './ChatbotToggle';
 import ChatbotWindow from './ChatbotWindow';
 import StatusCard from './StatusCard';
@@ -11,11 +12,17 @@ import { chatbotService } from '../../../services/chatbot';
  */
 const Chatbot = () => {
   const { user, isAuthenticated, loading } = useAuthContext();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [quickReplies, setQuickReplies] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  
+  // Các trang không hiển thị chatbot (login, role selector, etc.)
+  const excludedPaths = ['/', '/login', '/student/login', '/staff/login', '/admin/login'];
+  const isExcludedPage = excludedPaths.includes(location.pathname) || 
+                          location.pathname.includes('/login');
 
   // Welcome message khi mở chatbot lần đầu
   const getWelcomeMessage = useCallback(() => {
@@ -23,22 +30,7 @@ const Chatbot = () => {
     return {
       id: 'welcome',
       type: 'bot',
-      content: `
-        <div class="info-card">
-          <div class="info-card-title">👋 Xin chào ${userName}!</div>
-          <div class="info-card-content">
-            Mình là <strong>UniHelper Bot</strong> - trợ lý ảo của bạn.<br/><br/>
-            Mình có thể giúp bạn:
-            <ul style="margin: 8px 0; padding-left: 20px;">
-              <li>🏠 Hỏi đáp thông tin về KTX</li>
-              <li>📄 Hướng dẫn xin giấy tờ, chứng chỉ</li>
-              <li>📋 Kiểm tra trạng thái yêu cầu</li>
-              <li>❓ Trả lời các câu hỏi thường gặp</li>
-            </ul>
-            Bạn cần hỗ trợ gì?
-          </div>
-        </div>
-      `,
+      content: `<div class="welcome-message"><div class="welcome-title">👋 Xin chào ${userName}!</div><p>Mình là <strong>UniHelper Bot</strong> - trợ lý ảo của bạn.</p><p>Mình có thể giúp bạn:</p><ul><li>🏠 Hỏi đáp thông tin về KTX</li><li>📄 Hướng dẫn xin giấy tờ, chứng chỉ</li><li>📋 Kiểm tra trạng thái yêu cầu</li><li>❓ Trả lời các câu hỏi thường gặp</li></ul><p>Bạn cần hỗ trợ gì?</p></div>`,
       timestamp: new Date().toISOString()
     };
   }, [user]);
@@ -245,6 +237,11 @@ const Chatbot = () => {
       // KTX: Chọn danh mục - gửi action code trực tiếp
       message = reply.action;
       displayMessage = reply.label;
+    } else if (reply.action?.startsWith('select_certificate_')) {
+      // CTSV: Chọn giấy từ danh sách loại (mappingType = 'type')
+      const certId = reply.action.replace('select_certificate_', '');
+      message = `__SELECT_CERT_FROM_TYPE__${certId}__${reply.label}`;
+      displayMessage = reply.label;
     } else if (reply.action === 'create_from_advice') {
       // Action tạo yêu cầu từ tư vấn - gửi action code
       message = '__ACTION__create_from_advice';
@@ -282,15 +279,37 @@ const Chatbot = () => {
   }, [handleSendMessage]);
 
   // Chờ loading hoàn thành trước khi quyết định hiển thị
-  // Chỉ hiển thị chatbot cho SINH VIÊN (không hiển thị cho admin/staff)
+  // Chỉ hiển thị chatbot cho SINH VIÊN đã đăng nhập (không hiển thị cho admin/staff/guest)
+  // VÀ không hiển thị ở trang login/role selector
+  
+  // Debug log
+  console.log('🤖 Chatbot check:', { loading, isAuthenticated, user, role: user?.role, path: location.pathname, isExcludedPage });
+  
+  // Không hiển thị ở trang login/role selector
+  if (isExcludedPage) {
+    console.log('🤖 Chatbot: Excluded page, returning null');
+    return null;
+  }
+  
   if (loading) {
+    console.log('🤖 Chatbot: Still loading, returning null');
     return null; // Đang loading, chưa biết role
   }
   
-  const isStudent = user?.role === 'student' || user?.role === 'Student';
-  if (!isAuthenticated || !isStudent) {
-    return null;
+  // Kiểm tra chặt: phải đăng nhập VÀ có user VÀ role là student (bất kể viết hoa/thường)
+  // VÀ phải đang ở trang student (path bắt đầu với /student)
+  const userRole = user?.role?.toLowerCase();
+  const isStudent = user && userRole === 'student';
+  const isStudentPage = location.pathname.startsWith('/student');
+  
+  console.log('🤖 Chatbot decision:', { userRole, isStudent, isStudentPage, willRender: isAuthenticated && user && isStudent && isStudentPage });
+  
+  if (!isAuthenticated || !user || !isStudent || !isStudentPage) {
+    console.log('🤖 Chatbot: Not authorized or not on student page, returning null');
+    return null; // Không hiển thị chatbot
   }
+  
+  console.log('🤖 Chatbot: Will render!');
 
   return (
     <>

@@ -151,14 +151,44 @@ const FilePreview = ({ fileUrl, fileName, fileType, onClose, isOpen }) => {
 
   if (!isOpen) return null;
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = blobUrl || fileUrl;
-    link.download = fileName || 'download';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      // Thử fetch file với CORS
+      const response = await fetch(fileUrl, {
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName || 'download';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Cleanup blob URL after download
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+      } else {
+        throw new Error('Fetch failed');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      // Fallback: Tạo iframe ẩn để trigger download
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = fileUrl;
+      document.body.appendChild(iframe);
+      
+      // Remove iframe after a short delay
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 5000);
+    }
   };
 
   const handleOpenInNewTab = () => {

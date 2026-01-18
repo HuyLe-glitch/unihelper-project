@@ -424,43 +424,477 @@
   margin: 0;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
+/* ==========================================
+   RESPONSIVE - TABLET (1024px)
+   ========================================== */
+@media (max-width: 1024px) {
+  .room-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .main-content.sidebar-collapsed .room-management,
+  .main-content.sidebar-expanded .room-management {
+    margin-left: 0;
+    padding-left: 20px;
+  }
+
+  .main-content.mobile .room-management {
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
   }
-  
+
+  .stat-card {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+    width: 55px;
+    height: 55px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .header-content {
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
   .rooms-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+  }
+
+  .search-and-filters {
+    padding: 20px;
+  }
+
+  .rooms-section {
+    padding: 20px;
   }
 }
 
+/* ==========================================
+   RESPONSIVE - MOBILE (768px)
+   ========================================== */
 @media (max-width: 768px) {
   .room-management {
-    margin-left: -70px;
-    padding-left: 90px;
-    padding-right: 20px;
+    padding: 15px;
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
   }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
+
+  .main-content.sidebar-collapsed .room-management,
+  .main-content.sidebar-expanded .room-management,
+  .main-content.mobile .room-management {
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
   }
-  
-  .rooms-grid {
-    grid-template-columns: 1fr;
-  }
-  
+
+  /* Header */
   .header-content {
     flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
   }
-  
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
   .header-actions {
     width: 100%;
   }
-  
+
   .btn {
-    flex: 1;
+    width: 100%;
     justify-content: center;
+    padding: 12px 16px;
+  }
+
+  .btn-icon {
+    font-size: 14px;
+  }
+
+  /* Stats Grid - 2x2 layout */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 10px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+    width: 45px;
+    height: 45px;
+    margin: 0 auto;
+  }
+
+  .stat-content h3 {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  /* Search */
+  .search-and-filters {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+  }
+
+  .search-box {
+    height: 44px;
+    padding-left: 40px;
+  }
+
+  .search-icon {
+    font-size: 16px;
+    left: 14px;
+  }
+
+  .search-input {
+    font-size: 14px;
+  }
+
+  /* Rooms Section */
+  .rooms-section {
+    padding: 15px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .section-info {
+    font-size: 12px;
+  }
+
+  /* Rooms Grid */
+  .rooms-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .room-card {
+    padding: 15px;
+  }
+
+  .room-card-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .room-name {
+    font-size: 20px;
+  }
+
+  .room-status {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .room-info {
+    margin-bottom: 8px;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 13px;
+  }
+
+  .room-card-actions {
+    padding-top: 10px;
+    gap: 6px;
+  }
+
+  .btn-action {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  /* No Data */
+  .no-data {
+    padding: 40px 15px;
+  }
+
+  .no-data-icon {
+    font-size: 48px;
+  }
+
+  .no-data p {
+    font-size: 14px;
+  }
+
+  /* Delete Dialog */
+  .delete-overlay {
+    padding: 15px;
+  }
+
+  .delete-dialog {
+    max-width: 100%;
+  }
+
+  .delete-dialog-header {
+    padding: 16px 20px;
+  }
+
+  .delete-dialog-header .delete-icon {
+    font-size: 24px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 16px;
+  }
+
+  .delete-dialog-content {
+    padding: 20px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 14px;
+  }
+
+  .delete-dialog-actions {
+    padding: 14px 20px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .delete-dialog-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Toast */
+  .toast-notification {
+    left: 15px;
+    right: 15px;
+    bottom: 20px;
+    max-width: none;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - SMALL MOBILE (480px)
+   ========================================== */
+@media (max-width: 480px) {
+  .room-management {
+    padding: 10px;
+  }
+
+  .main-content.mobile .room-management {
+    padding: 10px;
+  }
+
+  .header-content {
+    padding: 14px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  /* Stats 2x2 layout với kích thước nhỏ hơn */
+  .stats-grid {
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .stat-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .stat-content h3 {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* Search */
+  .search-and-filters {
+    padding: 10px 12px;
+  }
+
+  .search-box {
+    height: 40px;
+    padding-left: 36px;
+  }
+
+  .search-icon {
+    font-size: 14px;
+    left: 12px;
+  }
+
+  .search-input {
+    font-size: 13px;
+  }
+
+  /* Rooms */
+  .rooms-section {
+    padding: 12px;
+  }
+
+  .section-header {
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 15px;
+  }
+
+  .room-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .room-name {
+    font-size: 18px;
+  }
+
+  .room-status {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 12px;
+  }
+
+  .progress-bar {
+    height: 6px;
+  }
+
+  .room-card-actions {
+    gap: 5px;
+  }
+
+  .btn-action {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 5px;
+  }
+
+  /* Delete Dialog */
+  .delete-dialog-header {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-header .delete-icon {
+    font-size: 20px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 15px;
+  }
+
+  .delete-dialog-content {
+    padding: 16px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 13px;
+  }
+
+  .delete-warning-text {
+    font-size: 12px !important;
+  }
+
+  .delete-dialog-actions {
+    padding: 12px 16px;
+  }
+
+  .delete-dialog-actions .btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  /* No Data */
+  .no-data {
+    padding: 30px 10px;
+  }
+
+  .no-data-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+  }
+
+  .no-data p {
+    font-size: 13px;
+  }
+
+  /* Toast */
+  .toast-notification {
+    left: 10px;
+    right: 10px;
+    bottom: 15px;
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .toast-icon {
+    font-size: 16px;
   }
 }
 

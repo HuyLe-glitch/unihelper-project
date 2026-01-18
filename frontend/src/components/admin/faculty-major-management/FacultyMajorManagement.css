@@ -693,29 +693,85 @@
 
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
+  .faculty-major-management {
+    margin-left: 0;
+    padding-left: 30px;
+    padding-right: 30px;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .main-content.sidebar-collapsed .faculty-major-management {
+    margin-left: 0;
+    padding-left: 30px;
+  }
+  
+  .main-content.mobile .faculty-major-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+  }
+
   .items-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 
   .filters-grid {
-    grid-template-columns: 1fr;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .header-content {
+    padding: 20px;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .stat-card {
+    padding: 18px;
+  }
+  
+  .stat-icon {
+    font-size: 32px;
+    width: 55px;
+    height: 55px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
   }
 }
 
-/* Mobile (max 767px) */
-@media (max-width: 767px) {
+/* Mobile (max 768px) */
+@media (max-width: 768px) {
   .faculty-major-management {
     padding: 15px;
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .main-content.sidebar-collapsed .faculty-major-management,
+  .main-content.mobile .faculty-major-management {
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
   }
 
   .header-content {
-    padding: 20px;
+    padding: 16px;
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 20px;
   }
 
   .page-subtitle {
@@ -729,107 +785,327 @@
   .header-actions .btn {
     width: 100%;
     justify-content: center;
+    padding: 12px 16px;
+  }
+  
+  .tabs-container {
+    padding: 6px;
   }
 
   .tabs {
     flex-direction: column;
+    gap: 6px;
   }
 
   .tab {
     width: 100%;
+    padding: 12px 16px;
+  }
+  
+  .tab-text {
+    font-size: 14px;
+  }
+  
+  .tab-icon {
+    font-size: 18px;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 12px;
   }
 
   .stat-card {
-    padding: 18px;
+    padding: 16px;
+    gap: 14px;
   }
 
   .stat-icon {
-    font-size: 36px;
-    width: 55px;
-    height: 55px;
+    font-size: 28px;
+    width: 50px;
+    height: 50px;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 22px;
   }
-
-  .filters-section {
-    padding: 20px;
+  
+  .stat-content h3 {
+    font-size: 12px;
+  }
+  
+  /* Search and Filters responsive */
+  .search-and-filters {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-box {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+  
+  .filters-grid {
+    width: 100%;
+    flex: none;
   }
 
   .content-section {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 10px;
   }
 
   .items-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 14px;
   }
 
   .item-card {
-    padding: 20px;
+    padding: 18px;
+    gap: 12px;
+  }
+  
+  .item-title {
+    font-size: 16px;
+    padding-right: 40px;
+  }
+  
+  .item-description {
+    font-size: 13px;
+  }
+  
+  .btn-quick-add {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
 
+  .item-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .btn-action {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .btn-view {
+    flex: 1 1 100%;
+  }
+  
+  .btn-edit,
+  .btn-delete {
+    flex: 1;
+  }
+
+  /* Modal responsive */
+  .modal-overlay {
+    padding: 10px;
+  }
+  
   .modal {
     max-width: 100%;
     margin: 0;
-    border-radius: 12px 12px 0 0;
-    max-height: 95vh;
+    border-radius: 12px;
+    max-height: 90vh;
+  }
+  
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
   }
 
   .modal-content {
-    padding: 20px;
+    padding: 16px;
+  }
+  
+  .modal-footer {
+    padding: 16px;
+    gap: 10px;
+  }
+  
+  /* Delete dialog responsive */
+  .delete-dialog {
+    width: 95%;
+    max-width: 360px;
+  }
+  
+  .delete-dialog-header {
+    padding: 16px 20px;
+  }
+  
+  .delete-dialog-header .delete-icon {
+    font-size: 24px;
+  }
+  
+  .delete-dialog-header h3 {
+    font-size: 1rem;
+  }
+  
+  .delete-dialog-content {
+    padding: 16px 20px;
+  }
+  
+  .delete-dialog-content p {
+    font-size: 0.9rem;
+  }
+  
+  .delete-dialog-actions {
+    padding: 14px 20px;
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .delete-dialog-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Toast responsive */
+  .toast-notification {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    padding: 14px 16px;
   }
 }
 
 /* Small Mobile (max 480px) */
 @media (max-width: 480px) {
   .faculty-major-management {
-    padding: 12px;
+    padding: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  .main-content.sidebar-collapsed .faculty-major-management,
+  .main-content.mobile .faculty-major-management {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .header-content {
-    padding: 16px;
+    padding: 14px;
   }
 
   .page-title {
-    font-size: 20px;
+    font-size: 18px;
+  }
+  
+  .page-subtitle {
+    font-size: 12px;
   }
 
   .tabs-container {
-    padding: 6px;
+    padding: 5px;
   }
 
   .tab {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
   }
 
   .tab-icon {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  
+  .tab-badge {
+    padding: 3px 8px;
+    font-size: 11px;
   }
 
   .stat-card {
     flex-direction: column;
     text-align: center;
+    padding: 14px;
+  }
+  
+  .stat-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+  }
+  
+  .stat-value {
+    font-size: 20px;
+  }
+  
+  .search-and-filters {
+    padding: 12px;
+  }
+  
+  .search-box {
+    height: 42px;
+    padding: 0 12px 0 38px;
+  }
+  
+  .search-icon {
+    left: 12px;
+    font-size: 16px;
+  }
+  
+  .search-input {
+    font-size: 13px;
+  }
+  
+  .content-section {
+    padding: 12px;
+  }
+
+  .item-card {
+    padding: 14px;
+  }
+  
+  .item-code {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .item-title {
+    font-size: 15px;
+  }
+  
+  .faculty-tag {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 
   .item-stats {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .item-actions {
     flex-direction: column;
+    gap: 8px;
   }
 
   .btn-action {
     width: 100%;
+    padding: 10px;
+  }
+  
+  .btn-view {
+    flex: none;
+  }
+  
+  /* No data */
+  .no-data {
+    padding: 40px 16px;
+  }
+  
+  .no-data-icon {
+    font-size: 48px;
+  }
+  
+  .no-data p {
+    font-size: 14px;
   }
 }
 

@@ -1,37 +1,45 @@
 /**
  * Common Handler
  * Xử lý các intent chung: greeting, fallback, FAQ, menu, liên hệ
+ * LƯU Ý: Tất cả nội dung text đều lấy từ Dialogflow (fulfillmentText)
+ * Code chỉ xử lý format HTML
  */
-const { MAIN_MENU_QUICK_REPLIES } = require('./constants');
+
+/**
+ * Format text từ Dialogflow để hiển thị đúng trong HTML
+ * - Convert \n thành <br> để xuống dòng
+ * - Giữ nguyên emoji và ký tự đặc biệt
+ */
+function formatDialogflowText(text) {
+  if (!text) return '';
+  return text.replace(/\n/g, '<br>');
+}
 
 class CommonHandler {
   /**
    * Xử lý greeting intent
+   * Nội dung lấy 100% từ Dialogflow welcome intent
+   * Không hiện quickReplies vì Dialogflow đã có menu trong text
    */
   handleGreeting(fulfillmentText = '') {
     return {
-      message: fulfillmentText 
-        ? `<div class="info-card"><div class="info-card-content">${fulfillmentText}</div></div>`
-        : `<div class="info-card">
-            <div class="info-card-title">👋 Xin chào!</div>
-            <div class="info-card-content">Mình là UniHelper Bot. Mình có thể giúp gì cho bạn?</div>
-          </div>`,
-      quickReplies: MAIN_MENU_QUICK_REPLIES
+      message: `<div class="info-card">
+        <div class="info-card-content">${formatDialogflowText(fulfillmentText) || 'Xin chào!'}</div>
+      </div>`,
+      quickReplies: []  // Không hiện menu vì Dialogflow đã có trong text
     };
   }
 
   /**
    * Xử lý fallback intent (không hiểu câu hỏi)
+   * Nội dung lấy 100% từ Dialogflow Default Fallback Intent
    */
   handleFallback(fulfillmentText = '') {
     return {
-      message: fulfillmentText 
-        ? `<div class="info-card"><div class="info-card-content">${fulfillmentText}</div></div>`
-        : `<div class="info-card">
-            <div class="info-card-title">🤔 Xin lỗi!</div>
-            <div class="info-card-content">Mình chưa hiểu câu hỏi của bạn.</div>
-          </div>`,
-      quickReplies: MAIN_MENU_QUICK_REPLIES
+      message: `<div class="info-card">
+        <div class="info-card-content">${formatDialogflowText(fulfillmentText) || 'Xin lỗi, mình chưa hiểu ý bạn.'}</div>
+      </div>`,
+      quickReplies: []
     };
   }
 
@@ -54,25 +62,14 @@ class CommonHandler {
 
   /**
    * Xử lý FAQ và các intent thông tin khác
-   * Sử dụng 100% fulfillmentText từ Dialogflow
+   * Nội dung lấy 100% từ Dialogflow
    */
   handleFAQ(fulfillmentText = '') {
-    if (fulfillmentText && fulfillmentText.trim()) {
-      return {
-        message: `<div class="info-card">
-          <div class="info-card-content">${fulfillmentText}</div>
-        </div>`,
-        quickReplies: MAIN_MENU_QUICK_REPLIES
-      };
-    }
-
-    // Fallback nếu Dialogflow không trả về gì
-    console.warn('⚠️ No fulfillmentText from Dialogflow');
     return {
       message: `<div class="info-card">
-        <div class="info-card-content">Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.</div>
+        <div class="info-card-content">${formatDialogflowText(fulfillmentText) || 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.'}</div>
       </div>`,
-      quickReplies: MAIN_MENU_QUICK_REPLIES
+      quickReplies: []
     };
   }
 
@@ -85,7 +82,7 @@ class CommonHandler {
         <span class="highlight-box-icon">⚠️</span>
         <div>${errorMessage}</div>
       </div>`,
-      quickReplies: MAIN_MENU_QUICK_REPLIES
+      quickReplies: []
     };
   }
 
@@ -98,7 +95,7 @@ class CommonHandler {
         <span class="highlight-box-icon">⚠️</span>
         <div>Không tìm thấy ${resourceName}. Vui lòng liên hệ phòng CTSV.</div>
       </div>`,
-      quickReplies: MAIN_MENU_QUICK_REPLIES
+      quickReplies: []
     };
   }
 }

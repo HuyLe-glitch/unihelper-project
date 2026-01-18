@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dormitoryRequestService from '../../../services/dormitoryRequest';
 import socketService from '../../../services/socket';
 import { ConfirmDialog } from '../../common';
+import HDCustomDropdown from './HDCustomDropdown';
 import './HistoryDormitory.css';
 
 const HistoryDormitory = () => {
@@ -70,7 +71,8 @@ const HistoryDormitory = () => {
           // Sử dụng thông tin người gửi từ API (senderName) thay vì studentInfo
           fullName: req.senderName || req.student?.fullName || 'Không xác định',
           senderEmail: req.senderEmail || req.student?.user?.email || '',
-          room: response.studentInfo?.roomName || 'Chưa xếp phòng',
+          // Ưu tiên roomId lưu trong request (thời điểm tạo), fallback về student.roomId hoặc thông tin sinh viên hiện tại
+          room: req.roomId?.name || req.student?.roomId?.name || response.studentInfo?.roomName || 'Chưa xếp phòng',
           category: req.category?.name || 'Không xác định',
           deviceName: req.item?.name || 'Không chọn',
           description: req.description || '',
@@ -111,7 +113,8 @@ const HistoryDormitory = () => {
       requestCode: newRequest.requestCode || 'N/A',
       fullName: newRequest.senderName || newRequest.student?.fullName || 'Không xác định',
       senderEmail: newRequest.senderEmail || newRequest.student?.user?.email || '',
-      room: currentRoomInfo?.roomName || currentStudentInfo?.roomName || 'Chưa xếp phòng',
+      // Ưu tiên roomId lưu trong request (thời điểm tạo), fallback về student.roomId hoặc thông tin phòng hiện tại
+      room: newRequest.roomId?.name || newRequest.student?.roomId?.name || currentRoomInfo?.roomName || currentStudentInfo?.roomName || 'Chưa xếp phòng',
       category: newRequest.category?.name || 'Không xác định',
       deviceName: newRequest.item?.name || 'Không chọn',
       description: newRequest.description || '',
@@ -440,30 +443,30 @@ const HistoryDormitory = () => {
 
           {/* Semester Filter */}
           <div className="filter-group">
-            <select
+            <HDCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả học kỳ' },
+                ...semesters.map(sem => ({ value: sem, label: sem }))
+              ]}
               value={semesterFilter}
-              onChange={(e) => setSemesterFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">📅 Tất cả học kỳ</option>
-              {semesters.map(sem => (
-                <option key={sem} value={sem}>{sem}</option>
-              ))}
-            </select>
+              onChange={setSemesterFilter}
+              placeholder="Tất cả học kỳ"
+            />
           </div>
 
           {/* Status Filter */}
           <div className="filter-group">
-            <select
+            <HDCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả trạng thái' },
+                { value: 'pending', label: 'Chờ tiếp nhận' },
+                { value: 'processing', label: 'Đang xử lý' },
+                { value: 'completed', label: 'Đã hoàn thành' }
+              ]}
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">📌 Tất cả trạng thái</option>
-              <option value="pending">📨 Chờ tiếp nhận</option>
-              <option value="processing">⟳ Đang xử lý</option>
-              <option value="completed">✓ Đã hoàn thành</option>
-            </select>
+              onChange={setStatusFilter}
+              placeholder="Tất cả trạng thái"
+            />
           </div>
 
           {/* Sort Order - Toggle Icon Button */}
@@ -531,7 +534,6 @@ const HistoryDormitory = () => {
                     <tr key={item.id} className={`table-row ${item.isOwner ? 'own-request' : 'roommate-request'}`}>
                       <td className="cell-request-code">
                         <strong>{item.requestCode}</strong>
-                        {item.isOwner && <span className="owner-badge" title="Yêu cầu của bạn">👤</span>}
                       </td>
                       <td className="cell-fullname">
                         {item.fullName}
@@ -563,10 +565,7 @@ const HistoryDormitory = () => {
                             {confirmingId === item.id ? (
                               <span className="btn-loading">⏳</span>
                             ) : (
-                              <>
-                                <span className="btn-icon">✓</span>
-                                <span className="btn-text">Xác nhận</span>
-                              </>
+                              <span className="btn-text">Xác nhận</span>
                             )}
                           </button>
                         ) : item.status === 'processing' ? (
@@ -579,7 +578,6 @@ const HistoryDormitory = () => {
                       </td>
                       <td className="cell-status">
                         <span className={`status-badge ${statusInfo.class}`}>
-                          <span className="status-icon">{statusInfo.icon}</span>
                           {statusInfo.label}
                         </span>
                       </td>

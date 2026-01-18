@@ -10,7 +10,7 @@ const dialogflowHandler = require('./dialogflowHandler');
 const commonHandler = require('./commonHandler');
 const ctsvHandler = require('./ctsvHandler');
 const ktxHandler = require('./ktxHandler');
-const { INTENT_MAPPING, MAIN_MENU_QUICK_REPLIES } = require('./constants');
+const { INTENT_MAPPING } = require('./constants');
 
 // Generate UUID using crypto
 const generateSessionId = () => crypto.randomUUID();
@@ -66,8 +66,9 @@ class ChatbotService {
     const dialogflowResult = await dialogflowHandler.detectIntent(sessionId, message);
     const { intent, parameters, fulfillmentText, confidence } = dialogflowResult;
 
-    // Generate response dựa trên intent (truyền thêm message gốc để fallback tìm purpose)
-    const response = await this.generateResponse(intent, userId, sessionId, parameters, fulfillmentText, message);
+    // Generate response dựa trên intent
+    // Truyền thêm dialogflowResult để hỗ trợ lấy context từ Dialogflow
+    const response = await this.generateResponse(intent, userId, sessionId, parameters, fulfillmentText, message, dialogflowResult);
     
     // Lưu tin nhắn bot
     const botMessage = {
@@ -117,6 +118,21 @@ class ChatbotService {
       await this.saveBotMessage(sessionId, response.message, 'ctsv.tao_yeu_cau.chon_ten');
       
       return { ...response, intent: 'ctsv.tao_yeu_cau.chon_ten' };
+    }
+
+    // Xử lý chọn Certificate từ danh sách loại (từ tư vấn): __SELECT_CERT_FROM_TYPE__<id>__<label>
+    if (message.startsWith('__SELECT_CERT_FROM_TYPE__')) {
+      const parts = message.split('__');
+      const certId = parts[2];
+      const certLabel = parts[3] || '';
+      
+      await this.saveUserMessage(sessionId, certLabel || 'Chọn loại giấy');
+      const response = await ctsvHandler.handleSelectCertificateFromType(userId, sessionId, { 
+        certificate_id: certId 
+      });
+      await this.saveBotMessage(sessionId, response.message, 'ctsv.tu_van.chon_giay');
+      
+      return { ...response, intent: 'ctsv.tu_van.chon_giay' };
     }
 
     // Xử lý chọn danh mục thiết bị: __SELECT_CATEGORY__<id>__<label>
@@ -177,8 +193,8 @@ class ChatbotService {
 
     // KTX Actions
     if (message === '__ACTION__create_ktx_from_advice' || message === 'create_ktx_from_advice') {
-      await this.saveUserMessage(sessionId, 'Tạo yêu cầu báo sự cố');
-      const response = await ktxHandler.handleCreateKtxFromAdvice(userId, sessionId);
+      await this.saveUserMessage(sessionId, 'Tạo báo cáo sự cố');
+      const response = await ktxHandler.handleCreateFromAdvice(userId, sessionId, null);
       await this.saveBotMessage(sessionId, response.message, 'ktx.tao_tu_tu_van');
       return { ...response, intent: 'ktx.tao_tu_tu_van' };
     }
@@ -259,19 +275,61 @@ class ChatbotService {
 
   /**
    * Generate response based on Dialogflow intent
-   * @param {string} originalMessage - Message gốc từ user (để fallback tìm purpose khi Dialogflow không extract được)
+   * @param {string} originalMessage - Message gốc từ user
+   * @param {Object} dialogflowResult - Kết quả đầy đủ từ Dialogflow (để lấy outputContexts)
    */
-  async generateResponse(intent, userId, sessionId, parameters = {}, fulfillmentText = '', originalMessage = '') {
+  async generateResponse(intent, userId, sessionId, parameters = {}, fulfillmentText = '', originalMessage = '', dialogflowResult = null) {
     const mappedIntent = INTENT_MAPPING[intent] || intent;
 
     console.log('🎯 generateResponse - Intent:', intent, '| Mapped:', mappedIntent);
     console.log('📋 Parameters:', JSON.stringify(parameters));
+    console.log('📦 Has dialogflowResult:', dialogflowResult ? 'YES' : 'NO');
 
     // ==========================================
-    // KIỂM TRA: Nếu có parameter purpose hoặc document_purpose -> chuyển sang tư vấn
+    // KIỂM TRA: Nếu Intent là "đồng ý chung" + có MongoDB Context
+    // → Xử lý theo step hiện tại (hỗ trợ cả CTSV và KTX)
+    // ==========================================
+    if (intent === 'dong_y_chung' || intent === 'xac_nhan_chung') {
+      const mongoContext = await chatbotRepository.getConversationContext(sessionId);
+      console.log('🔍 Kiểm tra MongoDB Context cho dong_y_chung:', mongoContext?.step, mongoContext?.type);
+      
+      // Case 1: step = 'ready_to_create' + type = 'ktx_report' → KTX
+      if (mongoContext && mongoContext.step === 'ready_to_create' && mongoContext.type === 'ktx_report') {
+        console.log('✅ Có MongoDB Context ready_to_create (KTX) → handleCreateFromAdvice');
+        return await ktxHandler.handleCreateFromAdvice(userId, sessionId, dialogflowResult);
+      }
+      
+      // Case 2: step = 'ready_to_create' (CTSV) → Chuyển sang xác nhận
+      if (mongoContext && mongoContext.step === 'ready_to_create') {
+        console.log('✅ Có MongoDB Context ready_to_create (CTSV) → handleCreateFromAdvice');
+        return await ctsvHandler.handleCreateFromAdvice(userId, sessionId, dialogflowResult);
+      }
+      
+      // Case 3: step = 'confirm_ktx' → Xác nhận KTX
+      if (mongoContext && mongoContext.step === 'confirm_ktx') {
+        console.log('✅ Có MongoDB Context confirm_ktx → handleConfirmKtxRequest');
+        return await ktxHandler.handleConfirmKtxRequest(userId, sessionId);
+      }
+      
+      // Case 4: step = 'confirm' → Xác nhận CTSV
+      if (mongoContext && mongoContext.step === 'confirm') {
+        console.log('✅ Có MongoDB Context confirm → handleConfirmRequest');
+        return await ctsvHandler.handleConfirmRequest(userId, sessionId);
+      }
+    }
+
+    // ==========================================
+    // KIỂM TRA: Nếu có parameter purpose VÀ intent là tư vấn -> chuyển sang tư vấn
+    // LƯU Ý: Không chuyển nếu intent là kiểm tra trạng thái (ctsv.kiem_tra)
     // ==========================================
     const purposeValue = parameters.purpose || parameters.document_purpose;
-    if (purposeValue && !['ctsv.tu_van', 'document_advice'].includes(intent)) {
+    const isCheckStatusIntent = intent === 'ctsv.kiem_tra' || mappedIntent === 'check_document_status';
+    
+    // Chỉ chuyển sang tư vấn nếu:
+    // 1. Có purpose parameter
+    // 2. KHÔNG phải intent kiểm tra trạng thái
+    // 3. KHÔNG phải các intent tư vấn đã xác định
+    if (purposeValue && !isCheckStatusIntent && !['ctsv.tu_van', 'document_advice'].includes(intent)) {
       console.log('🔄 Có purpose parameter, chuyển sang tư vấn:', purposeValue);
       // Normalize parameter name
       const normalizedParams = { ...parameters, purpose: purposeValue };
@@ -289,28 +347,27 @@ class ChatbotService {
       return await ktxHandler.getKtxInfo(fulfillmentText);
     }
 
-    // Xử lý intent ktx.bao_su_co - có thể có parameter equipment_category
-    if (mappedIntent === 'ktx_report' || intent === 'ktx.bao_su_co') {
-      // Kiểm tra nếu có equipment_category -> gọi getEquipmentAdvice
-      const equipmentCategory = parameters.equipment_category;
-      if (equipmentCategory) {
-        return await ktxHandler.getEquipmentAdvice(userId, sessionId, parameters, fulfillmentText, originalMessage);
-      }
-      // Không có category -> gọi startKtxReport (chọn danh mục)
-      return await ktxHandler.startKtxReport(userId, sessionId);
+    // Intent 1: ktx.bao_su_co_nhom - Entry point (Hybrid Flow)
+    // Phân nhánh dựa trên entityType từ EquipmentStatusMapping
+    if (intent === 'ktx.bao_su_co_nhom' || intent === 'ktx.bao_su_co' || mappedIntent === 'ktx_report') {
+      return await ktxHandler.handleEquipmentReport(userId, sessionId, parameters, fulfillmentText, dialogflowResult);
     }
 
-    // Xử lý khi Dialogflow không detect được parameter nhưng message có keyword thiết bị
-    if (intent === 'ktx.bao_su_co' || (originalMessage && (originalMessage.includes('thiết bị') || originalMessage.includes('hỏng')))) {
-      // Thử tìm equipment_category từ message
-      return await ktxHandler.getEquipmentAdvice(userId, sessionId, parameters, fulfillmentText, originalMessage);
+    // Intent 2: ktx.bao_su_co_thiet_bi - Follow-up (khi user gõ tên thiết bị)
+    if (intent === 'ktx.bao_su_co_thiet_bi') {
+      return await ktxHandler.handleEquipmentFollowUp(userId, sessionId, parameters, dialogflowResult);
+    }
+
+    // Intent: ktx.tao_tu_tu_van - User đồng ý tạo sau tư vấn
+    if (intent === 'ktx.tao_tu_tu_van' || mappedIntent === 'create_ktx_from_advice') {
+      return await ktxHandler.handleCreateFromAdvice(userId, sessionId, dialogflowResult);
     }
 
     // ==========================================
     // CTSV INTENTS
     // ==========================================
     if (mappedIntent === 'check_document_status' || intent === 'ctsv.kiem_tra') {
-      return await ctsvHandler.getDocumentStatus(userId, parameters);
+      return await ctsvHandler.getDocumentStatus(userId, parameters, originalMessage);
     }
 
     if (mappedIntent === 'check_status' || intent === 'kiem_tra.chung') {
@@ -322,7 +379,8 @@ class ChatbotService {
     }
 
     if (mappedIntent === 'create_from_advice' || intent === 'ctsv.tao_tu_tu_van') {
-      return await ctsvHandler.handleCreateFromAdvice(userId, sessionId);
+      // Truyền dialogflowResult để hỗ trợ lấy purpose từ Dialogflow Context
+      return await ctsvHandler.handleCreateFromAdvice(userId, sessionId, dialogflowResult);
     }
 
     if (mappedIntent === 'create_document_request' || intent === 'ctsv.tao_yeu_cau') {
@@ -384,8 +442,8 @@ class ChatbotService {
   /**
    * Lấy trạng thái KTX cho user
    */
-  async getKtxStatus(userId) {
-    return await ktxHandler.getKtxStatus(userId);
+  async getKtxStatus(userId, parameters = {}) {
+    return await ktxHandler.getKtxStatus(userId, parameters);
   }
 
   /**

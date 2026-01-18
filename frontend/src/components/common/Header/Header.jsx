@@ -90,21 +90,16 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
               <div className="dropdown-divider"></div>
               <button className="dropdown-item" onClick={() => {
                 setShowDropdown(false);
-                navigate('/profile');
+                // Navigate based on user role
+                const profilePath = user?.role === 'student' ? '/student/profile' : 
+                                   user?.role === 'staff' ? '/staff/profile' : 
+                                   user?.role === 'admin' ? '/admin/profile' : '/profile';
+                navigate(profilePath);
               }}>
-                <span className="dropdown-icon">👤</span>
                 Thông tin cá nhân
-              </button>
-              <button className="dropdown-item" onClick={() => {
-                setShowDropdown(false);
-                navigate('/settings');
-              }}>
-                <span className="dropdown-icon">⚙️</span>
-                Cài đặt
               </button>
               <div className="dropdown-divider"></div>
               <button className="dropdown-item logout" onClick={handleLogout}>
-                <span className="dropdown-icon">🚪</span>
                 Đăng xuất
               </button>
             </div>

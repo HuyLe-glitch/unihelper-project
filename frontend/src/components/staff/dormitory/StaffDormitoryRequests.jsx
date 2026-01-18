@@ -580,7 +580,7 @@ const StaffDormitoryRequests = () => {
                     </div>
                     <div className="request-meta">
                       <div className="meta-row">
-                        <span className="room-badge">🏠 {request.student?.roomId?.name || 'N/A'}</span>
+                        <span className="room-badge">🏠 {request.roomId?.name || request.student?.roomId?.name || 'N/A'}</span>
                       </div>
                       <div className="meta-row">
                         <span className="device-name">🔧 {request.category?.name || 'N/A'}{request.item?.name ? ` - ${request.item.name}` : ''}</span>
@@ -630,7 +630,7 @@ const StaffDormitoryRequests = () => {
                     </div>
                     <div className="info-item">
                       <label>Phòng</label>
-                      <span className="highlight">{selectedRequest.student?.roomId?.name || 'N/A'}</span>
+                      <span className="highlight">{selectedRequest.roomId?.name || selectedRequest.student?.roomId?.name || 'N/A'}</span>
                     </div>
                     <div className="info-item">
                       <label>Học kỳ</label>

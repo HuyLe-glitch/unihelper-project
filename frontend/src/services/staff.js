@@ -43,9 +43,65 @@ export const staffService = {
     return response.data;
   },
 
-  // Dashboard data
+  // Dashboard data (legacy)
   getDashboardData: async () => {
     const response = await apiClient.get('/staff/dashboard');
+    return response.data;
+  },
+
+  // ============================================
+  // NEW: Dashboard CTSV và KTX
+  // ============================================
+
+  /**
+   * Lấy dashboard CTSV (stats + recent requests)
+   * @param {Object} options - { limit, status }
+   */
+  getCtsvDashboard: async (options = {}) => {
+    const response = await apiClient.get('/staff/dashboard/ctsv', { params: options });
+    return response.data;
+  },
+
+  /**
+   * Lấy dashboard KTX (stats + recent requests)
+   * @param {Object} options - { limit, status }
+   */
+  getKtxDashboard: async (options = {}) => {
+    const response = await apiClient.get('/staff/dashboard/ktx', { params: options });
+    return response.data;
+  },
+
+  /**
+   * Lấy thống kê CTSV
+   */
+  getCtsvStats: async () => {
+    const response = await apiClient.get('/staff/dashboard/ctsv/stats');
+    return response.data;
+  },
+
+  /**
+   * Lấy thống kê KTX
+   */
+  getKtxStats: async () => {
+    const response = await apiClient.get('/staff/dashboard/ktx/stats');
+    return response.data;
+  },
+
+  /**
+   * Lấy yêu cầu CTSV gần đây
+   * @param {Object} options - { limit, status }
+   */
+  getRecentCtsvRequests: async (options = {}) => {
+    const response = await apiClient.get('/staff/dashboard/ctsv/requests', { params: options });
+    return response.data;
+  },
+
+  /**
+   * Lấy yêu cầu KTX gần đây
+   * @param {Object} options - { limit, status }
+   */
+  getRecentKtxRequests: async (options = {}) => {
+    const response = await apiClient.get('/staff/dashboard/ktx/requests', { params: options });
     return response.data;
   },
 

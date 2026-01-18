@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import certificateService from '../../../services/certificate';
 import TypeFormModal from './TypeFormModal';
 import CertificateFormModal from './CertificateFormModal';
+import CMCustomDropdown from './CMCustomDropdown';
 import './CertificateManagement.css';
 
 const CertificateManagement = () => {
@@ -342,18 +343,18 @@ const CertificateManagement = () => {
         </div>
         {activeTab === 'certificates' && (
           <div className="filters-grid">
-            <select
+            <CMCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả loại' },
+                ...types.map(type => ({
+                  value: type._id,
+                  label: type.name
+                }))
+              ]}
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả loại</option>
-              {types.map(type => (
-                <option key={type._id} value={type._id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setFilterType(value)}
+              placeholder="Chọn loại chứng nhận"
+            />
           </div>
         )}
       </div>

@@ -781,6 +781,26 @@
 
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
+  .semester-management {
+    margin-left: -70px;
+    padding-left: 90px;
+    padding-right: 20px;
+  }
+
+  .main-content.sidebar-collapsed .semester-management {
+    margin-left: -70px;
+    padding-left: 90px;
+  }
+
+  /* Mobile overlay mode */
+  .main-content.mobile .semester-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .current-name {
     font-size: 30px;
   }
@@ -788,35 +808,76 @@
   .preview-grid {
     grid-template-columns: 1fr;
   }
+
+  .header-content {
+    padding: 20px 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .current-semester-card {
+    padding: 24px;
+  }
 }
 
-/* Mobile (max 767px) */
-@media (max-width: 767px) {
+/* Mobile (max 768px) */
+@media (max-width: 768px) {
   .semester-management {
-    padding: 15px;
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .main-content.sidebar-collapsed .semester-management,
+  .main-content.mobile .semester-management {
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
 
   .header-content {
-    padding: 20px;
+    padding: 18px;
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .page-title {
     font-size: 22px;
+    text-align: center;
   }
 
   .add-btn {
     width: 100%;
     justify-content: center;
+    padding: 12px 20px;
+    font-size: 14px;
   }
 
   .current-semester-card {
-    padding: 24px 20px;
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .current-semester-card::before {
+    width: 100px;
+    height: 100px;
+  }
+
+  .current-label {
+    font-size: 10px;
+    letter-spacing: 1px;
   }
 
   .current-name {
-    font-size: 26px;
+    font-size: 22px;
+    margin-bottom: 16px;
   }
 
   .current-details {
@@ -825,79 +886,316 @@
     gap: 12px;
   }
 
+  .current-time {
+    font-size: 14px;
+  }
+
+  .current-badge {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .table-section {
+    margin-bottom: 20px;
+    border-radius: 10px;
+  }
+
   .toolbar {
-    padding: 20px;
+    padding: 16px;
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .search-box {
     max-width: 100%;
+    min-width: unset;
+  }
+
+  .search-input {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .semester-table {
-    min-width: 800px;
+    min-width: 700px;
   }
 
-  .semester-table th,
+  .semester-table thead th {
+    padding: 12px 14px;
+    font-size: 11px;
+  }
+
   .semester-table td {
-    padding: 14px 16px;
+    padding: 14px;
+    font-size: 13px;
+  }
+
+  .semester-name {
+    font-size: 14px;
+  }
+
+  .semester-type-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    font-size: 11px;
+    min-width: 100px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
     font-size: 14px;
   }
 
   .pagination {
     flex-direction: column;
-    align-items: stretch;
-    padding: 16px 20px;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    text-align: center;
   }
 
   .pagination-controls {
     justify-content: center;
+    flex-wrap: wrap;
   }
 
-  .modal-container {
-    max-width: 100%;
-    margin: 0;
-    border-radius: 16px 16px 0 0;
+  .page-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
   }
 
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 20px;
+  /* Delete Dialog Mobile */
+  .delete-dialog {
+    width: 94%;
+    max-width: 360px;
   }
 
-  .modal-title {
-    font-size: 20px;
+  .delete-dialog-header {
+    padding: 16px 20px;
   }
 
-  .modal-footer {
+  .delete-dialog-header h3 {
+    font-size: 1rem;
+  }
+
+  .delete-dialog-content {
+    padding: 16px 20px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 0.9rem;
+  }
+
+  .delete-dialog-actions {
+    padding: 14px 20px;
     flex-direction: column;
   }
 
-  .btn-cancel,
-  .btn-save {
+  .delete-dialog-actions .btn {
     width: 100%;
+    padding: 12px;
+  }
+
+  /* Toast Mobile */
+  .toast-notification {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 20px !important;
+    max-width: none !important;
   }
 }
 
 /* Small Mobile (max 480px) */
 @media (max-width: 480px) {
   .semester-management {
-    padding: 12px;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-top: 16px;
   }
 
   .header-content {
-    padding: 18px;
+    padding: 14px;
+    gap: 10px;
   }
 
   .page-title {
     font-size: 20px;
   }
 
-  .current-semester-card {
-    padding: 20px 16px;
+  .add-btn {
+    padding: 10px 16px;
+    font-size: 13px;
   }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .current-semester-card {
+    padding: 16px 14px;
+  }
+
+  .current-label {
+    font-size: 9px;
+    margin-bottom: 8px;
+  }
+
+  .current-name {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .current-time {
+    font-size: 12px;
+  }
+
+  .time-icon {
+    font-size: 16px;
+  }
+
+  .current-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .toolbar {
+    padding: 12px;
+  }
+
+  .search-input {
+    height: 40px;
+    padding: 10px 14px 10px 40px;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 16px;
+  }
+
+  .semester-table {
+    min-width: 600px;
+  }
+
+  .semester-table thead th {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .semester-table td {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .semester-name {
+    font-size: 13px;
+  }
+
+  .semester-type-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+    min-width: 40px;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    min-width: 90px;
+  }
+
+  .action-buttons {
+    gap: 6px;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .pagination {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+
+  .page-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  /* Delete Dialog Small Mobile */
+  .delete-dialog {
+    width: 96%;
+    max-width: none;
+  }
+
+  .delete-dialog-header {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-header .delete-icon {
+    font-size: 24px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .delete-dialog-content {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 0.85rem;
+  }
+
+  .delete-warning-text {
+    font-size: 0.8rem !important;
+  }
+
+  .delete-dialog-actions {
+    padding: 12px 16px;
+  }
+
+  .delete-dialog-actions .btn {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .no-data-icon {
+    font-size: 48px;
+  }
+
+  .no-data-content p {
+    font-size: 14px;
+  }
+}
 
   .current-name {
     font-size: 22px;

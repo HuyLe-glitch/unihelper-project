@@ -22,6 +22,19 @@
   padding-left: 90px;
 }
 
+/* Sidebar expanded state */
+.main-content.sidebar-expanded .student-management {
+  margin-left: -250px;
+  padding-left: 270px;
+}
+
+/* Mobile/Tablet - sidebar overlay mode */
+.main-content.mobile .student-management {
+  margin-left: 0;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 /* Loading State */
 .student-management-loading {
   display: flex;
@@ -380,6 +393,13 @@
   display: flex;
   gap: 12px;
   flex: 1;
+  align-items: flex-end;
+}
+
+/* Align Export CSV Button với custom dropdown */
+.filters-grid .export-csv-btn {
+  flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .filter-select {
@@ -1158,20 +1178,61 @@
    RESPONSIVE DESIGN
    ========================================== */
 
-/* Tablet (768px - 1024px) */
+/* Large Tablet (max 1024px) */
 @media (max-width: 1024px) {
+  .student-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .main-content.sidebar-expanded .student-management,
+  .main-content.sidebar-collapsed .student-management,
+  .main-content.mobile .student-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
   .filters-grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  /* Export CSV button ở tablet */
+  .filters-grid .export-csv-btn {
+    flex: 0 0 auto;
+    align-self: flex-end;
   }
 
   .students-table {
     min-width: 1000px;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+  }
+  
+  .tab {
+    flex: 1 1 auto;
+    min-width: 120px;
   }
 }
 
 /* Mobile (max 767px) */
 @media (max-width: 767px) {
   .student-management {
+    padding: 15px;
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .main-content.sidebar-expanded .student-management,
+  .main-content.sidebar-collapsed .student-management,
+  .main-content.mobile .student-management {
+    margin-left: 0;
     padding: 15px;
   }
 
@@ -1197,48 +1258,109 @@
     flex: 1;
     justify-content: center;
   }
+  
+  /* Tabs responsive */
+  .tabs-container {
+    padding: 6px;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .tab {
+    flex: 1 1 calc(50% - 3px);
+    padding: 10px 12px;
+    min-width: 0;
+  }
+  
+  .tab-icon {
+    font-size: 16px;
+  }
+  
+  .tab-text {
+    font-size: 13px;
+  }
+  
+  .tab-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
 
   .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .stat-card {
-    padding: 18px;
+    padding: 16px;
+    gap: 12px;
   }
 
   .stat-icon {
-    font-size: 36px;
-    width: 55px;
-    height: 55px;
+    font-size: 28px;
+    width: 45px;
+    height: 45px;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 22px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
   }
 
   .filters-section {
-    padding: 20px;
+    padding: 16px;
   }
 
   .filters-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  /* Export CSV button ở mobile */
+  .filters-grid .export-csv-btn {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  
+  .filter-select,
+  .search-input {
+    font-size: 14px;
+    padding: 10px 14px;
   }
 
   .table-section {
     margin-bottom: 20px;
+    border-radius: 8px;
+  }
+  
+  /* Table scroll hint */
+  .table-section::before {
+    content: '← Vuốt để xem thêm →';
+    display: block;
+    text-align: center;
+    padding: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
   }
 
   .table-header-row {
-    padding: 16px 20px;
+    padding: 16px;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
 
   .students-table {
-    min-width: 800px;
+    min-width: 900px;
   }
 
   .students-table th,
@@ -1248,9 +1370,10 @@
   }
 
   .pagination {
-    padding: 16px 20px;
+    padding: 16px;
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .pagination-controls {
@@ -1284,27 +1407,139 @@
   .student-management {
     padding: 12px;
   }
+  
+  .main-content.sidebar-expanded .student-management,
+  .main-content.sidebar-collapsed .student-management,
+  .main-content.mobile .student-management {
+    margin-left: 0;
+    padding: 12px;
+  }
 
   .header-content {
-    padding: 16px;
+    padding: 14px;
   }
 
   .page-title {
-    font-size: 20px;
+    font-size: 18px;
+  }
+  
+  .page-subtitle {
+    font-size: 12px;
+  }
+  
+  /* Tabs compact */
+  .tabs-container {
+    padding: 4px;
+  }
+  
+  .tab {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  
+  .tab-icon {
+    font-size: 14px;
+  }
+  
+  .tab-text {
+    font-size: 12px;
+  }
+  
+  .tab-badge {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
   .stat-card {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
+    padding: 14px;
+  }
+  
+  .stat-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .stat-value {
+    font-size: 20px;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+  }
+  
+  .filters-section {
+    padding: 12px;
+  }
+  
+  .filter-select,
+  .search-input {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+  
+  .table-section::before {
+    font-size: 11px;
+    padding: 6px;
+  }
+  
+  .table-header-row {
+    padding: 12px;
+  }
+  
+  .table-title {
+    font-size: 16px;
   }
 
   .btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     font-size: 13px;
   }
 
   .btn-icon {
     font-size: 14px;
+  }
+  
+  .students-table {
+    min-width: 850px;
+  }
+  
+  .students-table th {
+    font-size: 11px;
+    padding: 10px 8px;
+  }
+  
+  .students-table td {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+  
+  .pagination {
+    padding: 12px;
+  }
+  
+  .pagination-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  /* Modal compact */
+  .modal-header {
+    padding: 16px;
+  }
+  
+  .modal-header h2 {
+    font-size: 18px;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .modal-footer {
+    padding: 16px;
   }
 }
 

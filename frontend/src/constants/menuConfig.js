@@ -30,13 +30,6 @@ export const MENU_CONFIGS = {
       ],
     },
     {
-      id: 'chat',
-      icon: '💬',
-      label: 'Chat',
-      type: 'single',
-      path: '/student/chat',
-    },
-    {
       id: 'history',
       icon: '📅',
       label: 'Lịch sử yêu cầu',
@@ -45,13 +38,6 @@ export const MENU_CONFIGS = {
         { id: 'history-affair', label: 'Lịch sử CTSV', path: '/student/history-affair' },
         { id: 'history-dormitory', label: 'Lịch sử KTX', path: '/student/history-dormitory' },
       ],
-    },
-    {
-      id: 'settings',
-      icon: '⚙️',
-      label: 'Cài đặt',
-      type: 'single',
-      path: '/student/settings',
     },
   ],
 
@@ -72,13 +58,6 @@ export const MENU_CONFIGS = {
       label: 'Yêu cầu CTSV',
       type: 'single',
       path: '/staff/requests',
-    },
-    {
-      id: 'history',
-      icon: '🕓',
-      label: 'Lịch sử xử lý',
-      type: 'single',
-      path: '/staff/history',
     },
     {
       id: 'reports',
@@ -156,13 +135,6 @@ export const MENU_CONFIGS = {
         { id: 'certificate-requests', label: 'Yêu cầu CTSV', path: '/admin/certificate-requests' },
         { id: 'dormitory-requests', label: 'Danh mục thiết bị KTX', path: '/admin/dormitory-requests' },
       ],
-    },
-    {
-      id: 'reports',
-      icon: '📈',
-      label: 'Báo cáo hệ thống',
-      type: 'single',
-      path: '/admin/reports',
     },
   ],
 };

@@ -9,6 +9,8 @@ const CertificateType = require('../models/CertificateType');
 const Certificate = require('../models/Certificate');
 const Semester = require('../models/Semester');
 const PurposeMapping = require('../models/PurposeMapping');
+const CertificateStatusMapping = require('../models/CertificateStatusMapping');
+const EquipmentStatusMapping = require('../models/EquipmentStatusMapping');
 const EquipmentCategory = require('../models/EquipmentCategory');
 const EquipmentItem = require('../models/EquipmentItem');
 
@@ -84,12 +86,15 @@ class ChatbotRepository {
 
   /**
    * Lấy yêu cầu KTX của sinh viên
+   * Populate đầy đủ category và item để hiển thị tên
    */
   async getKtxRequestsByStudent(studentId) {
     return await DormitoryRequest.find({ student: studentId })
       .populate('semester', 'name')
+      .populate('category', 'name')
+      .populate('item', 'name')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(10);
   }
 
   /**
@@ -98,8 +103,9 @@ class ChatbotRepository {
   async getCertificateRequestsByStudent(studentId) {
     return await CertificateRequest.find({ student: studentId })
       .populate('certificateType', 'name')
+      .populate('certificateName', 'name')
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(10);
   }
 
   // ==========================================
@@ -125,15 +131,25 @@ class ChatbotRepository {
   }
 
   /**
-   * Tìm Certificate phù hợp theo mục đích (purpose)
+   * Lấy thông tin Certificate theo ID (cho chatbot khi user chọn từ danh sách loại)
+   */
+  async getCertificateById(certificateId) {
+    return await Certificate.findById(certificateId)
+      .populate('certificateType', '_id name description')
+      .select('_id name description certificateType');
+  }
+
+  /**
+   * Tìm Certificate hoặc CertificateType phù hợp theo mục đích (purpose)
    * 
    * SỬ DỤNG PURPOSEMAPPING - SINGLE SOURCE OF TRUTH
    * - Dialogflow trả về raw text hoặc reference value
-   * - PurposeMapping.synonyms chứa các từ khóa đồng nghĩa
-   * - Quản lý qua Admin UI, KHÔNG cần chạy script
+   * - PurposeMapping.mappingType xác định loại kết quả:
+   *   + 'certificate': Trả về Certificate cụ thể
+   *   + 'type': Trả về CertificateType (loại) để hiển thị danh sách giấy
    * 
    * @param {string} purposeCode - Purpose code từ Dialogflow (reference value hoặc raw text)
-   * @returns {Object|null} - { certificate, adviceNote, description } hoặc null
+   * @returns {Object|null} - { mappingType, certificate?, certificateType?, adviceNote, description, displayName } hoặc null
    */
   async findCertificateByPurpose(purposeCode) {
     if (!purposeCode) return null;
@@ -158,112 +174,49 @@ class ChatbotRepository {
         path: 'certificateType',
         select: '_id name description'
       }
+    }).populate({
+      path: 'certificateType',
+      select: '_id name description'
     });
     
     if (mapping) {
-      console.log(`✅ Tìm thấy theo purposeCode: ${mapping.purposeCode}`);
+      console.log(`✅ Tìm thấy theo purposeCode: ${mapping.purposeCode} (mappingType: ${mapping.mappingType})`);
+    } else {
+      console.log(`❌ Không tìm thấy exact match cho purposeCode: "${normalizedNoDiacritics}"`);
     }
     
-    // Bước 2: Nếu không tìm thấy, tìm theo synonyms trong DB
-    if (!mapping) {
-      console.log(`🔍 Không tìm thấy exact match, tìm theo synonyms trong DB...`);
-      
-      // Tìm PurposeMapping có synonyms chứa input (có dấu hoặc không dấu)
-      mapping = await PurposeMapping.findOne({
-        isActive: true,
-        $or: [
-          { synonyms: normalizedInput },  // Match có dấu
-          { synonyms: normalizedNoDiacritics },  // Match không dấu
-          { synonyms: { $regex: new RegExp(`^${normalizedInput}$`, 'i') } },  // Case-insensitive
-          { synonyms: { $regex: new RegExp(`^${normalizedNoDiacritics}$`, 'i') } }
-        ]
-      }).populate({
-        path: 'certificate',
-        populate: {
-          path: 'certificateType',
-          select: '_id name description'
-        }
-      });
-      
-      if (mapping) {
-        console.log(`✅ Tìm thấy theo synonyms: ${mapping.purposeCode} (synonym matched: "${normalizedInput}")`);
-      }
-    }
-    
-    // Bước 3: Fallback - tìm theo keyword trong displayName/description
-    if (!mapping) {
-      console.log(`🔍 Không tìm thấy trong synonyms, tìm theo displayName/description...`);
-      
-      const allMappings = await PurposeMapping.find({ isActive: true }).populate({
-        path: 'certificate',
-        populate: { path: 'certificateType', select: '_id name description' }
-      });
-      
-      // Tìm mapping có displayName/description khớp keyword
-      mapping = allMappings.find(m => {
-        const displayNorm = (m.displayName || '').toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const descNorm = (m.description || '').toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        
-        return displayNorm.includes(normalizedNoDiacritics) || 
-               descNorm.includes(normalizedNoDiacritics) ||
-               normalizedNoDiacritics.includes(displayNorm.replace(/\s+/g, '_'));
-      });
-      
-      if (mapping) {
-        console.log(`✅ Tìm thấy qua displayName/description: ${mapping.purposeCode}`);
-      }
-    }
-    
-    if (mapping && mapping.certificate) {
-      return {
-        certificate: mapping.certificate,
+    // Trả về kết quả dựa theo mappingType
+    if (mapping) {
+      const result = {
+        mappingType: mapping.mappingType || 'certificate', // Default cho data cũ
         adviceNote: mapping.adviceNote,
-        description: mapping.description || mapping.certificate.description
+        description: mapping.description,
+        displayName: mapping.displayName,
+        purposeCode: mapping.purposeCode
       };
+      
+      if (mapping.mappingType === 'type' && mapping.certificateType) {
+        // Trả về CertificateType để hiển thị danh sách
+        result.certificateType = mapping.certificateType;
+        console.log(`📁 Mapping type: "type" → CertificateType: ${mapping.certificateType.name}`);
+      } else if (mapping.certificate) {
+        // Trả về Certificate cụ thể (logic cũ)
+        result.certificate = mapping.certificate;
+        result.description = mapping.description || mapping.certificate.description;
+        console.log(`📄 Mapping type: "certificate" → Certificate: ${mapping.certificate.name}`);
+      } else {
+        console.log(`⚠️ Mapping không có certificate hoặc certificateType`);
+        return null;
+      }
+      
+      return result;
     }
     
     console.log(`❌ Không tìm thấy mapping cho: "${purposeCode}"`);
     return null;
   }
 
-  /**
-   * Tìm purposeCode từ message gốc của user
-   * Dùng khi Dialogflow không extract được purpose
-   * @param {string} message - Message gốc từ user
-   * @returns {Object|null} - { purposeCode, displayName } hoặc null
-   */
-  async findPurposeFromMessage(message) {
-    if (!message) return null;
-    
-    const normalizedMessage = message.toLowerCase().trim();
-    console.log(`🔍 findPurposeFromMessage - Message: "${message}"`);
-    
-    // Lấy tất cả PurposeMapping với synonyms
-    const allMappings = await PurposeMapping.find({ isActive: true });
-    
-    // Tìm mapping có synonym xuất hiện trong message
-    for (const mapping of allMappings) {
-      if (!mapping.synonyms || mapping.synonyms.length === 0) continue;
-      
-      for (const synonym of mapping.synonyms) {
-        const normalizedSynonym = synonym.toLowerCase().trim();
-        
-        // Check nếu message chứa synonym
-        if (normalizedMessage.includes(normalizedSynonym)) {
-          console.log(`✅ Tìm thấy synonym "${synonym}" trong message -> purposeCode: ${mapping.purposeCode}`);
-          return {
-            purposeCode: mapping.purposeCode,
-            displayName: mapping.displayName
-          };
-        }
-      }
-    }
-    
-    console.log(`❌ Không tìm thấy purpose nào từ message`);
-    return null;
-  }
+
   /**
    * Lấy tất cả PurposeMapping (cho Admin UI)
    */
@@ -467,6 +420,80 @@ class ChatbotRepository {
     }
 
     return `KTX${maxNumber + 1}`;
+  }
+
+  /**
+   * Tìm CertificateStatusMapping theo reference value
+   * Dùng cho chức năng kiểm tra trạng thái yêu cầu
+   * 
+   * @param {string} referenceValue - Reference value từ Dialogflow Entity
+   * @returns {Object|null} - { entityType, certificateType, certificateName } hoặc null
+   */
+  async findCertificateStatusMapping(referenceValue) {
+    if (!referenceValue) return null;
+    
+    // Normalize: lowercase, thay underscore thành space, trim
+    const normalizedRef = referenceValue.toLowerCase().trim();
+    
+    console.log(`🔍 findCertificateStatusMapping - Input: "${referenceValue}", Normalized: "${normalizedRef}"`);
+    
+    // Tìm trong CertificateStatusMapping
+    const mapping = await CertificateStatusMapping.findOne({
+      referenceValue: normalizedRef,
+      isActive: true
+    })
+    .populate('certificateType', '_id name')
+    .populate('certificateName', '_id name');
+    
+    if (mapping) {
+      console.log(`✅ Tìm thấy mapping: entityType=${mapping.entityType}`);
+      if (mapping.entityType === 'type') {
+        console.log(`   → CertificateType: ${mapping.certificateType?.name} (${mapping.certificateType?._id})`);
+      } else {
+        console.log(`   → Certificate: ${mapping.certificateName?.name} (${mapping.certificateName?._id})`);
+      }
+      return mapping;
+    }
+    
+    console.log(`❌ Không tìm thấy mapping cho "${normalizedRef}"`);
+    return null;
+  }
+
+  /**
+   * Tìm EquipmentStatusMapping theo reference value từ Dialogflow
+   * Dùng cho chức năng kiểm tra trạng thái báo cáo sự cố KTX
+   * 
+   * @param {string} referenceValue - Reference value từ Dialogflow Entity
+   * @returns {Object|null} - { entityType, equipmentCategory, equipmentItem } hoặc null
+   */
+  async findEquipmentStatusMapping(referenceValue) {
+    if (!referenceValue) return null;
+    
+    // Normalize: lowercase, thay underscore thành space, trim
+    const normalizedRef = referenceValue.toLowerCase().trim();
+    
+    console.log(`🔍 findEquipmentStatusMapping - Input: "${referenceValue}", Normalized: "${normalizedRef}"`);
+    
+    // Tìm trong EquipmentStatusMapping
+    const mapping = await EquipmentStatusMapping.findOne({
+      referenceValue: normalizedRef,
+      isActive: true
+    })
+    .populate('equipmentCategory', '_id name')
+    .populate('equipmentItem', '_id name category');
+    
+    if (mapping) {
+      console.log(`✅ Tìm thấy mapping: entityType=${mapping.entityType}`);
+      if (mapping.entityType === 'category') {
+        console.log(`   → EquipmentCategory: ${mapping.equipmentCategory?.name} (${mapping.equipmentCategory?._id})`);
+      } else {
+        console.log(`   → EquipmentItem: ${mapping.equipmentItem?.name} (${mapping.equipmentItem?._id})`);
+      }
+      return mapping;
+    }
+    
+    console.log(`❌ Không tìm thấy mapping cho "${normalizedRef}"`);
+    return null;
   }
 }
 

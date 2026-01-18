@@ -12,12 +12,23 @@ const StatusCard = ({ type = 'ktx', data }) => {
 
   // Status configuration
   const statusConfig = {
-    'PENDING': { emoji: '🟡', label: 'Chờ xử lý', className: 'status-pending' },
-    'CHO_XU_LY': { emoji: '🟡', label: 'Chờ xử lý', className: 'status-pending' },
+    // English status (from model enum)
+    'Pending': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
+    'Under Review': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
+    'Approved': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
+    'Rejected': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
+    // Vietnamese status
+    'Chờ tiếp nhận': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
+    'Đang xử lý': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
+    'Hoàn thành': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
+    'Từ chối': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
+    // Legacy uppercase status
+    'PENDING': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
+    'CHO_XU_LY': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
     'PROCESSING': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
     'DANG_XU_LY': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
-    'APPROVED': { emoji: '🟢', label: 'Đã duyệt', className: 'status-approved' },
-    'DA_DUYET': { emoji: '🟢', label: 'Đã duyệt', className: 'status-approved' },
+    'APPROVED': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
+    'DA_DUYET': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
     'REJECTED': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
     'TU_CHOI': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
     'COMPLETED': { emoji: '✅', label: 'Hoàn thành', className: 'status-completed' },
@@ -82,15 +93,37 @@ const StatusCard = ({ type = 'ktx', data }) => {
 
         {data.certificateType && (
           <div className="status-card-row">
-            <span className="status-card-label">Loại giấy tờ</span>
+            <span className="status-card-label">Loại chứng nhận</span>
             <span className="status-card-value">{data.certificateType}</span>
           </div>
         )}
 
-        {data.quantity && (
+        {data.certificateName && (
           <div className="status-card-row">
-            <span className="status-card-label">Số lượng</span>
-            <span className="status-card-value">{data.quantity}</span>
+            <span className="status-card-label">Tên giấy tờ</span>
+            <span className="status-card-value">{data.certificateName}</span>
+          </div>
+        )}
+
+        {/* KTX - Danh mục và thiết bị */}
+        {data.equipmentCategory && (
+          <div className="status-card-row">
+            <span className="status-card-label">Danh mục</span>
+            <span className="status-card-value">{data.equipmentCategory}</span>
+          </div>
+        )}
+
+        {data.equipmentName && (
+          <div className="status-card-row">
+            <span className="status-card-label">Thiết bị</span>
+            <span className="status-card-value">{data.equipmentName}</span>
+          </div>
+        )}
+
+        {data.description && (
+          <div className="status-card-row">
+            <span className="status-card-label">Mô tả</span>
+            <span className="status-card-value">{data.description}</span>
           </div>
         )}
         

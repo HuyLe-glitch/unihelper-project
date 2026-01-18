@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import equipmentService from '../../../services/equipment';
 import CategoryFormModal from './CategoryFormModal';
 import ItemFormModal from './ItemFormModal';
+import DRCustomDropdown from './DRCustomDropdown';
 import './DormitoryRequestManagement.css';
 
 const DormitoryRequestManagement = () => {
@@ -342,18 +343,18 @@ const DormitoryRequestManagement = () => {
         </div>
         {activeTab === 'requests' && (
           <div className="filters-grid">
-            <select
+            <DRCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả danh mục' },
+                ...categories.map(cat => ({
+                  value: cat._id,
+                  label: cat.name
+                }))
+              ]}
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả danh mục</option>
-              {categories.map(cat => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setFilterCategory(value)}
+              placeholder="Chọn danh mục"
+            />
           </div>
         )}
       </div>

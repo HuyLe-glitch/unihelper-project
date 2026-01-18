@@ -23,11 +23,16 @@ class DialogflowHandler {
       console.log('   FulfillmentText:', result.fulfillmentText?.substring(0, 100) || '(empty)');
       console.log('═══════════════════════════════════════════════════');
       
+      // Extract parameters từ Dialogflow response
+      const extractedParams = dialogflowConfig.extractParameters(result.parameters, result.outputContexts);
+      console.log('🎯 generateResponse - Intent:', result.intent, '| Extracted params:', JSON.stringify(extractedParams));
+      
       return {
         intent: result.intent,
         confidence: result.intentDetectionConfidence || 0,
-        parameters: dialogflowConfig.extractParameters(result.parameters),
-        fulfillmentText: result.fulfillmentText
+        parameters: extractedParams,
+        fulfillmentText: result.fulfillmentText,
+        outputContexts: result.outputContexts || []  // ✅ THÊM: Trả về outputContexts để lấy context từ Dialogflow
       };
     } catch (error) {
       console.error('❌ Dialogflow error:', error);

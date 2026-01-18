@@ -7,6 +7,8 @@ import StaffDormitoryRequests from '../dormitory/StaffDormitoryRequests';
 import { SemesterFilter, FilePreview, ConfirmDialog } from '../../common';
 import ExportCSVButton from '../../common/ExportCSVButton';
 import ActivityLog from './ActivityLog';
+import CTSVCustomDropdown from './CTSVCustomDropdown';
+import './CTSVCustomDropdown.css';
 import './ActivityLog.css';
 import './StaffCtsvRequests.css';
 import '../staffPages.css';
@@ -640,27 +642,27 @@ const StaffCtsvRequests = () => {
             <button className="search-clear" onClick={() => setSearchTerm('')}>×</button>
           )}
         </div>
-        <div className="filter-group">
-          <select
+        <div className="ctsv-filter-group">
+          <CTSVCustomDropdown
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="ĐANG XỬ LÝ">Đang xử lý</option>
-            <option value="HỢP LỆ">Hợp lệ</option>
-            <option value="KHÔNG HỢP LỆ">Không hợp lệ</option>
-          </select>
-          <select
+            options={[
+              { value: 'all', label: 'Tất cả trạng thái' },
+              { value: 'ĐANG XỬ LÝ', label: 'Đang xử lý' },
+              { value: 'HỢP LỆ', label: 'Hợp lệ' },
+              { value: 'KHÔNG HỢP LỆ', label: 'Không hợp lệ' }
+            ]}
+            placeholder="Tất cả trạng thái"
+          />
+          <CTSVCustomDropdown
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">Tất cả loại chứng nhận</option>
-            {certificateTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
+            options={[
+              { value: 'all', label: 'Tất cả loại chứng nhận' },
+              ...certificateTypes.map(type => ({ value: type, label: type }))
+            ]}
+            placeholder="Tất cả loại chứng nhận"
+          />
           {/* Semester Filter Component */}
           <SemesterFilter
             value={semesterFilter}
@@ -737,7 +739,10 @@ const StaffCtsvRequests = () => {
           </div>
         </div>
 
-        {/* Right Panel - Detail View */}
+        {/* Right Panel - Detail View (với overlay trên mobile) */}
+        {selectedRequest && (
+          <div className="ctsv-detail-overlay" onClick={() => setSelectedRequest(null)} />
+        )}
         <div className={`ctsv-detail-panel ${selectedRequest ? 'has-content' : ''}`}>
           {selectedRequest ? (
             <>

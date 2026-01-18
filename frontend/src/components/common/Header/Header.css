@@ -263,12 +263,118 @@
   text-align: center;
 }
 
-/* Responsive */
+/* Tablet & Mobile - Full width header với overlay sidebar */
+@media (max-width: 1024px) {
+  .app-header {
+    position: fixed;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 0 16px;
+    height: 60px;
+    justify-content: space-between;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+  .header-left {
+    flex-shrink: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Hamburger luôn là 3 gạch, không biến thành X */
+  .hamburger.collapsed span:nth-child(1) {
+    transform: none;
+  }
+
+  .hamburger.collapsed span:nth-child(2) {
+    opacity: 1;
+  }
+
+  .hamburger.collapsed span:nth-child(3) {
+    transform: none;
+  }
+
+  .sidebar-toggle-btn {
+    width: 44px;
+    height: 44px;
+    background: #f0f2f5;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-toggle-btn:hover {
+    background: #e4e6eb;
+  }
+
+  .hamburger {
+    width: 22px;
+    height: 16px;
+  }
+
+  .hamburger span {
+    height: 2.5px;
+    background: #333;
+  }
+
+  .app-header .user-info {
+    padding: 6px 12px;
+    background: #f0f2f5;
+    border-radius: 24px;
+    flex-shrink: 0;
+  }
+
+  .app-header .user-info:hover {
+    background: #e4e6eb;
+  }
+
+  .app-header .user-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  /* User dropdown on tablet */
+  .user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 260px;
+    max-width: 300px;
+  }
+}
+
+/* Mobile - Smaller sizes */
 @media (max-width: 768px) {
   .app-header {
-    left: 0 !important;
-    width: 100% !important;
-    padding: 0 16px;
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .sidebar-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+
+  .hamburger {
+    width: 20px;
+    height: 14px;
+  }
+
+  .hamburger span {
+    height: 2px;
   }
 
   .app-header .user-name {
@@ -280,10 +386,111 @@
   }
 
   .app-header .user-info {
-    padding: 6px;
+    padding: 4px;
+    border-radius: 50%;
+  }
+
+  .app-header .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  /* Dropdown compact on mobile - không full width */
+  .user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    min-width: 220px;
+    max-width: 260px;
+    width: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .dropdown-header {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .dropdown-user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .dropdown-user-name {
+    font-size: 14px;
+  }
+
+  .dropdown-user-role {
+    font-size: 12px;
+  }
+
+  .dropdown-user-email {
+    font-size: 11px;
+  }
+
+  .dropdown-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .dropdown-divider {
+    margin: 4px 0;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 0 10px;
+    height: 52px;
+  }
+
+  .sidebar-toggle-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger {
+    width: 18px;
+    height: 12px;
+  }
+
+  .header-right {
+    gap: 6px;
+  }
+
+  .app-header .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
   }
 
   .user-dropdown {
-    right: -8px;
+    min-width: 200px;
+    max-width: 240px;
+  }
+
+  .dropdown-header {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .dropdown-user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .dropdown-user-name {
+    font-size: 13px;
+  }
+
+  .dropdown-item {
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }

@@ -1,5 +1,6 @@
 const express = require('express');
 const studentController = require('../controllers/studentController');
+const studentDashboardController = require('../controllers/studentDashboardController');
 const { 
   createStudent, 
   updateStudent, 
@@ -14,6 +15,17 @@ const router = express.Router();
 
 // Protect all routes
 router.use(protect);
+
+// ==========================================
+// STUDENT DASHBOARD ROUTE (for STUDENT)
+// ==========================================
+
+// GET /api/students/dashboard - Lấy dữ liệu dashboard cho sinh viên
+router.get(
+  '/dashboard',
+  restrictTo('STUDENT'),
+  studentDashboardController.getDashboard
+);
 
 // ==========================================
 // PUBLIC ROUTES (for ADMIN only)

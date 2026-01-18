@@ -56,11 +56,48 @@
   line-height: 1.6;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Tablet & Mobile - Full width content với overlay sidebar */
+@media (max-width: 1024px) {
   .main-content {
     margin-left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    margin-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+
+  .main-content.mobile,
+  .main-content.sidebar-collapsed,
+  .main-content.sidebar-expanded {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Sidebar backdrop */
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1099;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .main-content {
+    margin-top: 56px;
+    min-height: calc(100vh - 56px);
   }
 }

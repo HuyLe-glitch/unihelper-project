@@ -208,6 +208,19 @@ const studentService = {
   },
 
   // ==========================================
+  // DASHBOARD API
+  // ==========================================
+
+  /**
+   * Lấy dữ liệu dashboard cho sinh viên
+   * @returns {Object} - { isDormResident, stats, recentRequests }
+   */
+  getDashboard: async () => {
+    const response = await apiClient.get('/students/dashboard');
+    return response.data;
+  },
+
+  // ==========================================
   // EXPORT CSV API
   // ==========================================
 

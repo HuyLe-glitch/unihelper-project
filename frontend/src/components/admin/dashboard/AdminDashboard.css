@@ -46,6 +46,37 @@
   to { transform: rotate(360deg); }
 }
 
+/* Error State */
+.dashboard-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+  text-align: center;
+}
+
+.dashboard-error .error-icon {
+  font-size: 64px;
+}
+
+.dashboard-error p {
+  color: #6c757d;
+  font-size: 16px;
+  max-width: 400px;
+}
+
+/* No Activities */
+.no-activities {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  font-style: italic;
+}
+
 /* Dashboard Header */
 .dashboard-header {
   margin-bottom: 25px;
@@ -171,6 +202,11 @@
   box-sizing: border-box;
 }
 
+/* Stats Grid with 7 items - Auto responsive */
+.stats-grid-7 {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
 .stat-card {
   background: white;
   padding: 28px 24px;
@@ -228,6 +264,18 @@
 
 .stat-card-emerald { border-left-color: #059669; }
 .stat-card-emerald::before { background: #059669; }
+
+.stat-card-pink { border-left-color: #ec4899; }
+.stat-card-pink::before { background: #ec4899; }
+
+.stat-card-cyan { border-left-color: #06b6d4; }
+.stat-card-cyan::before { background: #06b6d4; }
+
+.stat-card-indigo { border-left-color: #6366f1; }
+.stat-card-indigo::before { background: #6366f1; }
+
+.stat-card-gray { border-left-color: #6b7280; }
+.stat-card-gray::before { background: #6b7280; }
 
 .stat-card-icon {
   font-size: 48px;
@@ -416,6 +464,8 @@
 .action-orange:hover { border-color: #f59e0b; background: #fffbeb; }
 .action-teal:hover { border-color: #14b8a6; background: #f0fdfa; }
 .action-red:hover { border-color: #ef4444; background: #fef2f2; }
+.action-pink:hover { border-color: #ec4899; background: #fdf2f8; }
+.action-cyan:hover { border-color: #06b6d4; background: #ecfeff; }
 
 .action-icon {
   font-size: 36px;
@@ -528,8 +578,29 @@
    RESPONSIVE DESIGN
    ========================================== */
 
+/* Mobile state - sidebar overlay mode */
+.main-content.mobile .admin-dashboard {
+  margin-left: 0;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 /* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
+  .admin-dashboard {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .main-content.sidebar-expanded .admin-dashboard,
+  .main-content.sidebar-collapsed .admin-dashboard,
+  .main-content.mobile .admin-dashboard {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -537,11 +608,26 @@
   .quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .stats-grid,
+  .stats-grid-7 {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Mobile (max 767px) */
 @media (max-width: 767px) {
   .admin-dashboard {
+    padding: 15px;
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .main-content.sidebar-expanded .admin-dashboard,
+  .main-content.sidebar-collapsed .admin-dashboard,
+  .main-content.mobile .admin-dashboard {
+    margin-left: 0;
     padding: 15px;
   }
 
@@ -568,7 +654,8 @@
     justify-content: center;
   }
 
-  .stats-grid {
+  .stats-grid,
+  .stats-grid-7 {
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
   }
@@ -623,6 +710,14 @@
 @media (max-width: 480px) {
   .admin-dashboard {
     padding: 12px;
+    margin-left: 0;
+  }
+  
+  .main-content.sidebar-expanded .admin-dashboard,
+  .main-content.sidebar-collapsed .admin-dashboard,
+  .main-content.mobile .admin-dashboard {
+    margin-left: 0;
+    padding: 12px;
   }
 
   .header-content {
@@ -632,30 +727,62 @@
   .dashboard-title {
     font-size: 20px;
   }
+  
+  .stats-grid,
+  .stats-grid-7 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
   .stat-card {
     flex-direction: column;
     text-align: center;
-    padding: 16px;
+    padding: 14px 10px;
+    min-height: auto;
+    gap: 10px;
   }
 
   .stat-card-icon {
-    font-size: 36px;
-    width: 55px;
-    height: 55px;
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .stat-card-title {
+    font-size: 11px;
   }
 
   .stat-card-value {
-    font-size: 24px;
+    font-size: 20px;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
   }
 
   .activity-item {
     flex-wrap: wrap;
     gap: 10px;
+    padding: 12px;
+  }
+  
+  .activity-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .activity-action {
+    font-size: 13px;
+  }
+  
+  .activity-details {
+    font-size: 12px;
   }
 
   .activity-time {
     width: 100%;
     text-align: right;
+    font-size: 11px;
   }
 }

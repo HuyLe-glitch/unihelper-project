@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import './FacultyMajorManagement.css';
 import FacultyFormModal from './FacultyFormModal';
 import MajorFormModal from './MajorFormModal';
+import FMCustomDropdown from './FMCustomDropdown';
 import { facultyService } from '../../../services/faculty';
 import { majorService } from '../../../services/major';
 
@@ -386,18 +387,18 @@ const FacultyMajorManagement = () => {
         </div>
         {activeTab === 'majors' && (
           <div className="filters-grid">
-            <select
+            <FMCustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả khoa' },
+                ...faculties.map(faculty => ({
+                  value: faculty._id,
+                  label: faculty.name
+                }))
+              ]}
               value={filterFaculty}
-              onChange={(e) => setFilterFaculty(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Tất cả khoa</option>
-              {faculties.map(faculty => (
-                <option key={faculty._id} value={faculty._id}>
-                  {faculty.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setFilterFaculty(value)}
+              placeholder="Chọn khoa"
+            />
           </div>
         )}
       </div>

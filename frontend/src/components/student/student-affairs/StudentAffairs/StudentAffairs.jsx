@@ -3,6 +3,7 @@ import studentService from '../../../../services/student';
 import certificateService from '../../../../services/certificate';
 import certificateRequestService from '../../../../services/certificateRequest';
 import { semesterService } from '../../../../services/semester';
+import SACustomDropdown from './SACustomDropdown';
 import './StudentAffairs.css';
 
 /**
@@ -313,49 +314,24 @@ const StudentAffairs = () => {
             <div className="form-row">
               <div className="form-group-certificate">
                 <label>LOẠI CHỨNG NHẬN, YÊU CẦU <span className="required">*</span></label>
-                <div className="select-container">
-                  <select
-                    value={certificateForm.certificateType}
-                    onChange={(e) => handleCertificateChange('certificateType', e.target.value)}
-                    className="select-input"
-                  >
-                    <option value="">-- Chọn loại chứng nhận --</option>
-                    {certificateTypes.map((type) => (
-                      <option key={type._id} value={type._id}>{type.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <SACustomDropdown
+                  options={certificateTypes}
+                  value={certificateForm.certificateType}
+                  onChange={(value) => handleCertificateChange('certificateType', value)}
+                  placeholder="-- Chọn loại chứng nhận --"
+                />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group-certificate">
                 <label>CHỨNG NHẬN, YÊU CẦU <span className="required">*</span></label>
-                <div className="select-container">
-                  <select
-                    value={certificateForm.certificate}
-                    onChange={(e) => handleCertificateChange('certificate', e.target.value)}
-                    className="select-input"
-                    disabled={!certificateForm.certificateType}
-                  >
-                    <option value="">-- Chọn chứng nhận --</option>
-                    {certificates.map((cert) => (
-                      <option key={cert._id} value={cert._id}>{cert.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group-certificate">
-                <label>GHI CHÚ</label>
-                <input
-                  type="text"
-                  className="text-input"
-                  placeholder="Nhập ghi chú (nếu có)"
-                  value={certificateForm.note}
-                  onChange={(e) => handleCertificateChange('note', e.target.value)}
+                <SACustomDropdown
+                  options={certificates}
+                  value={certificateForm.certificate}
+                  onChange={(value) => handleCertificateChange('certificate', value)}
+                  placeholder="-- Chọn chứng nhận --"
+                  disabled={!certificateForm.certificateType}
                 />
               </div>
             </div>
@@ -363,19 +339,17 @@ const StudentAffairs = () => {
             <div className="form-row">
               <div className="form-group-certificate">
                 <label>HỌC KỲ</label>
-                <div className="select-container">
-                  <input
-                    type="text"
-                    className="text-input semester-input"
-                    value={activeSemester?.name || 'Chưa có học kỳ hoạt động'}
-                    readOnly
-                  />
-                </div>
+                <input
+                  type="text"
+                  className="text-input semester-display"
+                  value={activeSemester?.name || 'Chưa có học kỳ hoạt động'}
+                  readOnly
+                />
               </div>
             </div>
 
             <div className="info-note">
-              <p>Các thông tin bắt buộc (phải điền đầy đủ những thông tin không bị làm mờ)</p>
+              <p>CÁC THÔNG TIN BẮT BUỘC</p>
             </div>
 
             {certificateForm.showReasonField && (
@@ -393,8 +367,8 @@ const StudentAffairs = () => {
               </div>
             )}
 
-            <div className="form-row">
-              <div className="form-group-certificate confirmation-row">
+            <div className="form-row confirmation-wrapper">
+              <div className="confirmation-row">
                 <input
                   type="checkbox"
                   className="form-checkbox"
@@ -403,7 +377,7 @@ const StudentAffairs = () => {
                   onChange={(e) => handleCertificateChange('isConfirmed', e.target.checked)}
                 />
                 <label htmlFor="confirmation-checkbox" className="confirmation-label">
-                  Tôi xin cam kết tất cả những thông tin khai trên đây<br />hoàn toàn đúng sự thật!
+                  Tôi xin cam kết tất cả những thông tin khai trên đây hoàn toàn đúng sự thật!
                 </label>
               </div>
             </div>

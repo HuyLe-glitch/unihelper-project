@@ -87,6 +87,16 @@
 /* Variant: Icon only */
 .export-csv-btn.icon-only {
   padding: 10px;
+  height: 42px;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-csv-btn.icon-only .export-csv-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .export-csv-btn.icon-only span:not(.export-csv-spinner) {
