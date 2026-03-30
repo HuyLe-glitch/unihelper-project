@@ -133,6 +133,26 @@ const socketService = {
   },
 
   /**
+   * Lắng nghe sự kiện cập nhật thông tin phòng KTX (khi xóa sinh viên)
+   * @param {Function} callback - Hàm xử lý khi có thay đổi
+   */
+  onStudentRoomUpdated: (callback) => {
+    if (socket) {
+      socket.on('STUDENT_ROOM_UPDATED', callback);
+    }
+  },
+
+  /**
+   * Lắng nghe sự kiện xóa yêu cầu của sinh viên (khi admin xóa sinh viên)
+   * @param {Function} callback - Hàm xử lý khi có yêu cầu bị xóa
+   */
+  onStudentRequestsDeleted: (callback) => {
+    if (socket) {
+      socket.on('STUDENT_REQUESTS_DELETED', callback);
+    }
+  },
+
+  /**
    * Hủy lắng nghe sự kiện
    * @param {string} eventName - Tên sự kiện
    */

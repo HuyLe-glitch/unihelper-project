@@ -111,6 +111,14 @@ export const semesterService = {
   deleteSemester: async (semesterId) => {
     const response = await apiClient.delete(`/semesters/${semesterId}`);
     return response.data;
+  },
+
+  /**
+   * Kiểm tra có thể xóa semester không
+   */
+  checkCanDeleteSemester: async (semesterId) => {
+    const response = await apiClient.get(`/semesters/${semesterId}/check-delete`);
+    return response.data;
   }
 };
 

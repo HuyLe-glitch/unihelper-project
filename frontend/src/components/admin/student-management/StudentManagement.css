@@ -1555,6 +1555,25 @@
   overflow: hidden;
 }
 
+/* Enhanced Delete Dialog for Dormitory Students */
+.delete-dialog-enhanced {
+  max-width: 550px;
+}
+
+.delete-dialog-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  gap: 16px;
+}
+
+.delete-dialog-loading p {
+  color: #6c757d;
+  font-size: 14px;
+}
+
 .delete-dialog-header {
   display: flex;
   align-items: center;
@@ -1592,6 +1611,210 @@
   font-style: italic;
 }
 
+/* Student Info Section */
+.delete-student-info {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.delete-student-info .student-name {
+  font-size: 18px;
+  margin: 0 0 4px 0;
+  color: #2c3e50;
+}
+
+.delete-student-info .student-email {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0 0 8px 0;
+}
+
+.delete-student-info .student-room {
+  font-size: 14px;
+  color: #667eea;
+  margin: 0;
+}
+
+/* Related Data Section */
+.delete-related-data {
+  background: #f0f7ff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #3182ce;
+}
+
+.delete-related-data h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c5282;
+}
+
+.delete-related-data ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.delete-related-data li {
+  font-size: 13px;
+  color: #4a5568;
+  padding: 3px 0;
+}
+
+/* Delete Options for Dormitory Students */
+.delete-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.delete-option {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.delete-option:hover {
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.delete-option-danger {
+  border-color: #fed7d7;
+  background: #fffafa;
+}
+
+.delete-option-danger:hover {
+  border-color: #fc8181;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.option-icon {
+  font-size: 24px;
+}
+
+.option-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.option-description {
+  margin-bottom: 12px;
+}
+
+.option-description ul {
+  margin: 0;
+  padding-left: 24px;
+  list-style: none;
+}
+
+.option-description li {
+  font-size: 13px;
+  color: #4a5568;
+  padding: 2px 0;
+}
+
+.delete-option-danger .option-description li {
+  color: #c53030;
+}
+
+.btn-option {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%);
+  transform: translateY(-1px);
+}
+
+.btn-warning:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Warning Box for Non-Dormitory Students */
+.delete-warning-box {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.delete-warning-box .delete-warning {
+  font-size: 14px;
+  color: #c53030;
+  font-style: normal;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.delete-warning-box ul {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+
+.delete-warning-box li {
+  font-size: 13px;
+  color: #742a2a;
+  padding: 3px 0;
+}
+
+.delete-warning-box .delete-warning-note {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: #c53030;
+}
+
+/* Loading state in delete modal */
+.delete-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+}
+
+.delete-loading-container .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+  margin-bottom: 15px;
+}
+
+.delete-loading-container p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
 .delete-dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -1612,7 +1835,7 @@
   transition: all 0.2s ease;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
   transform: translateY(-1px);
 }

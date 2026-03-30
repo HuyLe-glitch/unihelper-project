@@ -12,17 +12,25 @@ const StatusCard = ({ type = 'ktx', data }) => {
 
   // Status configuration
   const statusConfig = {
-    // English status (from model enum)
+    // ========== CTSV Status (Vietnamese) ==========
+    'ĐANG XỬ LÝ': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
+    'HỢP LỆ': { emoji: '🟢', label: 'Hợp lệ', className: 'status-approved' },
+    'KHÔNG HỢP LỆ': { emoji: '🔴', label: 'Không hợp lệ', className: 'status-rejected' },
+    'ĐÃ HỦY': { emoji: '⚫', label: 'Đã hủy', className: 'status-cancelled' },
+    
+    // ========== KTX Status (English) ==========
     'Pending': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
     'Under Review': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
     'Approved': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
     'Rejected': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
-    // Vietnamese status
+    
+    // ========== Vietnamese alternatives ==========
     'Chờ tiếp nhận': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
     'Đang xử lý': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
     'Hoàn thành': { emoji: '🟢', label: 'Hoàn thành', className: 'status-approved' },
     'Từ chối': { emoji: '🔴', label: 'Từ chối', className: 'status-rejected' },
-    // Legacy uppercase status
+    
+    // ========== Legacy uppercase status ==========
     'PENDING': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
     'CHO_XU_LY': { emoji: '🟡', label: 'Chờ tiếp nhận', className: 'status-pending' },
     'PROCESSING': { emoji: '🔵', label: 'Đang xử lý', className: 'status-processing' },
@@ -133,6 +141,14 @@ const StatusCard = ({ type = 'ktx', data }) => {
             {status.emoji} {status.label}
           </span>
         </div>
+
+        {/* Thời gian phản hồi - chỉ hiển thị khi đã xử lý xong (HỢP LỆ/KHÔNG HỢP LỆ) */}
+        {data.responseTime && (data.status === 'HỢP LỆ' || data.status === 'KHÔNG HỢP LỆ') && (
+          <div className="status-card-row">
+            <span className="status-card-label">Phản hồi lúc</span>
+            <span className="status-card-value">{formatDate(data.responseTime)}</span>
+          </div>
+        )}
       </div>
       
       {data.estimatedTime && (

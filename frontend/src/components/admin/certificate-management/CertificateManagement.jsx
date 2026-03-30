@@ -26,7 +26,13 @@ const CertificateManagement = () => {
   const [preSelectedTypeId, setPreSelectedTypeId] = useState(null);
 
   // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, item: null, type: null });
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    show: false, 
+    item: null, 
+    type: null,
+    error: null,
+    isDeleting: false 
+  });
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -104,27 +110,50 @@ const CertificateManagement = () => {
     }
   };
 
-  const handleDeleteTypeClick = (type) => {
-    const certificateCount = certificates.filter(c => c.certificateType?._id === type._id).length;
-    setDeleteConfirm({ 
-      show: true, 
-      item: type, 
-      type: 'type',
-      certificateCount 
-    });
+  const handleDeleteTypeClick = async (type) => {
+    try {
+      // Gọi API kiểm tra trước khi hiện dialog
+      const result = await certificateService.checkCanDeleteType(type._id);
+      
+      if (result.canDelete) {
+        // Có thể xóa - hiện confirmation dialog
+        const certificateCount = certificates.filter(c => c.certificateType?._id === type._id).length;
+        setDeleteConfirm({ 
+          show: true, 
+          item: type, 
+          type: 'type',
+          certificateCount,
+          error: null,
+          isDeleting: false
+        });
+      } else {
+        // Không thể xóa - hiện error dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item: type, 
+          type: 'type',
+          error: result.data.message,
+          relatedRequestsCount: result.data.relatedRequestsCount,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể kiểm tra trạng thái xóa', 'error');
+    }
   };
 
   const handleConfirmDeleteType = async () => {
     const type = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
     try {
       await certificateService.deleteType(type._id);
       setTypes(prev => prev.filter(t => t._id !== type._id));
       setCertificates(prev => prev.filter(c => c.certificateType?._id !== type._id));
       showToast(`Đã xóa loại chứng nhận "${type.name}"`);
+      setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
     } catch (error) {
       showToast(error.response?.data?.message || 'Không thể xóa loại chứng nhận', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, item: null, type: null });
+      setDeleteConfirm(prev => ({ ...prev, isDeleting: false }));
     }
   };
 
@@ -182,21 +211,52 @@ const CertificateManagement = () => {
     }
   };
 
-  const handleDeleteCertificateClick = (certificate) => {
-    setDeleteConfirm({ show: true, item: certificate, type: 'certificate' });
+  const handleDeleteCertificateClick = async (certificate) => {
+    try {
+      // Gọi API kiểm tra trước khi hiện dialog
+      const result = await certificateService.checkCanDeleteCertificate(certificate._id);
+      
+      if (result.canDelete) {
+        // Có thể xóa - hiện confirmation dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item: certificate, 
+          type: 'certificate',
+          error: null,
+          isDeleting: false
+        });
+      } else {
+        // Không thể xóa - hiện error dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item: certificate, 
+          type: 'certificate',
+          error: result.data.message,
+          relatedRequestsCount: result.data.relatedRequestsCount,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể kiểm tra trạng thái xóa', 'error');
+    }
   };
 
   const handleConfirmDeleteCertificate = async () => {
     const certificate = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
     try {
       await certificateService.deleteCertificate(certificate._id);
       setCertificates(prev => prev.filter(c => c._id !== certificate._id));
       showToast(`Đã xóa chứng nhận "${certificate.name}"`);
+      setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
     } catch (error) {
       showToast(error.response?.data?.message || 'Không thể xóa chứng nhận', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, item: null, type: null });
+      setDeleteConfirm(prev => ({ ...prev, isDeleting: false }));
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
   };
 
   const handleViewCertificates = (type) => {
@@ -492,48 +552,76 @@ const CertificateManagement = () => {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm.show && (
-        <div className="delete-overlay" onClick={() => setDeleteConfirm({ show: false, item: null, type: null })}>
+        <div className="delete-overlay" onClick={handleCancelDelete}>
           <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="delete-dialog-header">
-              <span className="delete-icon">⚠️</span>
-              <h3>Xác nhận xóa</h3>
+              <span className="delete-icon">{deleteConfirm.error ? '🚫' : '⚠️'}</span>
+              <h3>{deleteConfirm.error ? 'Không thể xóa' : 'Xác nhận xóa'}</h3>
             </div>
             <div className="delete-dialog-content">
-              {deleteConfirm.type === 'type' ? (
-                <>
-                  <p>
-                    Bạn có chắc chắn muốn xóa loại chứng nhận{' '}
-                    <strong>"{deleteConfirm.item?.name}"</strong>?
+              {deleteConfirm.error ? (
+                // Error dialog - không thể xóa
+                <div className="delete-error-content">
+                  <p className="delete-error-message">{deleteConfirm.error}</p>
+                  <p className="delete-error-hint">
+                    Vui lòng xử lý các yêu cầu liên quan trước khi xóa {deleteConfirm.type === 'type' ? 'loại chứng nhận' : 'chứng nhận'} này.
                   </p>
-                  {deleteConfirm.certificateCount > 0 && (
-                    <p className="delete-warning-text">
-                      ⚠️ Sẽ xóa luôn {deleteConfirm.certificateCount} chứng nhận trong loại này!
+                </div>
+              ) : (
+                // Confirmation dialog - có thể xóa
+                <>
+                  {deleteConfirm.type === 'type' ? (
+                    <>
+                      <p>
+                        Bạn có chắc chắn muốn xóa loại chứng nhận{' '}
+                        <strong>"{deleteConfirm.item?.name}"</strong>?
+                      </p>
+                      {deleteConfirm.certificateCount > 0 && (
+                        <p className="delete-warning-text">
+                          ⚠️ Sẽ xóa luôn {deleteConfirm.certificateCount} chứng nhận trong loại này!
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>
+                      Bạn có chắc chắn muốn xóa chứng nhận{' '}
+                      <strong>"{deleteConfirm.item?.name}"</strong>?
                     </p>
                   )}
+                  <p className="delete-warning-text">
+                    Hành động này không thể hoàn tác.
+                  </p>
                 </>
-              ) : (
-                <p>
-                  Bạn có chắc chắn muốn xóa chứng nhận{' '}
-                  <strong>"{deleteConfirm.item?.name}"</strong>?
-                </p>
               )}
-              <p className="delete-warning-text">
-                Hành động này không thể hoàn tác.
-              </p>
             </div>
             <div className="delete-dialog-actions">
-              <button
-                className="btn btn-outline"
-                onClick={() => setDeleteConfirm({ show: false, item: null, type: null })}
-              >
-                Hủy
-              </button>
-              <button 
-                className="btn btn-danger" 
-                onClick={deleteConfirm.type === 'type' ? handleConfirmDeleteType : handleConfirmDeleteCertificate}
-              >
-                Xóa
-              </button>
+              {deleteConfirm.error ? (
+                // Error dialog - chỉ có nút Đã hiểu
+                <button
+                  className="btn btn-primary"
+                  onClick={handleCancelDelete}
+                >
+                  Đã hiểu
+                </button>
+              ) : (
+                // Confirmation dialog - có nút Hủy và Xóa
+                <>
+                  <button
+                    className="btn btn-outline"
+                    onClick={handleCancelDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={deleteConfirm.type === 'type' ? handleConfirmDeleteType : handleConfirmDeleteCertificate}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    {deleteConfirm.isDeleting ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

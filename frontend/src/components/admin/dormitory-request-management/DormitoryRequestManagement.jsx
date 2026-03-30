@@ -26,7 +26,13 @@ const DormitoryRequestManagement = () => {
   const [preSelectedCategoryId, setPreSelectedCategoryId] = useState(null);
 
   // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, item: null, type: null });
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    show: false, 
+    item: null, 
+    type: null,
+    error: null,
+    isDeleting: false 
+  });
 
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -104,27 +110,50 @@ const DormitoryRequestManagement = () => {
     }
   };
 
-  const handleDeleteCategoryClick = (category) => {
-    const itemCount = items.filter(i => i.category?._id === category._id).length;
-    setDeleteConfirm({ 
-      show: true, 
-      item: category, 
-      type: 'category',
-      itemCount 
-    });
+  const handleDeleteCategoryClick = async (category) => {
+    try {
+      // Gọi API kiểm tra trước khi hiện dialog
+      const result = await equipmentService.checkCanDeleteCategory(category._id);
+      
+      if (result.canDelete) {
+        // Có thể xóa - hiện confirmation dialog
+        const itemCount = items.filter(i => i.category?._id === category._id).length;
+        setDeleteConfirm({ 
+          show: true, 
+          item: category, 
+          type: 'category',
+          itemCount,
+          error: null,
+          isDeleting: false
+        });
+      } else {
+        // Không thể xóa - hiện error dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item: category, 
+          type: 'category',
+          error: result.data.message,
+          relatedRequestsCount: result.data.relatedRequestsCount,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể kiểm tra trạng thái xóa', 'error');
+    }
   };
 
   const handleConfirmDeleteCategory = async () => {
     const category = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
     try {
       await equipmentService.deleteCategory(category._id);
       setCategories(prev => prev.filter(c => c._id !== category._id));
       setItems(prev => prev.filter(i => i.category?._id !== category._id));
       showToast(`Đã xóa danh mục "${category.name}"`);
+      setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
     } catch (error) {
       showToast(error.response?.data?.message || 'Không thể xóa danh mục', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, item: null, type: null });
+      setDeleteConfirm(prev => ({ ...prev, isDeleting: false }));
     }
   };
 
@@ -182,21 +211,52 @@ const DormitoryRequestManagement = () => {
     }
   };
 
-  const handleDeleteItemClick = (item) => {
-    setDeleteConfirm({ show: true, item, type: 'item' });
+  const handleDeleteItemClick = async (item) => {
+    try {
+      // Gọi API kiểm tra trước khi hiện dialog
+      const result = await equipmentService.checkCanDeleteItem(item._id);
+      
+      if (result.canDelete) {
+        // Có thể xóa - hiện confirmation dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item, 
+          type: 'item',
+          error: null,
+          isDeleting: false
+        });
+      } else {
+        // Không thể xóa - hiện error dialog
+        setDeleteConfirm({ 
+          show: true, 
+          item, 
+          type: 'item',
+          error: result.data.message,
+          relatedRequestsCount: result.data.relatedRequestsCount,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể kiểm tra trạng thái xóa', 'error');
+    }
   };
 
   const handleConfirmDeleteItem = async () => {
     const item = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
     try {
       await equipmentService.deleteItem(item._id);
       setItems(prev => prev.filter(i => i._id !== item._id));
       showToast(`Đã xóa thiết bị "${item.name}"`);
+      setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
     } catch (error) {
       showToast(error.response?.data?.message || 'Không thể xóa thiết bị', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, item: null, type: null });
+      setDeleteConfirm(prev => ({ ...prev, isDeleting: false }));
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirm({ show: false, item: null, type: null, error: null, isDeleting: false });
   };
 
   const handleViewItems = (category) => {
@@ -492,48 +552,76 @@ const DormitoryRequestManagement = () => {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm.show && (
-        <div className="delete-overlay" onClick={() => setDeleteConfirm({ show: false, item: null, type: null })}>
+        <div className="delete-overlay" onClick={handleCancelDelete}>
           <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="delete-dialog-header">
-              <span className="delete-icon">⚠️</span>
-              <h3>Xác nhận xóa</h3>
+              <span className="delete-icon">{deleteConfirm.error ? '🚫' : '⚠️'}</span>
+              <h3>{deleteConfirm.error ? 'Không thể xóa' : 'Xác nhận xóa'}</h3>
             </div>
             <div className="delete-dialog-content">
-              {deleteConfirm.type === 'category' ? (
-                <>
-                  <p>
-                    Bạn có chắc chắn muốn xóa danh mục{' '}
-                    <strong>"{deleteConfirm.item?.name}"</strong>?
+              {deleteConfirm.error ? (
+                // Error dialog - không thể xóa
+                <div className="delete-error-content">
+                  <p className="delete-error-message">{deleteConfirm.error}</p>
+                  <p className="delete-error-hint">
+                    Vui lòng xử lý các yêu cầu KTX liên quan trước khi xóa {deleteConfirm.type === 'category' ? 'danh mục' : 'thiết bị'} này.
                   </p>
-                  {deleteConfirm.itemCount > 0 && (
-                    <p className="delete-warning-text">
-                      ⚠️ Sẽ xóa luôn {deleteConfirm.itemCount} thiết bị trong danh mục này!
+                </div>
+              ) : (
+                // Confirmation dialog - có thể xóa
+                <>
+                  {deleteConfirm.type === 'category' ? (
+                    <>
+                      <p>
+                        Bạn có chắc chắn muốn xóa danh mục{' '}
+                        <strong>"{deleteConfirm.item?.name}"</strong>?
+                      </p>
+                      {deleteConfirm.itemCount > 0 && (
+                        <p className="delete-warning-text">
+                          ⚠️ Sẽ xóa luôn {deleteConfirm.itemCount} thiết bị trong danh mục này!
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>
+                      Bạn có chắc chắn muốn xóa thiết bị{' '}
+                      <strong>"{deleteConfirm.item?.name}"</strong>?
                     </p>
                   )}
+                  <p className="delete-warning-text">
+                    Hành động này không thể hoàn tác.
+                  </p>
                 </>
-              ) : (
-                <p>
-                  Bạn có chắc chắn muốn xóa thiết bị{' '}
-                  <strong>"{deleteConfirm.item?.name}"</strong>?
-                </p>
               )}
-              <p className="delete-warning-text">
-                Hành động này không thể hoàn tác.
-              </p>
             </div>
             <div className="delete-dialog-actions">
-              <button
-                className="btn btn-outline"
-                onClick={() => setDeleteConfirm({ show: false, item: null, type: null })}
-              >
-                Hủy
-              </button>
-              <button 
-                className="btn btn-danger" 
-                onClick={deleteConfirm.type === 'category' ? handleConfirmDeleteCategory : handleConfirmDeleteItem}
-              >
-                Xóa
-              </button>
+              {deleteConfirm.error ? (
+                // Error dialog - chỉ có nút Đã hiểu
+                <button
+                  className="btn btn-primary"
+                  onClick={handleCancelDelete}
+                >
+                  Đã hiểu
+                </button>
+              ) : (
+                // Confirmation dialog - có nút Hủy và Xóa
+                <>
+                  <button
+                    className="btn btn-outline"
+                    onClick={handleCancelDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={deleteConfirm.type === 'category' ? handleConfirmDeleteCategory : handleConfirmDeleteItem}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    {deleteConfirm.isDeleting ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

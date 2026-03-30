@@ -6,6 +6,7 @@ import { roomService } from '../../../services/room';
 import socketService from '../../../services/socket';
 import SemesterFilter from '../../common/SemesterFilter/SemesterFilter';
 import ExportCSVButton from '../../common/ExportCSVButton';
+import DormitoryActivityLog from './DormitoryActivityLog';
 
 /**
  * StaffDormitoryRequests - Giao diện quản lý yêu cầu KTX cho Staff
@@ -25,6 +26,17 @@ const StaffDormitoryRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, pages: 0 });
+
+  // Toast notification state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  // Show toast notification
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 3000);
+  }, []);
 
   // State cho UI
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -119,11 +131,11 @@ const StaffDormitoryRequests = () => {
           setSelectedRequest(prev => ({ ...prev, status: 'Under Review' }));
         }
 
-        alert('Đã tiếp nhận yêu cầu thành công!');
+        showToast('Đã tiếp nhận yêu cầu thành công!', 'success');
       }
     } catch (err) {
       console.error('Error accepting request:', err);
-      alert(err.response?.data?.message || 'Không thể tiếp nhận yêu cầu');
+      showToast(err.response?.data?.message || 'Không thể tiếp nhận yêu cầu', 'error');
     } finally {
       setProcessing(false);
     }
@@ -168,10 +180,20 @@ const StaffDormitoryRequests = () => {
       }
     });
 
+    // Lắng nghe sự kiện yêu cầu bị xóa (khi admin xóa sinh viên)
+    socketService.onStudentRequestsDeleted((data) => {
+      console.log('📡 [Socket] Student requests deleted:', data);
+      if (data.type === 'dormitory' && data.deletedCount > 0) {
+        // Refresh lại danh sách yêu cầu
+        fetchRequests();
+      }
+    });
+
     // Cleanup khi unmount
     return () => {
       socketService.off('DORMITORY_REQUEST_CREATED');
       socketService.off('DORMITORY_REQUEST_UPDATED');
+      socketService.off('STUDENT_REQUESTS_DELETED');
     };
   }, [fetchRequests]);
 
@@ -365,8 +387,8 @@ const StaffDormitoryRequests = () => {
 
       {/* Filter & Search Bar */}
       <div className="dormitory-filters">
-        <div className="search-box">
-          <span className="search-icon">🔍</span>
+        <div className="dormitory-search-box">
+          <span className="dormitory-search-icon">🔍</span>
           <input
             type="text"
             placeholder="Tìm theo mã, tên SV, email, thiết bị..."
@@ -374,67 +396,67 @@ const StaffDormitoryRequests = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && (
-            <button className="search-clear" onClick={() => setSearchTerm('')}>×</button>
+            <button className="dormitory-search-clear" onClick={() => setSearchTerm('')}>×</button>
           )}
         </div>
-        <div className="filter-group">
+        <div className="dormitory-filter-group">
           {/* Status Filter - Custom Dropdown */}
-          <div className="custom-dropdown">
+          <div className="dormitory-custom-dropdown">
             <div 
-              className="custom-dropdown-trigger"
+              className="dormitory-dropdown-trigger"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
             >
-              <span className="dropdown-value">
+              <span className="dormitory-dropdown-value">
                 {statusFilter === 'all' 
                   ? 'Tất cả trạng thái' 
                   : STATUS_CONFIG[statusFilter]?.label || statusFilter
                 }
               </span>
-              <span className={`dropdown-arrow ${isStatusDropdownOpen ? 'open' : ''}`}>▼</span>
+              <span className={`dormitory-dropdown-arrow ${isStatusDropdownOpen ? 'open' : ''}`}>▼</span>
             </div>
             {isStatusDropdownOpen && (
               <>
                 <div 
-                  className="dropdown-backdrop" 
+                  className="dormitory-dropdown-backdrop" 
                   onClick={() => setIsStatusDropdownOpen(false)}
                 />
-                <div className="custom-dropdown-menu">
-                  <div className="dropdown-items-list">
+                <div className="dormitory-dropdown-menu">
+                  <div className="dormitory-dropdown-items-list">
                     <div 
-                      className={`dropdown-item ${statusFilter === 'all' ? 'active' : ''}`}
+                      className={`dormitory-dropdown-item ${statusFilter === 'all' ? 'active' : ''}`}
                       onClick={() => {
                         setStatusFilter('all');
                         setIsStatusDropdownOpen(false);
                       }}
                     >
-                      📋 Tất cả trạng thái
+                      Tất cả trạng thái
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'Pending' ? 'active' : ''}`}
+                      className={`dormitory-dropdown-item ${statusFilter === 'Pending' ? 'active' : ''}`}
                       onClick={() => {
                         setStatusFilter('Pending');
                         setIsStatusDropdownOpen(false);
                       }}
                     >
-                      📨 Gửi yêu cầu
+                      Gửi yêu cầu
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'Under Review' ? 'active' : ''}`}
+                      className={`dormitory-dropdown-item ${statusFilter === 'Under Review' ? 'active' : ''}`}
                       onClick={() => {
                         setStatusFilter('Under Review');
                         setIsStatusDropdownOpen(false);
                       }}
                     >
-                      ⏳ Đang xử lý
+                      Đang xử lý
                     </div>
                     <div 
-                      className={`dropdown-item ${statusFilter === 'Approved' ? 'active' : ''}`}
+                      className={`dormitory-dropdown-item ${statusFilter === 'Approved' ? 'active' : ''}`}
                       onClick={() => {
                         setStatusFilter('Approved');
                         setIsStatusDropdownOpen(false);
                       }}
                     >
-                      ✓ Hoàn thành
+                      Hoàn thành
                     </div>
                   </div>
                 </div>
@@ -443,30 +465,30 @@ const StaffDormitoryRequests = () => {
           </div>
 
           {/* Room Filter - Custom Dropdown */}
-          <div className="custom-dropdown">
+          <div className="dormitory-custom-dropdown">
             <div 
-              className="custom-dropdown-trigger"
+              className="dormitory-dropdown-trigger"
               onClick={() => {
                 setIsRoomDropdownOpen(!isRoomDropdownOpen);
                 if (!isRoomDropdownOpen) setRoomSearchTerm('');
               }}
             >
-              <span className="dropdown-value">
+              <span className="dormitory-dropdown-value">
                 {roomFilter === 'all' 
                   ? 'Tất cả phòng' 
                   : rooms.find(r => r._id === roomFilter)?.name || roomFilter
                 }
               </span>
-              <span className={`dropdown-arrow ${isRoomDropdownOpen ? 'open' : ''}`}>▼</span>
+              <span className={`dormitory-dropdown-arrow ${isRoomDropdownOpen ? 'open' : ''}`}>▼</span>
             </div>
             {isRoomDropdownOpen && (
               <>
                 <div 
-                  className="dropdown-backdrop" 
+                  className="dormitory-dropdown-backdrop" 
                   onClick={() => setIsRoomDropdownOpen(false)}
                 />
-                <div className="custom-dropdown-menu">
-                  <div className="dropdown-search">
+                <div className="dormitory-dropdown-menu">
+                  <div className="dormitory-dropdown-search">
                     <input
                       type="text"
                       placeholder="Tìm phòng..."
@@ -476,10 +498,10 @@ const StaffDormitoryRequests = () => {
                       autoFocus
                     />
                   </div>
-                  <div className="dropdown-items-list">
+                  <div className="dormitory-dropdown-items-list">
                     {!roomSearchTerm && (
                       <div 
-                        className={`dropdown-item ${roomFilter === 'all' ? 'active' : ''}`}
+                        className={`dormitory-dropdown-item ${roomFilter === 'all' ? 'active' : ''}`}
                         onClick={() => {
                           setRoomFilter('all');
                           setIsRoomDropdownOpen(false);
@@ -489,14 +511,14 @@ const StaffDormitoryRequests = () => {
                       </div>
                     )}
                     {filteredRooms.length === 0 ? (
-                      <div className="dropdown-item dropdown-no-result">
+                      <div className="dormitory-dropdown-item dormitory-dropdown-no-result">
                         Không tìm thấy phòng
                       </div>
                     ) : (
                       filteredRooms.map(room => (
                         <div 
                           key={room._id}
-                          className={`dropdown-item ${room._id === roomFilter ? 'active' : ''}`}
+                          className={`dormitory-dropdown-item ${room._id === roomFilter ? 'active' : ''}`}
                           onClick={() => {
                             setRoomFilter(room._id);
                             setIsRoomDropdownOpen(false);
@@ -523,7 +545,7 @@ const StaffDormitoryRequests = () => {
 
           {/* Sort Order - Toggle Icon Button */}
           <button 
-            className="sort-toggle-btn"
+            className="dormitory-sort-toggle-btn"
             onClick={() => setDateSort(dateSort === 'newest' ? 'oldest' : 'newest')}
             title={dateSort === 'newest' ? 'Mới nhất trước' : 'Cũ nhất trước'}
           >
@@ -536,7 +558,7 @@ const StaffDormitoryRequests = () => {
                 <path d="M3 6h6v2H3V6zm0 12v-2h18v2H3zm0-7h12v2H3v-2z"/>
               </svg>
             )}
-            <span className="sort-arrow">{dateSort === 'newest' ? '↓' : '↑'}</span>
+            <span className="dormitory-sort-arrow">{dateSort === 'newest' ? '↓' : '↑'}</span>
           </button>
         </div>
       </div>
@@ -595,6 +617,9 @@ const StaffDormitoryRequests = () => {
             )}
           </div>
         </div>
+
+        {/* Overlay for mobile modal */}
+        {selectedRequest && <div className="dormitory-detail-overlay" onClick={() => setSelectedRequest(null)}></div>}
 
         {/* Right Panel - Detail View */}
         <div className={`dormitory-detail-panel ${selectedRequest ? 'has-content' : ''}`}>
@@ -672,6 +697,17 @@ const StaffDormitoryRequests = () => {
                     </div>
                   </div>
                 </section>
+
+                {/* Lịch sử hoạt động */}
+                {selectedRequest.activityLog && selectedRequest.activityLog.length > 0 && (
+                  <section className="detail-section">
+                    <h3 className="section-title">
+                      <span className="section-icon">📋</span>
+                      Lịch sử hoạt động
+                    </h3>
+                    <DormitoryActivityLog activityLog={selectedRequest.activityLog} />
+                  </section>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -732,6 +768,19 @@ const StaffDormitoryRequests = () => {
           )}
         </div>
       </div>
+
+      {/* Toast notification */}
+      {toast.show && (
+        <div className={`dormitory-toast ${toast.type}`}>
+          <span className="toast-icon">
+            {toast.type === 'success' && '✓'}
+            {toast.type === 'error' && '✕'}
+            {toast.type === 'warning' && '⚠'}
+            {toast.type === 'info' && 'ℹ'}
+          </span>
+          <span className="toast-message">{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 };

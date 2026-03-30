@@ -82,6 +82,9 @@ const reportService = {
     // Lấy distribution data
     const typeDistribution = await reportRepository.getCTSVDistributionByType(startDate, endDate);
     const statusDistribution = await reportRepository.getCTSVDistributionByStatus(startDate, endDate);
+    
+    // Lấy tất cả loại chứng nhận để hiển thị đầy đủ
+    const allCertificateTypes = await reportRepository.getAllCertificateTypes();
 
     return {
       success: true,
@@ -94,7 +97,7 @@ const reportService = {
           changes
         },
         trendData,
-        typeDistribution: formatDistribution(typeDistribution),
+        typeDistribution: formatDistributionWithAllTypes(typeDistribution, allCertificateTypes),
         statusDistribution: formatStatusDistribution(statusDistribution, 'CTSV')
       }
     };
@@ -140,6 +143,9 @@ const reportService = {
     // Lấy distribution data
     const categoryDistribution = await reportRepository.getKTXDistributionByCategory(startDate, endDate);
     const statusDistribution = await reportRepository.getKTXDistributionByStatus(startDate, endDate);
+    
+    // Lấy tất cả danh mục thiết bị để hiển thị đầy đủ
+    const allEquipmentCategories = await reportRepository.getAllEquipmentCategories();
 
     return {
       success: true,
@@ -152,7 +158,7 @@ const reportService = {
           changes
         },
         trendData,
-        categoryDistribution: formatDistribution(categoryDistribution),
+        categoryDistribution: formatDistributionWithAllCategories(categoryDistribution, allEquipmentCategories),
         statusDistribution: formatStatusDistribution(statusDistribution, 'KTX')
       }
     };
@@ -329,6 +335,58 @@ function formatDistribution(data) {
     count: item.count,
     percentage: total > 0 ? Math.round((item.count / total) * 100) : 0
   }));
+}
+
+/**
+ * Format distribution data với tất cả loại chứng nhận (bao gồm cả loại có count = 0)
+ */
+function formatDistributionWithAllTypes(data, allTypes) {
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  
+  // Tạo map từ data hiện có
+  const dataMap = {};
+  data.forEach(item => {
+    dataMap[item._id] = item.count;
+  });
+  
+  // Merge với tất cả loại
+  const result = allTypes.map(type => {
+    const count = dataMap[type.name] || 0;
+    return {
+      type: type.name,
+      count: count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0
+    };
+  });
+  
+  // Sắp xếp theo count giảm dần
+  return result.sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Format distribution data với tất cả danh mục thiết bị (bao gồm cả loại có count = 0)
+ */
+function formatDistributionWithAllCategories(data, allCategories) {
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  
+  // Tạo map từ data hiện có
+  const dataMap = {};
+  data.forEach(item => {
+    dataMap[item._id] = item.count;
+  });
+  
+  // Merge với tất cả danh mục
+  const result = allCategories.map(category => {
+    const count = dataMap[category] || 0;
+    return {
+      type: category,
+      count: count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0
+    };
+  });
+  
+  // Sắp xếp theo count giảm dần
+  return result.sort((a, b) => b.count - a.count);
 }
 
 /**

@@ -57,7 +57,7 @@ const ProfilePanel = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/choose-role');
+    navigate('/');
   };
 
   const formatDate = (dateString) => {

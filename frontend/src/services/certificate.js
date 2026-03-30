@@ -55,6 +55,15 @@ const certificateService = {
     return response.data;
   },
 
+  /**
+   * Kiểm tra có thể xóa loại chứng nhận không
+   * @param {string} typeId
+   */
+  checkCanDeleteType: async (typeId) => {
+    const response = await apiClient.get(`/certificates/types/${typeId}/check-delete`);
+    return response.data;
+  },
+
   // ==========================================
   // CERTIFICATE APIs
   // ==========================================
@@ -127,6 +136,15 @@ const certificateService = {
    */
   deleteCertificate: async (certificateId) => {
     const response = await apiClient.delete(`/certificates/${certificateId}`);
+    return response.data;
+  },
+
+  /**
+   * Kiểm tra có thể xóa chứng nhận không
+   * @param {string} certificateId
+   */
+  checkCanDeleteCertificate: async (certificateId) => {
+    const response = await apiClient.get(`/certificates/${certificateId}/check-delete`);
     return response.data;
   },
 

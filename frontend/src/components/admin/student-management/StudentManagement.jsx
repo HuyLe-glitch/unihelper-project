@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import studentService from '../../../services/student';
 import { facultyService } from '../../../services/faculty';
 import { majorService } from '../../../services/major';
+import socketService from '../../../services/socket';
 import StudentFormModal from './StudentFormModal';
 import RoomTransferDialog from '../../common/RoomTransferDialog';
 import ExportCSVButton from '../../common/ExportCSVButton';
@@ -46,11 +47,21 @@ const StudentManagement = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, student: null });
+  // Delete confirmation - Enhanced with preview data
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    show: false, 
+    student: null, 
+    preview: null, 
+    isLoading: false,
+    isDeleting: false 
+  });
 
   // Bulk delete confirmation
-  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState({ show: false });
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState({ 
+    show: false, 
+    preview: null,
+    isLoading: false 
+  });
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Room transfer dialog
@@ -97,6 +108,26 @@ const StudentManagement = () => {
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
+
+  // ==========================================
+  // SOCKET.IO REALTIME - Cập nhật khi xóa sinh viên
+  // ==========================================
+  useEffect(() => {
+    // Kết nối socket
+    socketService.connect();
+
+    // Lắng nghe sự kiện cập nhật phòng KTX (khi xóa sinh viên)
+    socketService.onStudentRoomUpdated((data) => {
+      console.log('📡 [Socket] Student room updated:', data);
+      // Refresh lại dữ liệu sinh viên để cập nhật số thành viên trong phòng
+      fetchData();
+    });
+
+    // Cleanup khi unmount
+    return () => {
+      socketService.off('STUDENT_ROOM_UPDATED');
+    };
   }, [fetchData]);
 
   // Reload available rooms when needed
@@ -260,20 +291,108 @@ const StudentManagement = () => {
     }
   };
 
-  const handleDeleteClick = (student) => {
-    setDeleteConfirm({ show: true, student });
+  // Enhanced delete handler - Fetch preview data first
+  const handleDeleteClick = async (student) => {
+    setDeleteConfirm({ 
+      show: true, 
+      student, 
+      preview: null, 
+      isLoading: true,
+      isDeleting: false 
+    });
+
+    try {
+      const result = await studentService.getDeletePreview(student._id);
+      setDeleteConfirm(prev => ({
+        ...prev,
+        preview: result.data,
+        isLoading: false
+      }));
+    } catch (error) {
+      console.error('Error fetching delete preview:', error);
+      // Vẫn cho phép xóa nếu không lấy được preview
+      setDeleteConfirm(prev => ({
+        ...prev,
+        preview: {
+          student: {
+            _id: student._id,
+            fullName: student.fullName,
+            email: student.user?.email,
+            isDormResident: student.isDormResident,
+            roomName: student.roomId?.name || null
+          },
+          relatedData: {
+            certificateRequests: 0,
+            dormitoryRequests: 0
+          }
+        },
+        isLoading: false
+      }));
+    }
   };
 
-  const handleConfirmDelete = async () => {
+  // Xóa hoàn toàn sinh viên (bao gồm tất cả yêu cầu)
+  const handleConfirmDeleteCompletely = async () => {
     const student = deleteConfirm.student;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
+    
     try {
-      await studentService.delete(student._id);
+      const result = await studentService.delete(student._id);
       setStudents(prev => prev.filter(s => s._id !== student._id));
-      showToast(`Đã xóa sinh viên "${student.fullName}"`);
+      
+      // Build success message với thông tin chi tiết
+      let message = `Đã xóa sinh viên "${student.fullName}"`;
+      if (result.data?.deletedCertificateRequests > 0 || result.data?.deletedDormitoryRequests > 0) {
+        const parts = [];
+        if (result.data.deletedCertificateRequests > 0) {
+          parts.push(`${result.data.deletedCertificateRequests} yêu cầu CTSV`);
+        }
+        if (result.data.deletedDormitoryRequests > 0) {
+          parts.push(`${result.data.deletedDormitoryRequests} yêu cầu KTX`);
+        }
+        message += ` và ${parts.join(', ')}`;
+      }
+      showToast(message);
+      await refreshAvailableRooms();
     } catch (error) {
       showToast(error.response?.data?.message || 'Không thể xóa sinh viên', 'error');
     } finally {
-      setDeleteConfirm({ show: false, student: null });
+      setDeleteConfirm({ show: false, student: null, preview: null, isLoading: false, isDeleting: false });
+    }
+  };
+
+  // Chỉ xóa khỏi KTX (giữ lại sinh viên)
+  const handleConfirmRemoveFromDormitory = async () => {
+    const student = deleteConfirm.student;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
+    
+    try {
+      const result = await studentService.removeFromDormitory(student._id);
+      
+      // Cập nhật state: sinh viên vẫn còn nhưng không ở KTX nữa
+      setStudents(prev => prev.map(s => 
+        s._id === student._id 
+          ? { ...s, isDormResident: false, roomId: null }
+          : s
+      ));
+      
+      let message = result.message || `Đã xóa "${student.fullName}" khỏi KTX`;
+      if (result.data?.deletedDormitoryRequests > 0) {
+        message += ` và ${result.data.deletedDormitoryRequests} yêu cầu KTX`;
+      }
+      showToast(message);
+      await refreshAvailableRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể xóa sinh viên khỏi KTX', 'error');
+    } finally {
+      setDeleteConfirm({ show: false, student: null, preview: null, isLoading: false, isDeleting: false });
+    }
+  };
+
+  // Close delete dialog
+  const handleCloseDeleteDialog = () => {
+    if (!deleteConfirm.isDeleting) {
+      setDeleteConfirm({ show: false, student: null, preview: null, isLoading: false, isDeleting: false });
     }
   };
 
@@ -324,12 +443,23 @@ const StudentManagement = () => {
   };
 
   // Bulk delete handlers
-  const handleBulkDeleteClick = () => {
+  const handleBulkDeleteClick = async () => {
     if (selectedStudentIds.length === 0) {
       showToast('Vui lòng chọn ít nhất 1 sinh viên để xóa', 'error');
       return;
     }
-    setBulkDeleteConfirm({ show: true });
+    
+    // Set loading state and show dialog
+    setBulkDeleteConfirm({ show: true, preview: null, isLoading: true });
+    
+    try {
+      // Get preview data
+      const result = await studentService.getBulkDeletePreview(selectedStudentIds);
+      setBulkDeleteConfirm({ show: true, preview: result.data, isLoading: false });
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể tải thông tin xem trước', 'error');
+      setBulkDeleteConfirm({ show: false, preview: null, isLoading: false });
+    }
   };
 
   const handleConfirmBulkDelete = async () => {
@@ -352,7 +482,46 @@ const StudentManagement = () => {
       showToast(error.response?.data?.message || 'Không thể xóa sinh viên', 'error');
     } finally {
       setIsBulkDeleting(false);
-      setBulkDeleteConfirm({ show: false });
+      setBulkDeleteConfirm({ show: false, preview: null, isLoading: false });
+    }
+  };
+
+  // Xóa hàng loạt khỏi KTX (giữ lại sinh viên)
+  const handleConfirmBulkRemoveFromDormitory = async () => {
+    setIsBulkDeleting(true);
+    try {
+      // Chỉ gửi IDs của sinh viên đang ở KTX
+      const dormResidentIds = students
+        .filter(s => selectedStudentIds.includes(s._id) && s.isDormResident)
+        .map(s => s._id);
+
+      if (dormResidentIds.length === 0) {
+        showToast('Không có sinh viên nào đang ở KTX để xóa', 'error');
+        return;
+      }
+
+      const result = await studentService.bulkRemoveFromDormitory(dormResidentIds);
+      
+      // Update students in state
+      setStudents(prev => prev.map(s => 
+        dormResidentIds.includes(s._id) 
+          ? { ...s, isDormResident: false, roomId: null } 
+          : s
+      ));
+      
+      // Clear selection
+      setSelectedStudentIds([]);
+      
+      // Show success message
+      showToast(result.message || `Đã xóa ${dormResidentIds.length} sinh viên khỏi KTX`);
+      
+      // Refresh available rooms
+      await refreshAvailableRooms();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Không thể xóa sinh viên khỏi KTX', 'error');
+    } finally {
+      setIsBulkDeleting(false);
+      setBulkDeleteConfirm({ show: false, preview: null, isLoading: false });
     }
   };
 
@@ -929,72 +1098,245 @@ const StudentManagement = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Enhanced Delete Confirmation Dialog */}
       {deleteConfirm.show && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm({ show: false, student: null })}>
-          <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="delete-dialog-header">
-              <span className="delete-icon">⚠️</span>
-              <h3>Xác nhận xóa</h3>
-            </div>
-            <div className="delete-dialog-content">
-              <p>
-                Bạn có chắc chắn muốn xóa sinh viên{' '}
-                <strong>{deleteConfirm.student?.fullName}</strong>?
-              </p>
-              <p className="delete-warning">
-                Hành động này không thể hoàn tác. Tài khoản đăng nhập của sinh viên cũng sẽ bị xóa.
-              </p>
-            </div>
-            <div className="delete-dialog-footer">
-              <button
-                className="btn btn-outline"
-                onClick={() => setDeleteConfirm({ show: false, student: null })}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleConfirmDelete}
-              >
-                Xóa
-              </button>
-            </div>
+        <div className="modal-overlay" onClick={handleCloseDeleteDialog}>
+          <div className="delete-dialog delete-dialog-enhanced" onClick={(e) => e.stopPropagation()}>
+            {/* Loading state */}
+            {deleteConfirm.isLoading ? (
+              <div className="delete-dialog-loading">
+                <div className="loading-spinner"></div>
+                <p>Đang tải thông tin...</p>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="delete-dialog-header">
+                  <span className="delete-icon">⚠️</span>
+                  <h3>
+                    {deleteConfirm.preview?.student?.isDormResident 
+                      ? 'Xóa sinh viên ở KTX' 
+                      : 'Xác nhận xóa sinh viên'}
+                  </h3>
+                </div>
+
+                {/* Content */}
+                <div className="delete-dialog-content">
+                  {/* Student Info */}
+                  <div className="delete-student-info">
+                    <p className="student-name">
+                      <strong>{deleteConfirm.preview?.student?.fullName}</strong>
+                    </p>
+                    <p className="student-email">{deleteConfirm.preview?.student?.email}</p>
+                    {deleteConfirm.preview?.student?.isDormResident && (
+                      <p className="student-room">
+                        🏠 Phòng: <strong>{deleteConfirm.preview?.student?.roomName || 'N/A'}</strong>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Options for Dormitory Students */}
+                  {deleteConfirm.preview?.student?.isDormResident ? (
+                    <div className="delete-options">
+                      {/* Option 1: Remove from Dormitory Only */}
+                      <div className="delete-option">
+                        <div className="option-header">
+                          <span className="option-icon">🏠</span>
+                          <span className="option-title">Chỉ xóa khỏi Ký túc xá</span>
+                        </div>
+                        <div className="option-description">
+                          <ul>
+                            <li>✓ Xóa {deleteConfirm.preview?.relatedData?.dormitoryRequests || 0} yêu cầu KTX</li>
+                            <li>✓ Cập nhật phòng (giảm 1 người)</li>
+                            <li>✓ <strong>Giữ lại</strong> thông tin sinh viên</li>
+                            <li>✓ <strong>Giữ lại</strong> {deleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                          </ul>
+                        </div>
+                        <button
+                          className="btn btn-warning btn-option"
+                          onClick={handleConfirmRemoveFromDormitory}
+                          disabled={deleteConfirm.isDeleting}
+                        >
+                          {deleteConfirm.isDeleting ? 'Đang xử lý...' : 'Xóa khỏi KTX'}
+                        </button>
+                      </div>
+
+                      {/* Option 2: Delete Completely */}
+                      <div className="delete-option delete-option-danger">
+                        <div className="option-header">
+                          <span className="option-icon">🗑️</span>
+                          <span className="option-title">Xóa hoàn toàn khỏi hệ thống</span>
+                        </div>
+                        <div className="option-description">
+                          <ul>
+                            <li>✗ Xóa {deleteConfirm.preview?.relatedData?.dormitoryRequests || 0} yêu cầu KTX</li>
+                            <li>✗ Xóa {deleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                            <li>✗ Xóa tài khoản đăng nhập</li>
+                            <li>✗ Xóa hoàn toàn sinh viên</li>
+                          </ul>
+                        </div>
+                        <button
+                          className="btn btn-danger btn-option"
+                          onClick={handleConfirmDeleteCompletely}
+                          disabled={deleteConfirm.isDeleting}
+                        >
+                          {deleteConfirm.isDeleting ? 'Đang xử lý...' : 'Xóa hoàn toàn'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Non-dormitory student - Simple delete */
+                    <div className="delete-warning-box">
+                      <p className="delete-warning">
+                        ⚠️ Hành động này sẽ:
+                      </p>
+                      <ul>
+                        <li>Xóa {deleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                        <li>Xóa tài khoản đăng nhập</li>
+                        <li>Xóa hoàn toàn thông tin sinh viên</li>
+                      </ul>
+                      <p className="delete-warning-note">
+                        <strong>Không thể hoàn tác!</strong>
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="delete-dialog-footer">
+                  <button
+                    className="btn btn-outline"
+                    onClick={handleCloseDeleteDialog}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    Hủy
+                  </button>
+                  {/* Non-dormitory student: Show delete button */}
+                  {!deleteConfirm.preview?.student?.isDormResident && (
+                    <button
+                      className="btn btn-danger"
+                      onClick={handleConfirmDeleteCompletely}
+                      disabled={deleteConfirm.isDeleting}
+                    >
+                      {deleteConfirm.isDeleting ? 'Đang xóa...' : 'Xác nhận xóa'}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* Bulk Delete Confirmation Dialog */}
       {bulkDeleteConfirm.show && (
-        <div className="modal-overlay" onClick={() => !isBulkDeleting && setBulkDeleteConfirm({ show: false })}>
+        <div className="modal-overlay" onClick={() => !isBulkDeleting && !bulkDeleteConfirm.isLoading && setBulkDeleteConfirm({ show: false, preview: null, isLoading: false })}>
           <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="delete-dialog-header">
               <span className="delete-icon">⚠️</span>
               <h3>Xác nhận xóa hàng loạt</h3>
             </div>
             <div className="delete-dialog-content">
-              <p>
-                Bạn có chắc chắn muốn xóa <strong>{selectedStudentIds.length}</strong> sinh viên đã chọn?
-              </p>
-              <p className="delete-warning">
-                Hành động này không thể hoàn tác. Tất cả tài khoản đăng nhập của sinh viên cũng sẽ bị xóa.
-              </p>
+              {bulkDeleteConfirm.isLoading ? (
+                <div className="loading-preview">
+                  <div className="spinner"></div>
+                  <p>Đang tải thông tin...</p>
+                </div>
+              ) : (
+                <>
+                  <p>
+                    Bạn đã chọn <strong>{bulkDeleteConfirm.preview?.studentCount || selectedStudentIds.length}</strong> sinh viên.
+                    {bulkDeleteConfirm.preview?.dormResidentCount > 0 && (
+                      <span> (trong đó có <strong>{bulkDeleteConfirm.preview?.dormResidentCount}</strong> sinh viên đang ở KTX)</span>
+                    )}
+                  </p>
+
+                  {/* Hiển thị 2 tùy chọn khi có sinh viên ở KTX */}
+                  {bulkDeleteConfirm.preview?.dormResidentCount > 0 ? (
+                    <div className="delete-options">
+                      {/* Option 1: Chỉ xóa khỏi KTX */}
+                      <div className="delete-option">
+                        <div className="option-header">
+                          <span className="option-icon">🏠</span>
+                          <span className="option-title">Chỉ xóa khỏi Ký túc xá</span>
+                        </div>
+                        <div className="option-description">
+                          <ul>
+                            <li>✓ Xóa {bulkDeleteConfirm.preview?.relatedData?.dormitoryRequests || 0} yêu cầu KTX</li>
+                            <li>✓ Cập nhật phòng (giảm {bulkDeleteConfirm.preview?.dormResidentCount} người)</li>
+                            <li>✓ <strong>Giữ lại</strong> thông tin {bulkDeleteConfirm.preview?.dormResidentCount} sinh viên</li>
+                            <li>✓ <strong>Giữ lại</strong> {bulkDeleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                          </ul>
+                        </div>
+                        <button
+                          className="btn btn-warning btn-option"
+                          onClick={handleConfirmBulkRemoveFromDormitory}
+                          disabled={isBulkDeleting}
+                        >
+                          {isBulkDeleting ? 'Đang xử lý...' : `Xóa ${bulkDeleteConfirm.preview?.dormResidentCount} SV khỏi KTX`}
+                        </button>
+                      </div>
+
+                      {/* Option 2: Xóa hoàn toàn */}
+                      <div className="delete-option delete-option-danger">
+                        <div className="option-header">
+                          <span className="option-icon">🗑️</span>
+                          <span className="option-title">Xóa hoàn toàn khỏi hệ thống</span>
+                        </div>
+                        <div className="option-description">
+                          <ul>
+                            <li>✗ Xóa {bulkDeleteConfirm.preview?.relatedData?.dormitoryRequests || 0} yêu cầu KTX</li>
+                            <li>✗ Xóa {bulkDeleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                            <li>✗ Xóa tài khoản đăng nhập</li>
+                            <li>✗ Xóa hoàn toàn {bulkDeleteConfirm.preview?.studentCount || selectedStudentIds.length} sinh viên</li>
+                          </ul>
+                        </div>
+                        <button
+                          className="btn btn-danger btn-option"
+                          onClick={handleConfirmBulkDelete}
+                          disabled={isBulkDeleting}
+                        >
+                          {isBulkDeleting ? 'Đang xóa...' : `Xóa hoàn toàn ${bulkDeleteConfirm.preview?.studentCount || selectedStudentIds.length} SV`}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Không có sinh viên ở KTX - Chỉ hiển thị xóa hoàn toàn */
+                    <div className="delete-warning-box">
+                      <p className="delete-warning">
+                        ⚠️ Hành động này sẽ:
+                      </p>
+                      <ul>
+                        <li>Xóa {bulkDeleteConfirm.preview?.relatedData?.certificateRequests || 0} yêu cầu CTSV</li>
+                        <li>Xóa tài khoản đăng nhập của các sinh viên</li>
+                        <li>Xóa hoàn toàn thông tin {bulkDeleteConfirm.preview?.studentCount || selectedStudentIds.length} sinh viên</li>
+                      </ul>
+                      <p className="delete-warning-note">
+                        <strong>Không thể hoàn tác!</strong>
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
             <div className="delete-dialog-footer">
               <button
                 className="btn btn-outline"
-                onClick={() => setBulkDeleteConfirm({ show: false })}
-                disabled={isBulkDeleting}
+                onClick={() => setBulkDeleteConfirm({ show: false, preview: null, isLoading: false })}
+                disabled={isBulkDeleting || bulkDeleteConfirm.isLoading}
               >
                 Hủy
               </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleConfirmBulkDelete}
-                disabled={isBulkDeleting}
-              >
-                {isBulkDeleting ? 'Đang xóa...' : `Xóa ${selectedStudentIds.length} sinh viên`}
-              </button>
+              {/* Chỉ hiển thị nút xác nhận xóa khi không có sinh viên ở KTX */}
+              {!bulkDeleteConfirm.preview?.dormResidentCount && (
+                <button
+                  className="btn btn-danger"
+                  onClick={handleConfirmBulkDelete}
+                  disabled={isBulkDeleting || bulkDeleteConfirm.isLoading}
+                >
+                  {isBulkDeleting ? 'Đang xóa...' : `Xóa ${bulkDeleteConfirm.preview?.studentCount || selectedStudentIds.length} sinh viên`}
+                </button>
+              )}
             </div>
           </div>
         </div>

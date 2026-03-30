@@ -21,8 +21,6 @@ const renderRoutes = (routes) =>
 const App = () => (
   <div className="app">
     <Routes>
-      {/* Remove this line: <Route path="/" element={<Navigate to="/choose-role" replace />} /> */}
-      <Route path="/" element={<Navigate to="/choose-role" replace />} />
       {renderRoutes(publicRoutes)}
       {renderRoutes(studentRoutes)}
       {renderRoutes(staffRoutes)}

@@ -12,6 +12,7 @@ import {
   findCurrentPeriod,
   findCurrentSemester
 } from '../../../services/reports';
+import SRCustomDropdown from './SRCustomDropdown';
 import './StaffReports.css';
 
 // Màu cho biểu đồ
@@ -161,8 +162,7 @@ const StaffReports = () => {
   }, [fetchReportData]);
 
   // ==================== HANDLERS ====================
-  const handleSemesterChange = (e) => {
-    const semId = e.target.value;
+  const handleSemesterChange = (semId) => {
     const semester = semesters.find(s => s._id === semId);
     setSelectedSemester(semester);
     setViewType('all'); // Reset về toàn bộ HK
@@ -170,6 +170,16 @@ const StaffReports = () => {
 
   const handleViewTypeChange = (type) => {
     setViewType(type);
+  };
+
+  const handleMonthChange = (monthValue) => {
+    const month = availableMonths.find(m => m.value === monthValue);
+    setSelectedMonth(month);
+  };
+
+  const handleWeekChange = (weekValue) => {
+    const week = availableWeeks.find(w => w.value === parseInt(weekValue));
+    setSelectedWeek(week);
   };
 
   // ==================== FORMAT HELPERS ====================
@@ -256,99 +266,88 @@ const StaffReports = () => {
 
       {/* BỘ LỌC */}
       <div className="staff-reports-filters">
-        <div className="staff-reports-filters-row" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '32px', flexWrap: 'nowrap' }}>
+        <div className="staff-reports-filters-row">
           {/* Chọn Học kỳ */}
-          <div className="staff-reports-filter-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <label style={{ whiteSpace: 'nowrap', margin: 0, fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', color: '#374151' }}>Học kỳ</label>
-            <select 
-              value={selectedSemester?._id || ''} 
+          <div className="staff-reports-filter-item">
+            <label className="sr-filter-label">Học kỳ</label>
+            <SRCustomDropdown
+              value={selectedSemester?._id || ''}
               onChange={handleSemesterChange}
-              className="staff-reports-select"
-            >
-              {semesters.map(sem => (
-                <option key={sem._id} value={sem._id}>
-                  {sem.name}
-                </option>
-              ))}
-            </select>
+              options={semesters.map(sem => ({
+                value: sem._id,
+                label: sem.name
+              }))}
+              placeholder="Chọn học kỳ"
+            />
           </div>
 
           {/* Loại xem - Dropdown */}
-          <div className="staff-reports-filter-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-            <label style={{ whiteSpace: 'nowrap', margin: 0, fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', color: '#374151' }}>Xem theo</label>
-            <select 
-              value={viewType} 
-              onChange={(e) => handleViewTypeChange(e.target.value)}
-              className="staff-reports-select"
-            >
-              <option value="all">Toàn bộ học kỳ</option>
-              <option value="month">Theo tháng</option>
-              <option value="week">Theo tuần</option>
-              <option value="custom">Tùy chỉnh</option>
-            </select>
+          <div className="staff-reports-filter-item">
+            <label className="sr-filter-label">Xem theo</label>
+            <SRCustomDropdown
+              value={viewType}
+              onChange={handleViewTypeChange}
+              options={[
+                { value: 'all', label: 'Toàn bộ học kỳ' },
+                { value: 'month', label: 'Theo tháng' },
+                { value: 'week', label: 'Theo tuần' },
+                { value: 'custom', label: 'Tùy chỉnh' }
+              ]}
+              placeholder="Chọn kiểu xem"
+            />
           </div>
 
           {/* Sub-filter hiển thị ngay bên cạnh dựa trên viewType */}
           {viewType === 'month' && (
-            <div className="staff-reports-filter-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <label style={{ whiteSpace: 'nowrap', margin: 0, fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', color: '#374151' }}>Chọn tháng</label>
-              <select 
-                value={selectedMonth?.value || ''} 
-                onChange={(e) => {
-                  const month = availableMonths.find(m => m.value === e.target.value);
-                  setSelectedMonth(month);
-                }}
-                className="staff-reports-select"
-              >
-                {availableMonths.map(month => (
-                  <option key={month.value} value={month.value}>
-                    {month.label}
-                  </option>
-                ))}
-              </select>
+            <div className="staff-reports-filter-item">
+              <label className="sr-filter-label">Chọn tháng</label>
+              <SRCustomDropdown
+                value={selectedMonth?.value || ''}
+                onChange={handleMonthChange}
+                options={availableMonths.map(month => ({
+                  value: month.value,
+                  label: month.label
+                }))}
+                placeholder="Chọn tháng"
+              />
             </div>
           )}
 
           {viewType === 'week' && (
-            <div className="staff-reports-filter-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <label style={{ whiteSpace: 'nowrap', margin: 0, fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', color: '#374151' }}>Chọn tuần</label>
-              <select 
-                value={selectedWeek?.value || ''} 
-                onChange={(e) => {
-                  const week = availableWeeks.find(w => w.value === parseInt(e.target.value));
-                  setSelectedWeek(week);
-                }}
-                className="staff-reports-select"
-              >
-                {availableWeeks.map(week => (
-                  <option key={week.value} value={week.value}>
-                    {week.label}
-                  </option>
-                ))}
-              </select>
+            <div className="staff-reports-filter-item">
+              <label className="sr-filter-label">Chọn tuần</label>
+              <SRCustomDropdown
+                value={selectedWeek?.value?.toString() || ''}
+                onChange={handleWeekChange}
+                options={availableWeeks.map(week => ({
+                  value: week.value.toString(),
+                  label: week.label
+                }))}
+                placeholder="Chọn tuần"
+              />
             </div>
           )}
 
           {viewType === 'custom' && (
-            <div className="staff-reports-filter-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <label style={{ whiteSpace: 'nowrap', margin: 0, fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', color: '#374151' }}>Khoảng thời gian</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="staff-reports-filter-item sr-date-range-item">
+              <label className="sr-filter-label">Khoảng thời gian</label>
+              <div className="sr-date-range-inputs">
                 <input 
                   type="date" 
                   value={customStartDate}
                   min={selectedSemester?.startDate?.split('T')[0]}
                   max={selectedSemester?.endDate?.split('T')[0]}
                   onChange={(e) => setCustomStartDate(e.target.value)}
-                  style={{ padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  className="sr-date-input"
                 />
-                <span>-</span>
+                <span className="sr-date-separator">-</span>
                 <input 
                   type="date" 
                   value={customEndDate}
                   min={customStartDate || selectedSemester?.startDate?.split('T')[0]}
                   max={selectedSemester?.endDate?.split('T')[0]}
                   onChange={(e) => setCustomEndDate(e.target.value)}
-                  style={{ padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  className="sr-date-input"
                 />
               </div>
             </div>
@@ -369,9 +368,6 @@ const StaffReports = () => {
                   <div className="kpi-content">
                     <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
                     <div className="kpi-label">Tổng Yêu cầu</div>
-                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.total)}`}>
-                      {formatChange(reportData.kpi.changes?.total || 0)} so với kỳ trước
-                    </div>
                   </div>
                 </div>
 
@@ -381,9 +377,6 @@ const StaffReports = () => {
                   <div className="kpi-content">
                     <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
                     <div className="kpi-label">Đã Hoàn thành</div>
-                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.approved)}`}>
-                      {formatChange(reportData.kpi.changes?.approved || 0)} so với kỳ trước
-                    </div>
                   </div>
                 </div>
 
@@ -402,9 +395,6 @@ const StaffReports = () => {
                   <div className="kpi-content">
                     <div className="kpi-number">{reportData.kpi.rejected?.toLocaleString() || 0}</div>
                     <div className="kpi-label">Đã Từ chối</div>
-                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.rejected)}`}>
-                      {formatChange(reportData.kpi.changes?.rejected || 0)} so với kỳ trước
-                    </div>
                   </div>
                 </div>
               </>
@@ -419,9 +409,6 @@ const StaffReports = () => {
                   <div className="kpi-content">
                     <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
                     <div className="kpi-label">Tổng Báo cáo sự cố</div>
-                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.total)}`}>
-                      {formatChange(reportData.kpi.changes?.total || 0)} so với kỳ trước
-                    </div>
                   </div>
                 </div>
 
@@ -442,9 +429,6 @@ const StaffReports = () => {
                   <div className="kpi-content">
                     <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
                     <div className="kpi-label">Đã hoàn thành</div>
-                    <div className={`kpi-change ${getChangeClass(reportData.kpi.changes?.approved)}`}>
-                      {formatChange(reportData.kpi.changes?.approved || 0)} so với kỳ trước
-                    </div>
                   </div>
                 </div>
 
@@ -498,7 +482,7 @@ const StaffReports = () => {
           </div>
           
           <div className="trend-chart">
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={350}>
               <LineChart
                 data={staffModule === 'KTX' 
                   ? reportData.trendData.map(item => ({
@@ -507,24 +491,32 @@ const StaffReports = () => {
                     }))
                   : reportData.trendData
                 }
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="name" 
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: '#6b7280', fontSize: 11 }}
                   axisLine={{ stroke: '#e5e7eb' }}
+                  tickMargin={8}
+                  interval="preserveStartEnd"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
                 />
                 <YAxis 
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: '#6b7280', fontSize: 11 }}
                   axisLine={{ stroke: '#e5e7eb' }}
+                  width={35}
+                  tickMargin={4}
                 />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: 'white', 
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    fontSize: '12px'
                   }}
                 />
                 <Line 
@@ -532,27 +524,27 @@ const StaffReports = () => {
                   dataKey="new" 
                   name="Yêu cầu Mới"
                   stroke="#3b82f6" 
-                  strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, fill: '#3b82f6' }}
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: '#3b82f6' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="approved" 
                   name="Đã duyệt"
                   stroke="#10b981" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, fill: '#10b981' }}
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: '#10b981' }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey={staffModule === 'KTX' ? 'received' : 'rejected'} 
                   name={staffModule === 'KTX' ? 'Đã tiếp nhận' : 'Bị từ chối'}
                   stroke={staffModule === 'KTX' ? '#06b6d4' : '#ef4444'} 
-                  strokeWidth={3}
-                  dot={{ fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444', strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 8, fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444' }}
+                  strokeWidth={2}
+                  dot={{ fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -574,14 +566,14 @@ const StaffReports = () => {
               <div className="donut-chart-wrapper">
                 {(staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution)?.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={250}>
+                    <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
                         <Pie
                           data={staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
+                          innerRadius={50}
+                          outerRadius={85}
                           paddingAngle={2}
                           dataKey="count"
                           nameKey="type"
@@ -633,14 +625,14 @@ const StaffReports = () => {
                   
                   return statusData?.length > 0 ? (
                     <>
-                      <ResponsiveContainer width="100%" height={250}>
+                      <ResponsiveContainer width="100%" height={220}>
                         <PieChart>
                           <Pie
                             data={statusData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={100}
+                            innerRadius={50}
+                            outerRadius={85}
                             paddingAngle={2}
                             dataKey="count"
                             nameKey="status"

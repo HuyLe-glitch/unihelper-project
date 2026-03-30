@@ -142,8 +142,42 @@ const studentService = {
   },
 
   // ==========================================
+  // DELETE PREVIEW & REMOVE FROM DORMITORY
+  // ==========================================
+
+  /**
+   * Xem trước dữ liệu sẽ bị xóa khi xóa sinh viên
+   * @param {string} id - ID sinh viên
+   * @returns {Object} - Thông tin sinh viên và số yêu cầu liên quan
+   */
+  getDeletePreview: async (id) => {
+    const response = await apiClient.get(`/students/${id}/delete-preview`);
+    return response.data;
+  },
+
+  /**
+   * Chỉ xóa sinh viên khỏi KTX (giữ lại sinh viên và yêu cầu CTSV)
+   * @param {string} id - ID sinh viên
+   * @returns {Object} - Kết quả xóa khỏi KTX
+   */
+  removeFromDormitory: async (id) => {
+    const response = await apiClient.patch(`/students/${id}/remove-dormitory`);
+    return response.data;
+  },
+
+  // ==========================================
   // BULK DELETE API
   // ==========================================
+
+  /**
+   * Xem trước dữ liệu sẽ bị xóa khi xóa hàng loạt sinh viên
+   * @param {string[]} ids - Mảng ID sinh viên cần xóa
+   * @returns {Object} - Thông tin preview
+   */
+  getBulkDeletePreview: async (ids) => {
+    const response = await apiClient.post('/students/bulk-delete-preview', { ids });
+    return response.data;
+  },
 
   /**
    * Xóa nhiều sinh viên cùng lúc
@@ -154,6 +188,16 @@ const studentService = {
     const response = await apiClient.delete('/students/bulk', {
       data: { ids }
     });
+    return response.data;
+  },
+
+  /**
+   * Xóa nhiều sinh viên khỏi KTX (giữ lại sinh viên)
+   * @param {string[]} ids - Mảng ID sinh viên cần xóa khỏi KTX
+   * @returns {Object} - Kết quả xóa khỏi KTX
+   */
+  bulkRemoveFromDormitory: async (ids) => {
+    const response = await apiClient.patch('/students/bulk-remove-dormitory', { ids });
     return response.data;
   },
 

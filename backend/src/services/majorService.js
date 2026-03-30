@@ -1,5 +1,6 @@
 const Major = require('../models/Major');
 const Faculty = require('../models/Faculty');
+const Student = require('../models/Student');
 const { AppError } = require('../utils/appError');
 
 class MajorService {
@@ -132,15 +133,48 @@ class MajorService {
 
   // Hard delete major - Xóa hoàn toàn khỏi DB
   async deleteMajor(id) {
-    const major = await Major.findByIdAndDelete(id);
-
+    const major = await Major.findById(id).populate('faculty', 'name');
     if (!major) {
       throw new AppError('Không tìm thấy chuyên ngành', 404);
     }
 
+    // BUSINESS LOGIC: Kiểm tra xem có sinh viên nào thuộc chuyên ngành này không
+    const studentCount = await Student.countDocuments({ major: id });
+    if (studentCount > 0) {
+      const error = new AppError(
+        `Không thể xóa chuyên ngành "${major.name}" vì đang có ${studentCount} sinh viên thuộc chuyên ngành này. Vui lòng chuyển sinh viên sang chuyên ngành khác trước khi xóa.`,
+        400
+      );
+      error.studentCount = studentCount;
+      error.majorName = major.name;
+      throw error;
+    }
+
+    await Major.findByIdAndDelete(id);
+
     return {
       success: true,
       message: 'Đã xóa chuyên ngành hoàn toàn'
+    };
+  }
+
+  // Kiểm tra xem có thể xóa chuyên ngành không (đếm số sinh viên)
+  async checkCanDeleteMajor(id) {
+    const major = await Major.findById(id).populate('faculty', 'name');
+    if (!major) {
+      throw new AppError('Không tìm thấy chuyên ngành', 404);
+    }
+
+    const studentCount = await Student.countDocuments({ major: id });
+
+    return {
+      success: true,
+      data: {
+        canDelete: studentCount === 0,
+        studentCount,
+        majorName: major.name,
+        facultyName: major.faculty?.name
+      }
     };
   }
 

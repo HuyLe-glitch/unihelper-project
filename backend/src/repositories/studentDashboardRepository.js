@@ -24,17 +24,26 @@ class StudentDashboardRepository {
 
   /**
    * Lấy thống kê yêu cầu KTX của sinh viên
+   * Chỉ đếm yêu cầu chưa hoàn thành (Pending và Under Review)
    * @param {string} studentId - ID sinh viên
-   * @returns {Object} - { pending, completed, rejected }
+   * @returns {Object} - { total, pending, processing }
    */
   async getKTXStats(studentId) {
-    const [pending, completed, rejected] = await Promise.all([
-      DormitoryRequest.countDocuments({ student: studentId, status: { $in: ['Pending', 'Under Review'] } }),
-      DormitoryRequest.countDocuments({ student: studentId, status: 'Approved' }),
-      DormitoryRequest.countDocuments({ student: studentId, status: 'Rejected' })
+    const [pending, processing, completed] = await Promise.all([
+      // Chờ tiếp nhận (Pending)
+      DormitoryRequest.countDocuments({ student: studentId, status: 'Pending' }),
+      // Đang xử lý (Under Review)
+      DormitoryRequest.countDocuments({ student: studentId, status: 'Under Review' }),
+      // Đã hoàn thành - không hiển thị nhưng giữ để tính toán nếu cần
+      DormitoryRequest.countDocuments({ student: studentId, status: 'Approved' })
     ]);
     
-    return { pending, completed, rejected };
+    // Total chỉ tính yêu cầu đang active (pending + processing)
+    return { 
+      total: pending + processing,
+      pending, 
+      processing 
+    };
   }
 
   /**

@@ -82,15 +82,20 @@ const HistoryAffair = () => {
 
     // Lắng nghe sự kiện yêu cầu được cập nhật (duyệt/từ chối)
     socketService.onCertificateRequestUpdated((data) => {
+      console.log('📬 Received CERTIFICATE_REQUEST_UPDATED:', data);
+      
       // Cập nhật trực tiếp trong state thay vì fetch lại
       setAffairsHistory(prev => prev.map(item => {
+        // Match bằng requestCode hoặc requestId
         if (item.id === data.requestCode || item.id === data.requestId) {
+          console.log('✅ Updating item:', item.id);
           return {
             ...item,
             status: mapStatusFromBackend(data.status || data.request?.status),
             responseTime: data.request?.responseTime 
               ? formatResponseTime(data.request.responseTime)
               : item.responseTime,
+            notes: data.request?.notes || item.notes,
             staffFile: data.request?.staffFile || item.staffFile
           };
         }

@@ -1,4 +1,5 @@
 const equipmentRepository = require('../repositories/equipmentRepository');
+const DormitoryRequest = require('../models/DormitoryRequest');
 
 /**
  * Helper function để tạo operational error với field
@@ -113,12 +114,23 @@ const equipmentService = {
   },
 
   /**
-   * Xóa danh mục - BUSINESS LOGIC: Xóa kèm tất cả thiết bị trong đó
+   * Xóa danh mục - BUSINESS LOGIC: Kiểm tra ràng buộc trước khi xóa
    */
   deleteCategory: async (categoryId) => {
     const category = await equipmentRepository.getCategoryById(categoryId);
     if (!category) {
       throw createError('Không tìm thấy danh mục', 404);
+    }
+
+    // Kiểm tra có yêu cầu KTX nào liên quan không
+    const relatedRequestsCount = await DormitoryRequest.countDocuments({ category: categoryId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa danh mục "${category.name}" vì đã có ${relatedRequestsCount} yêu cầu KTX liên quan trong hệ thống`,
+        400,
+        'category',
+        { relatedRequestsCount }
+      );
     }
 
     // Đếm số thiết bị sẽ bị xóa
@@ -133,6 +145,48 @@ const equipmentService = {
     return {
       success: true,
       message: `Đã xóa danh mục "${category.name}" và ${itemCount} thiết bị liên quan`
+    };
+  },
+
+  /**
+   * Kiểm tra có thể xóa danh mục không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteCategory: async (categoryId) => {
+    const category = await equipmentRepository.getCategoryById(categoryId);
+    if (!category) {
+      throw createError('Không tìm thấy danh mục', 404);
+    }
+
+    // Kiểm tra có yêu cầu KTX nào liên quan không
+    const relatedRequestsCount = await DormitoryRequest.countDocuments({ category: categoryId });
+    
+    // Đếm số thiết bị trong danh mục
+    const itemCount = await equipmentRepository.countItemsByCategory(categoryId);
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          category,
+          relatedRequestsCount,
+          itemCount,
+          message: `Không thể xóa danh mục "${category.name}" vì đã có ${relatedRequestsCount} yêu cầu KTX liên quan trong hệ thống`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        category,
+        itemCount,
+        message: itemCount > 0 
+          ? `Xóa danh mục "${category.name}" sẽ xóa luôn ${itemCount} thiết bị trong đó`
+          : `Bạn có chắc chắn muốn xóa danh mục "${category.name}"?`
+      }
     };
   },
 
@@ -349,7 +403,7 @@ const equipmentService = {
   },
 
   /**
-   * Xóa thiết bị
+   * Xóa thiết bị - Kiểm tra ràng buộc trước khi xóa
    */
   deleteItem: async (itemId) => {
     const item = await equipmentRepository.getItemById(itemId);
@@ -357,11 +411,57 @@ const equipmentService = {
       throw createError('Không tìm thấy thiết bị', 404);
     }
 
+    // Kiểm tra có yêu cầu KTX nào liên quan không
+    const relatedRequestsCount = await DormitoryRequest.countDocuments({ item: itemId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa thiết bị "${item.name}" vì đã có ${relatedRequestsCount} yêu cầu KTX liên quan trong hệ thống`,
+        400,
+        'item',
+        { relatedRequestsCount }
+      );
+    }
+
     await equipmentRepository.deleteItem(itemId);
 
     return {
       success: true,
       message: `Đã xóa thiết bị "${item.name}"`
+    };
+  },
+
+  /**
+   * Kiểm tra có thể xóa thiết bị không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteItem: async (itemId) => {
+    const item = await equipmentRepository.getItemById(itemId);
+    if (!item) {
+      throw createError('Không tìm thấy thiết bị', 404);
+    }
+
+    // Kiểm tra có yêu cầu KTX nào liên quan không
+    const relatedRequestsCount = await DormitoryRequest.countDocuments({ item: itemId });
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          item,
+          relatedRequestsCount,
+          message: `Không thể xóa thiết bị "${item.name}" vì đã có ${relatedRequestsCount} yêu cầu KTX liên quan trong hệ thống`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        item,
+        message: `Bạn có chắc chắn muốn xóa thiết bị "${item.name}"?`
+      }
     };
   },
 

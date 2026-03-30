@@ -102,12 +102,28 @@ router.post(
 // BULK DELETE ROUTE
 // ==========================================
 
+// POST /api/students/bulk-delete-preview - Xem trước dữ liệu sẽ bị xóa hàng loạt
+router.post(
+  '/bulk-delete-preview',
+  restrictTo('ADMIN'),
+  bulkDeleteValidation,
+  studentController.getBulkDeletePreview
+);
+
 // DELETE /api/students/bulk - Xóa nhiều sinh viên cùng lúc
 router.delete(
   '/bulk',
   restrictTo('ADMIN'),
   bulkDeleteValidation,
   studentController.bulkDeleteStudents
+);
+
+// PATCH /api/students/bulk-remove-dormitory - Xóa nhiều sinh viên khỏi KTX (giữ lại sinh viên)
+router.patch(
+  '/bulk-remove-dormitory',
+  restrictTo('ADMIN'),
+  bulkDeleteValidation,
+  studentController.bulkRemoveFromDormitory
 );
 
 // ==========================================
@@ -121,6 +137,30 @@ router.post(
   roomTransferValidation,
   studentController.transferStudentsRoom
 );
+
+// ==========================================
+// DELETE PREVIEW & REMOVE FROM DORMITORY
+// ==========================================
+
+// GET /api/students/:id/delete-preview - Xem trước dữ liệu sẽ bị xóa
+router.get(
+  '/:id/delete-preview',
+  restrictTo('ADMIN'),
+  idValidation,
+  studentController.getDeletePreview
+);
+
+// PATCH /api/students/:id/remove-dormitory - Chỉ xóa khỏi KTX
+router.patch(
+  '/:id/remove-dormitory',
+  restrictTo('ADMIN'),
+  idValidation,
+  studentController.removeFromDormitory
+);
+
+// ==========================================
+// STUDENT BY ID ROUTES
+// ==========================================
 
 // GET /api/students/:id - Lấy sinh viên theo ID
 router.get(
@@ -138,7 +178,7 @@ router.patch(
   studentController.updateStudent
 );
 
-// DELETE /api/students/:id - Xóa sinh viên
+// DELETE /api/students/:id - Xóa sinh viên hoàn toàn
 router.delete(
   '/:id',
   restrictTo('ADMIN'),

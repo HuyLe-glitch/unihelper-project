@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { roomService } from '../../../services/room';
+import socketService from '../../../services/socket';
 import RoomFormModal from './RoomFormModal';
 import './RoomManagement.css';
 
@@ -22,8 +23,13 @@ const RoomManagement = () => {
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
 
-  // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, item: null });
+  // Delete confirmation - thêm error state để hiển thị khi không thể xóa
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    show: false, 
+    item: null,
+    error: null,
+    isDeleting: false
+  });
 
   // Toast notification
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -68,6 +74,23 @@ const RoomManagement = () => {
     loadData();
   }, [loadRooms, loadStats]);
 
+  // Socket.IO Realtime - Lắng nghe khi sinh viên bị xóa khỏi KTX
+  useEffect(() => {
+    socketService.connect();
+
+    // Lắng nghe event khi có thay đổi phòng (xóa sinh viên khỏi KTX)
+    socketService.onStudentRoomUpdated((data) => {
+      console.log('📡 [Socket] Student room updated:', data);
+      // Reload lại danh sách phòng và stats
+      loadRooms();
+      loadStats();
+    });
+
+    return () => {
+      socketService.off('STUDENT_ROOM_UPDATED');
+    };
+  }, [loadRooms, loadStats]);
+
   // Filter rooms
   const filteredRooms = useMemo(() => {
     return rooms.filter(room =>
@@ -87,28 +110,45 @@ const RoomManagement = () => {
   };
 
   const handleDeleteClick = (room) => {
+    // Nếu phòng có người ở, hiển thị dialog với thông báo lỗi
     if (room.occupied > 0) {
-      showToast(`Không thể xóa phòng đang có ${room.occupied} người ở!`, 'error');
+      setDeleteConfirm({ 
+        show: true, 
+        item: room,
+        error: `Không thể xóa phòng "${room.name}" vì đang có ${room.occupied} sinh viên ở. Vui lòng chuyển sinh viên sang phòng khác trước khi xóa.`,
+        isDeleting: false
+      });
       return;
     }
-    setDeleteConfirm({ show: true, item: room });
+    // Nếu phòng trống, hiển thị dialog xác nhận bình thường
+    setDeleteConfirm({ show: true, item: room, error: null, isDeleting: false });
   };
 
   const handleConfirmDelete = async () => {
     const room = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true, error: null }));
+    
     try {
       const response = await roomService.deleteRoom(room._id);
       if (response.success) {
         showToast('Đã xóa phòng thành công');
+        setDeleteConfirm({ show: false, item: null, error: null, isDeleting: false });
         loadRooms();
         loadStats();
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Không thể xóa phòng';
-      showToast(message, 'error');
-    } finally {
-      setDeleteConfirm({ show: false, item: null });
+      // Hiển thị lỗi trong dialog thay vì đóng dialog
+      setDeleteConfirm(prev => ({ 
+        ...prev, 
+        error: message,
+        isDeleting: false 
+      }));
     }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirm({ show: false, item: null, error: null, isDeleting: false });
   };
 
   const handleModalSuccess = (data, action) => {
@@ -260,8 +300,7 @@ const RoomManagement = () => {
                     <button
                       className="btn-action btn-delete"
                       onClick={() => handleDeleteClick(room)}
-                      title="Xóa"
-                      disabled={room.occupied > 0}
+                      title={room.occupied > 0 ? `Phòng đang có ${room.occupied} người ở` : 'Xóa'}
                     >
                       🗑️
                     </button>
@@ -283,31 +322,59 @@ const RoomManagement = () => {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm.show && (
-        <div className="delete-overlay" onClick={() => setDeleteConfirm({ show: false, item: null })}>
+        <div className="delete-overlay" onClick={handleCancelDelete}>
           <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="delete-dialog-header">
-              <span className="delete-icon">⚠️</span>
-              <h3>Xác nhận xóa</h3>
+              <span className="delete-icon">{deleteConfirm.error ? '🚫' : '⚠️'}</span>
+              <h3>{deleteConfirm.error ? 'Không thể xóa' : 'Xác nhận xóa'}</h3>
             </div>
             <div className="delete-dialog-content">
-              <p>
-                Bạn có chắc chắn muốn xóa phòng{' '}
-                <strong>"{deleteConfirm.item?.name}"</strong>?
-              </p>
-              <p className="delete-warning-text">
-                Hành động này không thể hoàn tác.
-              </p>
+              {deleteConfirm.error ? (
+                // Hiển thị lỗi khi không thể xóa
+                <div className="delete-error-content">
+                  <p className="delete-error-message">{deleteConfirm.error}</p>
+                  <p className="delete-error-hint">
+                    💡 Vui lòng chuyển sinh viên sang phòng khác trước khi xóa.
+                  </p>
+                </div>
+              ) : (
+                // Hiển thị xác nhận bình thường
+                <>
+                  <p>
+                    Bạn có chắc chắn muốn xóa phòng{' '}
+                    <strong>"{deleteConfirm.item?.name}"</strong>?
+                  </p>
+                  <p className="delete-warning-text">
+                    Hành động này không thể hoàn tác.
+                  </p>
+                </>
+              )}
             </div>
             <div className="delete-dialog-actions">
-              <button
-                className="btn btn-outline"
-                onClick={() => setDeleteConfirm({ show: false, item: null })}
-              >
-                Hủy
-              </button>
-              <button className="btn btn-danger" onClick={handleConfirmDelete}>
-                Xóa
-              </button>
+              {deleteConfirm.error ? (
+                // Chỉ hiện nút Đóng khi có lỗi
+                <button className="btn btn-primary" onClick={handleCancelDelete}>
+                  Đã hiểu
+                </button>
+              ) : (
+                // Hiện cả Hủy và Xóa khi không có lỗi
+                <>
+                  <button
+                    className="btn btn-outline"
+                    onClick={handleCancelDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={handleConfirmDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    {deleteConfirm.isDeleting ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

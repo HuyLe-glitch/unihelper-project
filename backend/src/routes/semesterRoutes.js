@@ -57,6 +57,14 @@ router.patch(
   semesterController.updateSemester
 );
 
+// GET /api/semesters/:id/check-delete - Kiểm tra có thể xóa semester không (ADMIN only)
+router.get(
+  '/:id/check-delete',
+  restrictTo('ADMIN'),
+  idValidation,
+  semesterController.checkCanDeleteSemester
+);
+
 // DELETE /api/semesters/:id - Xóa semester (ADMIN only)
 router.delete(
   '/:id',

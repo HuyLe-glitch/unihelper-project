@@ -33,6 +33,12 @@ class MajorController {
     const result = await majorService.deleteMajor(req.params.id);
     res.status(200).json(result);
   });
+
+  // Kiểm tra có thể xóa chuyên ngành không (đếm sinh viên)
+  checkCanDeleteMajor = catchAsync(async (req, res) => {
+    const result = await majorService.checkCanDeleteMajor(req.params.id);
+    res.status(200).json(result);
+  });
 }
 
 module.exports = new MajorController();

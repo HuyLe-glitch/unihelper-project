@@ -96,6 +96,19 @@ const certificateController = {
     }
   },
 
+  /**
+   * GET /api/certificates/types/:id/check-delete
+   * Kiểm tra có thể xóa loại chứng nhận không
+   */
+  checkCanDeleteType: async (req, res, next) => {
+    try {
+      const result = await certificateService.checkCanDeleteType(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // ==========================================
   // CERTIFICATE OPERATIONS
   // ==========================================
@@ -220,6 +233,19 @@ const certificateController = {
   deleteCertificate: async (req, res, next) => {
     try {
       const result = await certificateService.deleteCertificate(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * GET /api/certificates/:id/check-delete
+   * Kiểm tra có thể xóa chứng nhận không
+   */
+  checkCanDeleteCertificate: async (req, res, next) => {
+    try {
+      const result = await certificateService.checkCanDeleteCertificate(req.params.id);
       res.status(200).json(result);
     } catch (error) {
       next(error);

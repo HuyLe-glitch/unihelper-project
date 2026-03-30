@@ -45,6 +45,14 @@ router.patch(
   certificateController.updateType
 );
 
+// GET /api/certificates/types/:id/check-delete - Kiểm tra có thể xóa loại chứng nhận (Admin only)
+router.get(
+  '/types/:id/check-delete',
+  restrictTo('ADMIN'),
+  idValidation,
+  certificateController.checkCanDeleteType
+);
+
 // DELETE /api/certificates/types/:id - Xóa loại chứng nhận (Admin only)
 router.delete(
   '/types/:id', 
@@ -91,6 +99,14 @@ router.patch(
   restrictTo('ADMIN', 'STAFF'), 
   certificateValidation.update, 
   certificateController.updateCertificate
+);
+
+// GET /api/certificates/:id/check-delete - Kiểm tra có thể xóa chứng nhận (Admin only)
+router.get(
+  '/:id/check-delete',
+  restrictTo('ADMIN'),
+  idValidation,
+  certificateController.checkCanDeleteCertificate
 );
 
 // DELETE /api/certificates/:id - Xóa chứng nhận (Admin only)

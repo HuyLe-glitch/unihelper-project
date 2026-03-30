@@ -64,6 +64,18 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
 .page-title {
   font-size: 28px;
   font-weight: 700;
@@ -1195,7 +1207,6 @@
   .no-data-content p {
     font-size: 14px;
   }
-}
 
   .current-name {
     font-size: 22px;
@@ -1415,4 +1426,42 @@
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Delete Error Styles */
+.delete-error-content {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.delete-error-message {
+  color: #dc2626;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.delete-error-hint {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.delete-dialog-actions .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.delete-dialog-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.delete-dialog-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }

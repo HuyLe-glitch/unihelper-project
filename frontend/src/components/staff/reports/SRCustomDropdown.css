@@ -1,0 +1,300 @@
+/* ==========================================
+   SR CUSTOM DROPDOWN - STAFF REPORTS
+   Prefix: sr- để tránh conflict với các component khác
+   ========================================== */
+
+.sr-custom-dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 160px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================
+   DROPDOWN HEADER
+   ========================================== */
+.sr-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  box-sizing: border-box;
+  gap: 8px;
+}
+
+.sr-dropdown-header:hover {
+  border-color: #667eea;
+}
+
+.sr-dropdown-header:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.sr-custom-dropdown.sr-open .sr-dropdown-header {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.sr-custom-dropdown.sr-disabled .sr-dropdown-header {
+  background: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ==========================================
+   DROPDOWN VALUE & ICON
+   ========================================== */
+.sr-dropdown-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.sr-dropdown-value {
+  font-size: 14px;
+  color: #1f2937;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.sr-dropdown-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sr-dropdown-arrow.sr-arrow-open {
+  transform: rotate(180deg);
+}
+
+/* ==========================================
+   DROPDOWN MENU
+   ========================================== */
+.sr-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 280px;
+  overflow-y: auto;
+  animation: srDropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes srDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar for dropdown menu */
+.sr-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sr-dropdown-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.sr-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sr-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* ==========================================
+   DROPDOWN ITEMS
+   ========================================== */
+.sr-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 10px;
+}
+
+.sr-dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.sr-dropdown-item.sr-item-selected {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.sr-dropdown-item:first-child {
+  border-radius: 7px 7px 0 0;
+}
+
+.sr-dropdown-item:last-child {
+  border-radius: 0 0 7px 7px;
+}
+
+.sr-dropdown-item:only-child {
+  border-radius: 7px;
+}
+
+.sr-dropdown-item:focus {
+  outline: none;
+  background: #f3f4f6;
+}
+
+.sr-item-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.sr-item-label {
+  font-size: 14px;
+  flex: 1;
+  color: #1f2937;
+}
+
+.sr-item-check {
+  color: #667eea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ==========================================
+   RESPONSIVE - TABLET (768px - 1024px)
+   ========================================== */
+@media (max-width: 1024px) {
+  .sr-custom-dropdown {
+    min-width: 140px;
+  }
+
+  .sr-dropdown-header {
+    padding: 10px 12px;
+  }
+
+  .sr-dropdown-value {
+    font-size: 13px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE LANDSCAPE (481px - 768px)
+   ========================================== */
+@media (max-width: 768px) {
+  .sr-custom-dropdown {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .sr-dropdown-header {
+    padding: 12px 14px;
+    min-height: 46px;
+  }
+
+  .sr-dropdown-value {
+    font-size: 14px;
+  }
+
+  .sr-dropdown-menu {
+    max-height: 260px;
+  }
+
+  .sr-dropdown-item {
+    padding: 12px 14px;
+  }
+
+  .sr-item-label {
+    font-size: 14px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE PORTRAIT (max 480px)
+   ========================================== */
+@media (max-width: 480px) {
+  .sr-custom-dropdown {
+    min-width: 100%;
+  }
+
+  .sr-dropdown-header {
+    padding: 12px;
+    min-height: 48px;
+  }
+
+  .sr-dropdown-value {
+    font-size: 14px;
+  }
+
+  .sr-dropdown-menu {
+    max-height: 240px;
+    /* Full width on small screens */
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: auto;
+    width: calc(100% - 32px);
+  }
+
+  .sr-dropdown-item {
+    padding: 14px 16px;
+  }
+
+  .sr-item-icon {
+    font-size: 16px;
+  }
+
+  .sr-item-label {
+    font-size: 15px;
+  }
+}
+
+/* ==========================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ========================================== */
+@media (hover: none) and (pointer: coarse) {
+  .sr-dropdown-header {
+    min-height: 48px;
+  }
+
+  .sr-dropdown-item {
+    padding: 14px 16px;
+    min-height: 48px;
+  }
+
+  /* Larger tap targets on touch devices */
+  .sr-dropdown-header:active {
+    background: #f9fafb;
+  }
+
+  .sr-dropdown-item:active {
+    background: #e5e7eb;
+  }
+}

@@ -195,6 +195,22 @@ exports.deleteSemester = async (req, res, next) => {
 };
 
 /**
+ * GET /api/semesters/:id/check-delete
+ * Kiểm tra có thể xóa semester không
+ */
+exports.checkCanDeleteSemester = async (req, res, next) => {
+  try {
+    const validationError = handleValidationErrors(req, res);
+    if (validationError) return;
+
+    const result = await semesterService.checkCanDeleteSemester(req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * GET /api/semesters/preview
  * Preview dates trước khi tạo
  */

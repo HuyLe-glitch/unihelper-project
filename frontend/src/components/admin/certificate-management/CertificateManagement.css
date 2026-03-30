@@ -667,6 +667,44 @@
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
+/* Delete Error Styles */
+.delete-error-content {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.delete-error-message {
+  color: #dc2626;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.delete-error-hint {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.delete-dialog-actions .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.delete-dialog-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.delete-dialog-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* ==========================================
    TOAST NOTIFICATION STYLES
    ========================================== */

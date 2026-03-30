@@ -181,6 +181,7 @@ const updateRequestStatus = catchAsync(async (req, res) => {
   if (req.io && (status === 'Approved' || status === 'Rejected')) {
     req.io.emit('DORMITORY_REQUEST_UPDATED', {
       requestId: id,
+      requestCode: result.requestCode, // Thêm requestCode để frontend match được
       request: result,
       status: status,
       message: status === 'Approved' ? 'Yêu cầu KTX đã được duyệt' : 'Yêu cầu KTX đã bị từ chối'
@@ -258,6 +259,7 @@ const acceptRequest = catchAsync(async (req, res) => {
   if (req.io) {
     req.io.emit('DORMITORY_REQUEST_UPDATED', {
       requestId: id,
+      requestCode: result.requestCode,
       request: result,
       status: 'Under Review',
       message: 'Yêu cầu KTX đã được tiếp nhận'
@@ -306,6 +308,7 @@ const confirmRepair = catchAsync(async (req, res) => {
   if (req.io) {
     req.io.emit('DORMITORY_REQUEST_UPDATED', {
       requestId: id,
+      requestCode: result.requestCode,
       request: result,
       status: 'Approved',
       message: 'Sinh viên đã xác nhận sửa chữa hoàn tất'

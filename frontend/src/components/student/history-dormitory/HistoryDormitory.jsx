@@ -64,7 +64,10 @@ const HistoryDormitory = () => {
         setRoomInfo(response.roomInfo || null);
         // Transform data sau khi có studentInfo
         // Bao gồm thông tin người gửi để hiển thị yêu cầu của tất cả sinh viên cùng phòng
-        const transformedData = (response.data || []).map((req) => ({
+        // Lọc bỏ các yêu cầu đã hoàn thành (Approved) - chỉ hiển thị pending và processing
+        const filteredRequests = (response.data || []).filter(req => req.status !== 'Approved');
+        
+        const transformedData = filteredRequests.map((req) => ({
           id: req._id,
           // Sử dụng requestCode từ backend (format: KTX1, KTX2, ...)
           requestCode: req.requestCode || 'N/A',
@@ -145,13 +148,25 @@ const HistoryDormitory = () => {
     socketService.onDormitoryRequestUpdated((data) => {
       console.log('📡 Received DORMITORY_REQUEST_UPDATED:', data);
       
-      // Cập nhật status trong danh sách
+      const newStatus = data.status || data.request?.status;
+      
+      // Nếu yêu cầu được Approved (hoàn thành), xóa khỏi danh sách
+      if (newStatus === 'Approved') {
+        setDormitoryHistory(prev => prev.filter(item => 
+          item.id !== data.requestId && item.requestCode !== data.requestCode
+        ));
+        console.log('🗑️ Removed completed KTX request from list');
+        return;
+      }
+      
+      // Cập nhật status trong danh sách - match bằng id hoặc requestCode
       setDormitoryHistory(prev => prev.map(item => {
-        if (item.id === data.requestId) {
+        if (item.id === data.requestId || item.requestCode === data.requestCode) {
+          console.log('✅ Updating KTX item:', item.requestCode || item.id);
           return {
             ...item,
-            status: mapStatus(data.status),
-            confirmDate: data.status === 'Approved' ? new Date().toISOString() : item.confirmDate
+            status: mapStatus(newStatus),
+            confirmDate: item.confirmDate
           };
         }
         return item;
@@ -235,8 +250,8 @@ const HistoryDormitory = () => {
   const handleOpenConfirmRepair = (requestId, requestCode) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Xác nhận sửa chữa',
-      message: `Bạn xác nhận yêu cầu ${requestCode} đã được sửa chữa hoàn tất?`,
+      title: 'Xác nhận hoàn thành sửa chữa',
+      message: `Bạn xác nhận yêu cầu ${requestCode} đã được sửa chữa hoàn tất?\n\n⚠️ Lưu ý: Sau khi xác nhận, yêu cầu này sẽ được ẩn khỏi danh sách lịch sử để tránh tồn đọng.`,
       type: 'confirm',
       requestId
     });
@@ -265,18 +280,9 @@ const HistoryDormitory = () => {
       const response = await dormitoryRequestService.confirmRepair(requestId);
 
       if (response.success) {
-        // Cập nhật local state
-        setDormitoryHistory(prev => prev.map(item => {
-          if (item.id === requestId) {
-            return {
-              ...item,
-              status: 'completed',
-              confirmDate: new Date().toISOString()
-            };
-          }
-          return item;
-        }));
-        showToast('Đã xác nhận sửa chữa thành công!', 'success');
+        // Xóa item khỏi danh sách vì đã được ẩn (isHidden = true)
+        setDormitoryHistory(prev => prev.filter(item => item.id !== requestId));
+        showToast('Đã xác nhận hoàn thành! Yêu cầu đã được ẩn khỏi danh sách.', 'success');
       }
     } catch (err) {
       console.error('Error confirming repair:', err);
@@ -297,13 +303,12 @@ const HistoryDormitory = () => {
     return statusMap[status] || statusMap.pending;
   };
 
-  // Tính toán thống kê - 3 trạng thái
+  // Tính toán thống kê - 2 trạng thái (không tính completed vì đã ẩn)
   const statistics = useMemo(() => {
     return {
       total: dormitoryHistory.length,
       pending: dormitoryHistory.filter(item => item.status === 'pending').length,
-      processing: dormitoryHistory.filter(item => item.status === 'processing').length,
-      completed: dormitoryHistory.filter(item => item.status === 'completed').length
+      processing: dormitoryHistory.filter(item => item.status === 'processing').length
     };
   }, [dormitoryHistory]);
 
@@ -411,11 +416,11 @@ const HistoryDormitory = () => {
             <div className="stat-label">Tổng yêu cầu</div>
           </div>
         </div>
-        <div className="stat-card stat-completed">
-          <div className="stat-icon">✓</div>
+        <div className="stat-card stat-pending">
+          <div className="stat-icon">📨</div>
           <div className="stat-content">
-            <div className="stat-value">{statistics.completed}</div>
-            <div className="stat-label">Đã hoàn thành</div>
+            <div className="stat-value">{statistics.pending}</div>
+            <div className="stat-label">Chờ tiếp nhận</div>
           </div>
         </div>
         <div className="stat-card stat-processing">
@@ -460,8 +465,7 @@ const HistoryDormitory = () => {
               options={[
                 { value: 'all', label: 'Tất cả trạng thái' },
                 { value: 'pending', label: 'Chờ tiếp nhận' },
-                { value: 'processing', label: 'Đang xử lý' },
-                { value: 'completed', label: 'Đã hoàn thành' }
+                { value: 'processing', label: 'Đang xử lý' }
               ]}
               value={statusFilter}
               onChange={setStatusFilter}

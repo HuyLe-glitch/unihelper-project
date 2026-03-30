@@ -28,8 +28,14 @@ const FacultyMajorManagement = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [preSelectedFacultyId, setPreSelectedFacultyId] = useState(null);
 
-  // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, type: '', item: null });
+  // Delete confirmation - thêm error state để hiển thị khi không thể xóa
+  const [deleteConfirm, setDeleteConfirm] = useState({ 
+    show: false, 
+    type: '', 
+    item: null,
+    error: null, // Thông báo lỗi khi không thể xóa
+    isDeleting: false // Loading state khi đang xóa
+  });
 
   // Toast notification
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -148,29 +154,58 @@ const FacultyMajorManagement = () => {
     }
   };
 
-  // Xóa Faculty
-  const handleDeleteFaculty = (faculty) => {
-    setDeleteConfirm({
-      show: true,
-      type: 'faculty',
-      item: faculty
-    });
+  // Xóa Faculty - Kiểm tra trước khi hiện modal
+  const handleDeleteFaculty = async (faculty) => {
+    try {
+      // Gọi API kiểm tra có thể xóa không
+      const checkResult = await facultyService.checkCanDeleteFaculty(faculty._id);
+      
+      if (checkResult.success && !checkResult.data.canDelete) {
+        // Không thể xóa - hiển thị dialog với lỗi
+        setDeleteConfirm({
+          show: true,
+          type: 'faculty',
+          item: faculty,
+          error: `Không thể xóa khoa "${faculty.name}" vì đang có ${checkResult.data.studentCount} sinh viên thuộc khoa này. Vui lòng chuyển sinh viên sang khoa khác trước khi xóa.`,
+          isDeleting: false
+        });
+      } else {
+        // Có thể xóa - hiển thị dialog xác nhận
+        setDeleteConfirm({
+          show: true,
+          type: 'faculty',
+          item: faculty,
+          error: null,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking delete faculty:', error);
+      showToast('Không thể kiểm tra thông tin khoa', 'error');
+    }
   };
 
   const confirmDeleteFaculty = async () => {
     const faculty = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true, error: null }));
+    
     try {
       const response = await facultyService.deleteFaculty(faculty._id);
       if (response.success) {
         showToast(`Đã xóa khoa "${faculty.name}" thành công!`, 'success');
+        setDeleteConfirm({ show: false, type: '', item: null, error: null, isDeleting: false });
         await fetchFaculties();
         await fetchMajors();
       }
     } catch (error) {
       console.error('Error deleting faculty:', error);
-      showToast(error.response?.data?.message || 'Không thể xóa khoa', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, type: '', item: null });
+      const errorMessage = error.response?.data?.message || 'Không thể xóa khoa';
+      // Hiển thị lỗi trong dialog thay vì đóng dialog
+      setDeleteConfirm(prev => ({ 
+        ...prev, 
+        error: errorMessage,
+        isDeleting: false 
+      }));
     }
   };
 
@@ -225,35 +260,64 @@ const FacultyMajorManagement = () => {
     }
   };
 
-  // Xóa Major
-  const handleDeleteMajor = (major) => {
-    setDeleteConfirm({
-      show: true,
-      type: 'major',
-      item: major
-    });
+  // Xóa Major - Kiểm tra trước khi hiện modal
+  const handleDeleteMajor = async (major) => {
+    try {
+      // Gọi API kiểm tra có thể xóa không
+      const checkResult = await majorService.checkCanDeleteMajor(major._id);
+      
+      if (checkResult.success && !checkResult.data.canDelete) {
+        // Không thể xóa - hiển thị dialog với lỗi
+        setDeleteConfirm({
+          show: true,
+          type: 'major',
+          item: major,
+          error: `Không thể xóa chuyên ngành "${major.name}" vì đang có ${checkResult.data.studentCount} sinh viên thuộc chuyên ngành này. Vui lòng chuyển sinh viên sang chuyên ngành khác trước khi xóa.`,
+          isDeleting: false
+        });
+      } else {
+        // Có thể xóa - hiển thị dialog xác nhận
+        setDeleteConfirm({
+          show: true,
+          type: 'major',
+          item: major,
+          error: null,
+          isDeleting: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking delete major:', error);
+      showToast('Không thể kiểm tra thông tin chuyên ngành', 'error');
+    }
   };
 
   const confirmDeleteMajor = async () => {
     const major = deleteConfirm.item;
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true, error: null }));
+    
     try {
       const response = await majorService.deleteMajor(major._id);
       if (response.success) {
         showToast(`Đã xóa chuyên ngành "${major.name}" thành công!`, 'success');
+        setDeleteConfirm({ show: false, type: '', item: null, error: null, isDeleting: false });
         await fetchMajors();
         await fetchFaculties();
       }
     } catch (error) {
       console.error('Error deleting major:', error);
-      showToast(error.response?.data?.message || 'Không thể xóa chuyên ngành', 'error');
-    } finally {
-      setDeleteConfirm({ show: false, type: '', item: null });
+      const errorMessage = error.response?.data?.message || 'Không thể xóa chuyên ngành';
+      // Hiển thị lỗi trong dialog thay vì đóng dialog
+      setDeleteConfirm(prev => ({ 
+        ...prev, 
+        error: errorMessage,
+        isDeleting: false 
+      }));
     }
   };
 
   // Hủy delete
   const cancelDelete = () => {
-    setDeleteConfirm({ show: false, type: '', item: null });
+    setDeleteConfirm({ show: false, type: '', item: null, error: null, isDeleting: false });
   };
 
   // Xác nhận delete
@@ -530,32 +594,63 @@ const FacultyMajorManagement = () => {
         <div className="delete-overlay" onClick={cancelDelete}>
           <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="delete-dialog-header">
-              <span className="delete-icon">⚠️</span>
-              <h3>Xác nhận xóa</h3>
+              <span className="delete-icon">{deleteConfirm.error ? '🚫' : '⚠️'}</span>
+              <h3>{deleteConfirm.error ? 'Không thể xóa' : 'Xác nhận xóa'}</h3>
             </div>
             <div className="delete-dialog-content">
-              <p>
-                Bạn có chắc chắn muốn xóa{' '}
-                <strong>
-                  {deleteConfirm.type === 'faculty' ? 'khoa' : 'chuyên ngành'}{' '}
-                  "{deleteConfirm.item?.name}"
-                </strong>
-                ?
-              </p>
-              {deleteConfirm.type === 'faculty' && deleteConfirm.item?.majorCount > 0 && (
-                <p className="delete-warning">
-                  ⚠️ Khoa này có <strong>{deleteConfirm.item.majorCount}</strong> chuyên ngành. 
-                  Tất cả chuyên ngành cũng sẽ bị xóa!
-                </p>
+              {deleteConfirm.error ? (
+                // Hiển thị lỗi khi không thể xóa
+                <div className="delete-error-content">
+                  <p className="delete-error-message">{deleteConfirm.error}</p>
+                  <p className="delete-error-hint">
+                    💡 Vui lòng chuyển sinh viên sang {deleteConfirm.type === 'faculty' ? 'khoa' : 'chuyên ngành'} khác trước khi xóa.
+                  </p>
+                </div>
+              ) : (
+                // Hiển thị xác nhận bình thường
+                <>
+                  <p>
+                    Bạn có chắc chắn muốn xóa{' '}
+                    <strong>
+                      {deleteConfirm.type === 'faculty' ? 'khoa' : 'chuyên ngành'}{' '}
+                      "{deleteConfirm.item?.name}"
+                    </strong>
+                    ?
+                  </p>
+                  {deleteConfirm.type === 'faculty' && deleteConfirm.item?.majorCount > 0 && (
+                    <p className="delete-warning">
+                      ⚠️ Khoa này có <strong>{deleteConfirm.item.majorCount}</strong> chuyên ngành. 
+                      Tất cả chuyên ngành cũng sẽ bị xóa!
+                    </p>
+                  )}
+                </>
               )}
             </div>
             <div className="delete-dialog-actions">
-              <button className="btn btn-outline" onClick={cancelDelete}>
-                Hủy
-              </button>
-              <button className="btn btn-danger" onClick={confirmDelete}>
-                Xóa
-              </button>
+              {deleteConfirm.error ? (
+                // Chỉ hiện nút Đóng khi có lỗi
+                <button className="btn btn-primary" onClick={cancelDelete}>
+                  Đã hiểu
+                </button>
+              ) : (
+                // Hiện cả Hủy và Xóa khi không có lỗi
+                <>
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={cancelDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    Hủy
+                  </button>
+                  <button 
+                    className="btn btn-danger" 
+                    onClick={confirmDelete}
+                    disabled={deleteConfirm.isDeleting}
+                  >
+                    {deleteConfirm.isDeleting ? 'Đang xóa...' : 'Xóa'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

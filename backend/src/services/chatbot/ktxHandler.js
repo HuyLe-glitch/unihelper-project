@@ -169,10 +169,7 @@ class KtxHandler {
               Bạn có muốn tạo báo cáo mới không?
             </div>
           </div>`,
-          quickReplies: [
-            { id: 'baocao', icon: '🔧', label: 'Báo cáo sự cố', action: 'ktx_report' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
-          ]
+          quickReplies: []
         };
       }
 
@@ -259,8 +256,7 @@ class KtxHandler {
           </div>`,
           quickReplies: [
             { id: 'tatca', icon: '📋', label: 'Xem tất cả báo cáo', action: 'check_ktx_status' },
-            { id: 'baocao', icon: '🔧', label: 'Báo cáo sự cố mới', action: 'ktx_report' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+            { id: 'baocao', icon: '🔧', label: 'Báo cáo sự cố mới', action: 'ktx_report' }
           ]
         };
       }
@@ -292,8 +288,7 @@ class KtxHandler {
             </div>
           </div>`,
           quickReplies: [
-            { id: 'chitiet', icon: '📜', label: 'Chi tiết gần nhất', action: 'ktx_detail' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+            { id: 'chitiet', icon: '📜', label: 'Chi tiết gần nhất', action: 'ktx_detail' }
           ]
         };
       }
@@ -318,9 +313,7 @@ class KtxHandler {
             reason: latestRequest.reason || null
           }
         },
-        quickReplies: [
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
-        ]
+        quickReplies: []
       };
     } catch (error) {
       console.error('Error getting KTX status:', error);
@@ -352,8 +345,7 @@ class KtxHandler {
       </div>`,
       quickReplies: [
         { id: 'baocao', icon: '🔧', label: 'Báo sự cố', action: 'ktx_report' },
-        { id: 'trangthai', icon: '📋', label: 'Kiểm tra yêu cầu', action: 'check_ktx_status' },
-        { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+        { id: 'trangthai', icon: '📋', label: 'Kiểm tra yêu cầu', action: 'check_ktx_status' }
       ]
     };
   }
@@ -1188,11 +1180,7 @@ class KtxHandler {
             </div>
           </div>
         </div>`,
-        quickReplies: [
-          { id: 'status', icon: '📋', label: 'Xem trạng thái', action: 'check_ktx_status' },
-          { id: 'new', icon: '🔧', label: 'Báo sự cố khác', action: 'ktx_report' },
-          { id: 'menu', icon: '🏠', label: 'Menu chính', action: 'main_menu' }
-        ]
+        quickReplies: []
       };
     } catch (error) {
       console.error('Error confirming KTX request:', error);

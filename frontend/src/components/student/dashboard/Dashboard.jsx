@@ -158,26 +158,26 @@ const Dashboard = () => {
         {activeOverviewTab === 'ktx' && isDormResident && (
           <div className="stats-grid">
             <div className="stat-card stat-pending ktx-card">
-              <div className="stat-icon">📋</div>
+              <div className="stat-icon">�</div>
               <div className="stat-content">
-                <div className="stat-label">SỰ CỐ ĐANG XỬ LÝ</div>
+                <div className="stat-label">CHỜ TIẾP NHẬN</div>
                 <div className="stat-value">{stats?.ktx?.pending || 0}</div>
               </div>
             </div>
 
-            <div className="stat-card stat-completed ktx-card">
-              <div className="stat-icon">✅</div>
+            <div className="stat-card stat-processing ktx-card">
+              <div className="stat-icon">⟳</div>
               <div className="stat-content">
-                <div className="stat-label">SỰ CỐ ĐÃ HOÀN THÀNH</div>
-                <div className="stat-value">{stats?.ktx?.completed || 0}</div>
+                <div className="stat-label">ĐANG XỬ LÝ</div>
+                <div className="stat-value">{stats?.ktx?.processing || 0}</div>
               </div>
             </div>
 
-            <div className="stat-card stat-rejected ktx-card">
-              <div className="stat-icon">❌</div>
+            <div className="stat-card stat-total ktx-card">
+              <div className="stat-icon">📊</div>
               <div className="stat-content">
-                <div className="stat-label">SỰ CỐ ĐÃ TỪ CHỐI</div>
-                <div className="stat-value">{stats?.ktx?.rejected || 0}</div>
+                <div className="stat-label">TỔNG YÊU CẦU</div>
+                <div className="stat-value">{stats?.ktx?.total || 0}</div>
               </div>
             </div>
 

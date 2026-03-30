@@ -30,6 +30,14 @@ export const facultyService = {
   },
 
   /**
+   * Kiểm tra có thể xóa khoa không (đếm số sinh viên)
+   */
+  checkCanDeleteFaculty: async (facultyId) => {
+    const response = await apiClient.get(`/faculties/${facultyId}/check-delete`);
+    return response.data;
+  },
+
+  /**
    * Tạo khoa mới
    */
   createFaculty: async (facultyData) => {

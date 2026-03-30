@@ -29,6 +29,7 @@ class StudentRepository {
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 })
+      .lean() // Thêm lean() để tăng tốc độ query
       .exec();
     
     const total = await Student.countDocuments(query);
@@ -141,6 +142,24 @@ class StudentRepository {
    */
   async deleteById(id) {
     return Student.findByIdAndDelete(id).exec();
+  }
+
+  /**
+   * Hard Delete sinh viên với session (Transaction support)
+   */
+  async deleteByIdWithSession(id, session) {
+    return Student.findByIdAndDelete(id).session(session).exec();
+  }
+
+  /**
+   * Cập nhật sinh viên theo ID với session (Transaction support)
+   */
+  async updateByIdWithSession(id, updateData, session) {
+    return Student.findByIdAndUpdate(id, updateData, { 
+      new: true, 
+      runValidators: true,
+      session
+    }).exec();
   }
 
   /**

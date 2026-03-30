@@ -14,6 +14,8 @@ const INTENT_MAPPING = {
   // FAQ intents
   'faq.gio_lam_viec': 'gio_lam_viec',
   'faq.lien_he': 'lien_he',
+  'faq.huong_dan': 'user_guide',
+  'menu.chinh': 'main_menu',
   
   // CTSV intents
   'ctsv.thong_tin': 'document_info',

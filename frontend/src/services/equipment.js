@@ -62,6 +62,15 @@ const equipmentService = {
     return response.data;
   },
 
+  /**
+   * Kiểm tra có thể xóa danh mục không
+   * @param {string} categoryId
+   */
+  checkCanDeleteCategory: async (categoryId) => {
+    const response = await apiClient.get(`/equipment/categories/${categoryId}/check-delete`);
+    return response.data;
+  },
+
   // ==========================================
   // ITEM APIs
   // ==========================================
@@ -135,6 +144,15 @@ const equipmentService = {
    */
   deleteItem: async (itemId) => {
     const response = await apiClient.delete(`/equipment/items/${itemId}`);
+    return response.data;
+  },
+
+  /**
+   * Kiểm tra có thể xóa thiết bị không
+   * @param {string} itemId
+   */
+  checkCanDeleteItem: async (itemId) => {
+    const response = await apiClient.get(`/equipment/items/${itemId}/check-delete`);
     return response.data;
   },
 

@@ -1,4 +1,6 @@
 const semesterRepository = require('../repositories/semesterRepository');
+const CertificateRequest = require('../models/CertificateRequest');
+const DormitoryRequest = require('../models/DormitoryRequest');
 
 /**
  * Helper function để tạo operational error với field
@@ -232,6 +234,33 @@ const semesterService = {
     };
   },
 
+  /**
+   * Helper function: Đếm số yêu cầu liên quan đến học kỳ
+   * @private
+   */
+  _countRelatedRequests: async (semesterName) => {
+    const certificateRequestCount = await CertificateRequest.countDocuments({ semester: semesterName });
+    const dormitoryRequestCount = await DormitoryRequest.countDocuments({ semester: semesterName });
+    return { certificateRequestCount, dormitoryRequestCount };
+  },
+
+  /**
+   * Helper function: Tạo message lỗi khi không thể xóa
+   * @private
+   */
+  _buildDeleteErrorMessage: (semesterName, certificateRequestCount, dormitoryRequestCount) => {
+    let message = `Không thể xóa học kỳ "${semesterName}" vì đã có `;
+    const parts = [];
+    if (certificateRequestCount > 0) {
+      parts.push(`${certificateRequestCount} yêu cầu chứng nhận`);
+    }
+    if (dormitoryRequestCount > 0) {
+      parts.push(`${dormitoryRequestCount} yêu cầu KTX`);
+    }
+    message += parts.join(' và ') + ' liên quan trong hệ thống';
+    return message;
+  },
+
   deleteSemester: async (semesterId) => {
     const semester = await semesterRepository.getSemesterById(semesterId);
     if (!semester) {
@@ -239,11 +268,73 @@ const semesterService = {
     }
 
     if (semester.isActive) {
-      throw createError('Không thể xóa học kỳ đang hoạt động. Vui lòng kích hoạt học kỳ khác trước.', 400);
+      throw createError('Không thể xóa học kỳ đang hoạt động. Học kỳ này đang trong khoảng thời gian hiệu lực.', 400);
+    }
+
+    // Sử dụng helper function để đếm yêu cầu liên quan
+    const { certificateRequestCount, dormitoryRequestCount } = await semesterService._countRelatedRequests(semester.name);
+    const totalRequests = certificateRequestCount + dormitoryRequestCount;
+    
+    if (totalRequests > 0) {
+      const message = semesterService._buildDeleteErrorMessage(semester.name, certificateRequestCount, dormitoryRequestCount);
+      throw createError(message, 400, 'semester', {
+        certificateRequestCount,
+        dormitoryRequestCount
+      });
     }
 
     await semesterRepository.deleteSemester(semesterId);
     return { success: true, message: 'Xóa học kỳ thành công' };
+  },
+
+  /**
+   * Kiểm tra có thể xóa học kỳ không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteSemester: async (semesterId) => {
+    const semester = await semesterRepository.getSemesterById(semesterId);
+    if (!semester) {
+      throw createError('Không tìm thấy học kỳ', 404);
+    }
+
+    // Kiểm tra nếu đang active
+    if (semester.isActive) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          semester,
+          message: `Không thể xóa học kỳ "${semester.name}" vì đang hoạt động. Học kỳ này đang trong khoảng thời gian hiệu lực.`
+        }
+      };
+    }
+
+    // Sử dụng helper function để đếm yêu cầu liên quan
+    const { certificateRequestCount, dormitoryRequestCount } = await semesterService._countRelatedRequests(semester.name);
+    const totalRequests = certificateRequestCount + dormitoryRequestCount;
+
+    if (totalRequests > 0) {
+      const message = semesterService._buildDeleteErrorMessage(semester.name, certificateRequestCount, dormitoryRequestCount);
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          semester,
+          certificateRequestCount,
+          dormitoryRequestCount,
+          message
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        semester,
+        message: `Bạn có chắc chắn muốn xóa học kỳ "${semester.name}"?`
+      }
+    };
   },
 
   getActiveSemester: async () => {

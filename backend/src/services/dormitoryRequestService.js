@@ -238,8 +238,18 @@ class DormitoryRequestService {
         select: 'fullName user roomId',
         populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
       })
+      .populate('roomId', 'name') // Populate roomId trực tiếp trên request
       .populate('category', 'name')
       .populate('item', 'name')
+      .populate({
+        path: 'activityLog.staffId',
+        select: 'staffId staffType user',
+        populate: { path: 'user', select: 'name email' }
+      })
+      .populate({
+        path: 'activityLog.studentId',
+        select: 'fullName'
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -268,8 +278,18 @@ class DormitoryRequestService {
         select: 'fullName user roomId',
         populate: [{ path: 'roomId', select: 'name' }, { path: 'user', select: 'email' }]
       })
+      .populate('roomId', 'name') // Populate roomId trực tiếp trên request
       .populate('category', 'name')
       .populate('item', 'name')
+      .populate({
+        path: 'activityLog.staffId',
+        select: 'staffId staffType user',
+        populate: { path: 'user', select: 'name email' }
+      })
+      .populate({
+        path: 'activityLog.studentId',
+        select: 'fullName'
+      })
       .lean();
 
     if (!request) {
@@ -401,8 +421,17 @@ class DormitoryRequestService {
       );
     }
 
-    // Sử dụng Repository để cập nhật status
-    const updated = await dormitoryRepository.updateStatus(requestId, 'Under Review', staffId);
+    // Cập nhật status và thêm activity log
+    request.status = 'Under Review';
+    request.activityLog = request.activityLog || [];
+    request.activityLog.push({
+      action: 'ACCEPT',
+      staffId: staffId,
+      details: 'Đã tiếp nhận yêu cầu và bắt đầu xử lý',
+      timestamp: new Date()
+    });
+
+    await request.save();
 
     // Populate đầy đủ thông tin để trả về
     const populatedResult = await DormitoryRequest.findById(requestId)
@@ -413,6 +442,15 @@ class DormitoryRequestService {
       })
       .populate('category', 'name')
       .populate('item', 'name')
+      .populate({
+        path: 'activityLog.staffId',
+        select: 'staffId staffType user',
+        populate: { path: 'user', select: 'name email' }
+      })
+      .populate({
+        path: 'activityLog.studentId',
+        select: 'fullName'
+      })
       .lean();
 
     return populatedResult;

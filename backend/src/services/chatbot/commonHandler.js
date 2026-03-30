@@ -8,11 +8,19 @@
 /**
  * Format text từ Dialogflow để hiển thị đúng trong HTML
  * - Convert \n thành <br> để xuống dòng
+ * - Convert ━━━ thành <hr> để tạo đường kẻ ngang
  * - Giữ nguyên emoji và ký tự đặc biệt
  */
 function formatDialogflowText(text) {
   if (!text) return '';
-  return text.replace(/\n/g, '<br>');
+  
+  // Thay thế đường kẻ Unicode (━) thành hr
+  let formatted = text.replace(/[━─═]+/g, '<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 10px 0;">');
+  
+  // Convert newlines thành <br>
+  formatted = formatted.replace(/\n/g, '<br>');
+  
+  return formatted;
 }
 
 class CommonHandler {
@@ -54,8 +62,7 @@ class CommonHandler {
       </div>`,
       quickReplies: [
         { id: 'ktx_status', icon: '🔧', label: 'Báo cáo sự cố', action: 'check_ktx_status' },
-        { id: 'doc_status', icon: '📄', label: 'Yêu cầu giấy tờ', action: 'check_document_status' },
-        { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+        { id: 'doc_status', icon: '📄', label: 'Yêu cầu giấy tờ', action: 'check_document_status' }
       ]
     };
   }
@@ -70,6 +77,45 @@ class CommonHandler {
         <div class="info-card-content">${formatDialogflowText(fulfillmentText) || 'Xin lỗi, có lỗi xảy ra. Vui lòng thử lại.'}</div>
       </div>`,
       quickReplies: []
+    };
+  }
+
+  /**
+   * Xử lý hướng dẫn sử dụng
+   * Nội dung lấy 100% từ Dialogflow fulfillmentText
+   * Backend chỉ format HTML và thêm quickReplies
+   */
+  handleUserGuide(fulfillmentText = '') {
+    // Format text từ Dialogflow và wrap trong info-card
+    const formattedContent = fulfillmentText && fulfillmentText.trim() 
+      ? formatDialogflowText(fulfillmentText) 
+      : 'Vui lòng thử lại sau.';
+
+    return {
+      message: `<div class="info-card">
+        <div class="info-card-content" style="line-height: 1.7;">${formattedContent}</div>
+      </div>`,
+      quickReplies: [
+        { id: 'lienhe', icon: '📞', label: 'Thông tin liên hệ', action: 'contact' }
+      ]
+    };
+  }
+
+  /**
+   * Xử lý menu chính
+   */
+  handleMainMenu() {
+    return {
+      message: `<div class="info-card">
+        <div class="info-card-title">📋 MENU CHÍNH</div>
+        <div class="info-card-content">
+          Bạn muốn hỗ trợ gì?
+        </div>
+      </div>`,
+      quickReplies: [
+        { id: 'lienhe', icon: '📞', label: 'Thông tin liên hệ', action: 'contact' },
+        { id: 'huongdan', icon: '📖', label: 'Hướng dẫn sử dụng', action: 'user_guide' }
+      ]
     };
   }
 

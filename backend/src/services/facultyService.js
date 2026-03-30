@@ -1,5 +1,6 @@
 const Faculty = require('../models/Faculty');
 const Major = require('../models/Major');
+const Student = require('../models/Student');
 const { AppError } = require('../utils/appError');
 
 class FacultyService {
@@ -135,6 +136,24 @@ class FacultyService {
       throw new AppError('Không tìm thấy khoa', 404);
     }
 
+    // BUSINESS LOGIC: Kiểm tra xem có sinh viên nào thuộc khoa này không
+    // Sinh viên thuộc khoa thông qua Major (major.faculty = faculty._id)
+    const majorsInFaculty = await Major.find({ faculty: id }).select('_id');
+    const majorIds = majorsInFaculty.map(m => m._id);
+    
+    if (majorIds.length > 0) {
+      const studentCount = await Student.countDocuments({ major: { $in: majorIds } });
+      if (studentCount > 0) {
+        const error = new AppError(
+          `Không thể xóa khoa "${faculty.name}" vì đang có ${studentCount} sinh viên thuộc khoa này. Vui lòng chuyển sinh viên sang khoa khác trước khi xóa.`,
+          400
+        );
+        error.studentCount = studentCount;
+        error.facultyName = faculty.name;
+        throw error;
+      }
+    }
+
     // Xóa tất cả chuyên ngành thuộc khoa này trước
     await Major.deleteMany({ faculty: id });
 
@@ -144,6 +163,33 @@ class FacultyService {
     return {
       success: true,
       message: 'Đã xóa khoa và tất cả chuyên ngành thuộc khoa'
+    };
+  }
+
+  // Kiểm tra xem có thể xóa khoa không (đếm số sinh viên)
+  async checkCanDeleteFaculty(id) {
+    const faculty = await Faculty.findById(id);
+    if (!faculty) {
+      throw new AppError('Không tìm thấy khoa', 404);
+    }
+
+    // Đếm số sinh viên thuộc khoa thông qua Major
+    const majorsInFaculty = await Major.find({ faculty: id }).select('_id');
+    const majorIds = majorsInFaculty.map(m => m._id);
+    
+    let studentCount = 0;
+    if (majorIds.length > 0) {
+      studentCount = await Student.countDocuments({ major: { $in: majorIds } });
+    }
+
+    return {
+      success: true,
+      data: {
+        canDelete: studentCount === 0,
+        studentCount,
+        facultyName: faculty.name,
+        majorCount: majorsInFaculty.length
+      }
     };
   }
 

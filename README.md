@@ -108,7 +108,7 @@ cd ..
 cd backend && npm install && cd ../frontend && npm install && cd ..
 ```
 
-> ⚠️ **Lưu ý:** Dự án đã có sẵn file `.env` và các file cấu hình service account (Firebase, Dialogflow) trong thư mục `backend/src/config/`. Database MongoDB Atlas cũng đã có dữ liệu sẵn, không cần chạy seed.
+>**Lưu ý:** Dự án đã có sẵn file `.env` và các file cấu hình service account (Firebase, Dialogflow) trong thư mục `backend/src/config/`. Database MongoDB Atlas cũng đã có dữ liệu sẵn, không cần chạy seed.
 
 ---
 
@@ -137,6 +137,7 @@ npm run dev
 | http://localhost:5173 | Frontend (React) |
 | http://localhost:5000 | Backend API |
 
+hoặc có thể truy cập đến link web đã được deploy: https://unihelper-frontend-715097834178.asia-southeast1.run.app
 ---
 
 ## Tài khoản đăng nhập
@@ -148,7 +149,7 @@ Sử dụng các tài khoản sau để đăng nhập vào hệ thống:
 | **Admin** | admin@university.edu.vn | Password123! | Quản trị hệ thống |
 | **Staff CTSV** | ctsv@university.edu.vn | Password123! | Quản lý yêu cầu CTSV |
 | **Staff KTX** | ktx@university.edu.vn | Password123! | Quản lý báo cáo KTX |
-| **Student** | sv038@school.edu.vn | 123456 | Tài khoản sinh viên |
+| **Student** | trannquocphong2k3@gmail.com | 123456 | Tài khoản sinh viên |
 
 > ⚠️ **Lưu ý:** Admin và Staff là tài khoản CỐ ĐỊNH, không thể tạo thêm qua API.
 
@@ -225,13 +226,4 @@ npm install
 - Socket.io Client v4 - Real-time
 - Recharts - Charts
 
-### Tài liệu tham khảo
-
-- [API Development Guidelines](./docs/API_DEVELOPMENT_GUIDELINES.md)
-- [Chatbot Features Flow](./docs/CHATBOT_FEATURES_FLOW.md)
-- [CTSV Module Documentation](./docs/CTSV_MODULE_DOCUMENTATION.md)
-- [KTX Module Documentation](./docs/KTX_MODULE_DOCUMENTATION.md)
-
----
-
-**Chúc bạn chạy dự án thành công! 🎉**
+**Chúc bạn chạy dự án thành công!**

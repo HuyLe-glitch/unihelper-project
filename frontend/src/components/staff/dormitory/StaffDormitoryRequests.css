@@ -209,77 +209,126 @@
 /* Filter & Search Bar */
 .dormitory-filters {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: var(--dormitory-card);
-  padding: 20px 24px;
+  padding: 16px 20px;
+  padding-bottom: 50px; /* Thêm không gian cho tooltip */
   border-radius: var(--dormitory-radius);
   box-shadow: var(--dormitory-shadow);
-  flex-wrap: nowrap;
-}
-
-.search-box {
-  flex: 1;
-  min-width: 280px;
+  flex-wrap: wrap; /* Cho phép wrap khi không đủ chỗ */
+  overflow: visible; /* Cho phép tooltip hiển thị */
   position: relative;
+  min-height: 80px;
 }
 
-.search-box input {
-  width: 100%;
+.dormitory-search-box {
+  flex: 0 0 280px;
   height: 44px;
-  padding: 0 16px 0 44px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
   border: 2px solid var(--dormitory-border);
   border-radius: var(--dormitory-radius-sm);
-  font-size: 14px;
-  transition: all 0.3s ease;
   background: #f8fafc;
+  transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
-.search-box input:focus {
-  outline: none;
+.dormitory-search-box:focus-within {
   border-color: var(--dormitory-primary);
   background: white;
-  box-shadow: 0 0 0 4px var(--dormitory-primary-light);
+  box-shadow: 0 0 0 3px var(--dormitory-primary-light);
 }
 
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+.dormitory-search-box input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  font-size: 14px;
+  outline: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  color: var(--dormitory-text);
+  height: auto;
+}
+
+.dormitory-search-box input::placeholder {
+  color: var(--dormitory-text-muted);
+}
+
+.dormitory-search-box input:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dormitory-search-icon {
   font-size: 16px;
   color: var(--dormitory-text-muted);
 }
 
-.search-clear {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+.dormitory-search-clear {
+  width: 20px;
+  height: 20px;
   border: none;
   background: var(--dormitory-border);
   border-radius: 50%;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--dormitory-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.search-clear:hover {
+.dormitory-search-clear:hover {
   background: var(--dormitory-danger-light);
   color: var(--dormitory-danger);
 }
 
-.filter-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: nowrap;
+/* ====== DORMITORY FILTER GROUP ====== */
+.dormitory-filter-group {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Tất cả các phần tử trong filter-group */
+.dormitory-filter-group > .dormitory-custom-dropdown,
+.dormitory-filter-group > .semester-filter__dropdown,
+.dormitory-filter-group > .semester-filter__date-wrapper,
+.dormitory-filter-group > .dormitory-sort-toggle-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+.dormitory-filter-group > .dormitory-custom-dropdown {
+  min-width: 140px !important;
+  flex-shrink: 0 !important;
+}
+
+.dormitory-filter-group > .semester-filter__dropdown {
+  min-width: 150px !important;
+}
+
+.dormitory-filter-group > .semester-filter__date-wrapper {
+  min-width: 140px !important;
+}
+
+.dormitory-filter-group > .dormitory-sort-toggle-btn {
+  flex-shrink: 0 !important;
 }
 
 .filter-select {
@@ -468,6 +517,11 @@
   letter-spacing: 0.3px;
 }
 
+.status-badge.pending {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #6d28d9;
+}
+
 .status-badge.processing {
   background: var(--dormitory-warning-light);
   color: #b45309;
@@ -615,6 +669,11 @@
 .empty-state p {
   color: var(--dormitory-text-muted);
   font-size: 14px;
+}
+
+/* Overlay for mobile modal */
+.dormitory-detail-overlay {
+  display: none;
 }
 
 /* Right Panel - Detail View */
@@ -1263,7 +1322,7 @@
 /* Responsive */
 @media (max-width: 1400px) {
   .filter-select {
-    min-width: 140px;
+    min-width: 160px;
   }
 }
 
@@ -1273,14 +1332,16 @@
   }
   
   .filter-select {
-    min-width: 130px;
+    min-width: 140px;
   }
 }
 
 @media (max-width: 1024px) {
   .dormitory-management {
-    margin-left: -70px;
-    padding-left: 100px;
+    margin-left: 0;
+    padding: 20px;
+    width: 100%;
+    max-width: 100%;
   }
   
   .dormitory-main {
@@ -1300,6 +1361,72 @@
   .dormitory-stats {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  /* Filters cho tablet - cho phép wrap khi thiếu chỗ */
+  .dormitory-filters {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    min-height: auto;
+    overflow: visible;
+    align-items: center;
+  }
+  
+  .dormitory-search-box {
+    flex: 0 0 250px;
+    min-width: 200px;
+  }
+  
+  /* Filter-group wrap các bộ lọc bên trong */
+  .dormitory-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  
+  /* Các dropdown giữ kích thước cố định */
+  .dormitory-filter-group .dormitory-custom-dropdown,
+  .dormitory-filter-group .filter-select {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .dormitory-sort-toggle-btn {
+    flex: 0 0 auto;
+  }
+  
+  /* Modal-style detail panel on tablet */
+  .dormitory-detail-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: overlayFadeIn 0.2s ease;
+  }
+  
+  .dormitory-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 40px);
+    max-width: 600px;
+    max-height: calc(100vh - 80px);
+    z-index: 1000;
+    border-radius: 16px;
+    animation: modalSlideIn 0.3s ease;
+  }
+  
+  .dormitory-detail-panel:not(.has-content) {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1316,6 +1443,16 @@
     padding: 20px;
   }
   
+  .dormitory-header__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .dormitory-header__info h1 {
+    font-size: 20px;
+  }
+  
   .dormitory-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
@@ -1325,101 +1462,401 @@
     padding: 16px;
   }
   
+  .stat-card__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
   .stat-card__number {
     font-size: 24px;
   }
   
-  .filter-select {
-    min-width: 100px;
+  .stat-card__label {
+    font-size: 12px;
   }
   
+  .stat-card__badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+  
+  /* Filters responsive - giữ trên 1 hàng, cho phép wrap tự nhiên */
+  .dormitory-filters {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    min-height: auto;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .dormitory-search-box {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .dormitory-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .filter-select {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  /* Custom dropdown responsive */
+  .dormitory-custom-dropdown {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    max-width: 100%;
+  }
+  
+  .dormitory-sort-toggle-btn {
+    flex-shrink: 0;
+  }
+  
+  /* Info grid responsive */
   .info-grid {
     grid-template-columns: 1fr;
   }
   
   .detail-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+  }
+  
+  .detail-actions .btn-action {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  .detail-actions .btn-cancel {
+    flex: 1 1 100%;
+    order: 3;
   }
   
   .modal-content {
     margin: 16px;
   }
+  
+  /* Panel adjustments */
+  .panel-header {
+    padding: 12px 16px;
+  }
+  
+  .request-list {
+    padding: 12px;
+  }
+  
+  .request-card {
+    padding: 14px;
+  }
+  
+  .detail-content {
+    padding: 16px;
+  }
+  
+  .detail-header {
+    padding: 16px;
+  }
+  
+  .detail-title h2 {
+    font-size: 16px;
+  }
+  
+  /* Modal-style detail panel on mobile */
+  .dormitory-detail-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: overlayFadeIn 0.2s ease;
+  }
+  
+  @keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .dormitory-detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 32px);
+    max-width: 500px;
+    max-height: calc(100vh - 100px);
+    z-index: 1000;
+    border-radius: 16px;
+    animation: modalSlideIn 0.3s ease;
+  }
+  
+  .dormitory-detail-panel:not(.has-content) {
+    display: none;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  
+  .dormitory-detail-panel .detail-content {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+  
+  .btn-close {
+    display: flex !important;
+  }
 }
 
 @media (max-width: 640px) {
   .dormitory-filters {
-    flex-direction: column;
+    padding: 12px;
   }
   
-  .search-box {
-    min-width: 100%;
+  .dormitory-search-box {
+    flex: 1 1 200px;
+    min-width: 180px;
+    height: 44px;
   }
   
-  .filter-group {
+  .dormitory-filter-group {
+    display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
   }
   
   .filter-select {
-    min-width: calc(50% - 6px);
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .dormitory-custom-dropdown {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .dormitory-sort-toggle-btn {
+    flex: 0 0 auto;
+  }
+  
+  .student-brief {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .request-meta {
+    flex-direction: column;
+    gap: 4px;
   }
 }
 
 @media (max-width: 480px) {
+  .dormitory-management {
+    padding: 12px;
+    gap: 12px;
+  }
+  
   .dormitory-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .stat-card__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .stat-card__number {
+    font-size: 20px;
+  }
+  
+  .stat-card__label {
+    font-size: 11px;
+  }
+  
+  .dormitory-header {
+    padding: 16px;
+  }
+  
+  .dormitory-header__info h1 {
+    font-size: 18px;
+  }
+  
+  /* Ở 480px, các filter chiếm full width */
+  .dormitory-filters {
+    padding: 12px;
+    overflow: hidden;
+  }
+  
+  .dormitory-search-box {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .dormitory-filter-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .dormitory-filter-group .dormitory-custom-dropdown,
+  .dormitory-filter-group .filter-select {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+    max-width: calc(50% - 3px);
+  }
+  
+  .dormitory-sort-toggle-btn {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  
+  /* Request card mobile */
+  .request-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .request-code {
+    font-size: 13px;
+  }
+  
+  .status-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  
+  /* Detail panel mobile */
+  .detail-header {
+    padding: 12px;
+  }
+  
+  .detail-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .detail-title h2 {
+    font-size: 14px;
+  }
+  
+  .detail-content {
+    padding: 12px;
+  }
+  
+  .detail-section {
+    padding: 14px;
+  }
+  
+  .section-title {
+    font-size: 13px;
+  }
+  
+  .info-item label {
+    font-size: 11px;
+  }
+  
+  .info-item span {
+    font-size: 13px;
   }
 }
 
 /* ========================================
    Custom Dropdown - Room Filter
    ======================================== */
-.custom-dropdown {
+.dormitory-custom-dropdown {
   position: relative;
-  min-height: 48px;
+  height: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  min-width: 140px;
 }
 
-.custom-dropdown-trigger {
+.dormitory-dropdown-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 0 14px;
-  min-height: 48px;
+  width: 100%;
+  height: 44px;
   background: #f8fafc;
   border: 2px solid var(--dormitory-border);
   border-radius: var(--dormitory-radius-sm);
   cursor: pointer;
-  min-width: 160px;
+  min-width: 140px;
   font-size: 14px;
   color: var(--dormitory-text);
   transition: all 0.3s ease;
   box-sizing: border-box;
   line-height: 1.5;
+  text-align: left;
 }
 
-.custom-dropdown-trigger:hover {
+.dormitory-dropdown-trigger:hover {
   border-color: var(--dormitory-primary);
-  box-shadow: 0 0 0 4px var(--dormitory-primary-light);
+  box-shadow: 0 0 0 3px var(--dormitory-primary-light);
 }
 
-.dropdown-value {
+.dormitory-dropdown-value {
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.dropdown-arrow {
+.dormitory-dropdown-arrow {
   font-size: 10px;
   color: var(--dormitory-text-muted);
   transition: transform 0.3s ease;
 }
 
-.dropdown-arrow.open {
+.dormitory-dropdown-arrow.open {
   transform: rotate(180deg);
 }
 
-.dropdown-backdrop {
+.dormitory-dropdown-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -1428,7 +1865,7 @@
   z-index: 99;
 }
 
-.custom-dropdown-menu {
+.dormitory-dropdown-menu {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -1442,12 +1879,12 @@
   overflow: hidden;
 }
 
-.dropdown-search {
+.dormitory-dropdown-search {
   padding: 8px;
   border-bottom: 1px solid var(--dormitory-border);
 }
 
-.dropdown-search input {
+.dormitory-dropdown-search input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--dormitory-border);
@@ -1457,16 +1894,16 @@
   transition: border-color 0.3s ease;
 }
 
-.dropdown-search input:focus {
+.dormitory-dropdown-search input:focus {
   border-color: var(--dormitory-primary);
 }
 
-.dropdown-items-list {
+.dormitory-dropdown-items-list {
   max-height: 240px;
   overflow-y: auto;
 }
 
-.dropdown-item {
+.dormitory-dropdown-item {
   padding: 12px 16px;
   font-size: 14px;
   color: var(--dormitory-text);
@@ -1474,30 +1911,30 @@
   transition: all 0.2s ease;
 }
 
-.dropdown-item:hover {
+.dormitory-dropdown-item:hover {
   background: var(--dormitory-primary-light);
 }
 
-.dropdown-item.active {
+.dormitory-dropdown-item.active {
   background: var(--dormitory-primary);
   color: white;
   font-weight: 500;
 }
 
-.dropdown-no-result {
+.dormitory-dropdown-no-result {
   color: var(--dormitory-text-muted);
   font-style: italic;
   cursor: default;
 }
 
-.dropdown-no-result:hover {
+.dormitory-dropdown-no-result:hover {
   background: transparent;
 }
 
 /* ========================================
    Sort Toggle Button
    ======================================== */
-.sort-toggle-btn {
+.dormitory-sort-toggle-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1512,20 +1949,244 @@
   font-size: 14px;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.sort-toggle-btn:hover {
+.dormitory-sort-toggle-btn:hover {
   border-color: var(--dormitory-primary);
   background: var(--dormitory-primary-light);
   color: var(--dormitory-primary);
   box-shadow: 0 0 0 4px var(--dormitory-primary-light);
 }
 
-.sort-toggle-btn svg {
+.dormitory-sort-toggle-btn svg {
   flex-shrink: 0;
 }
 
-.sort-arrow {
+.dormitory-sort-arrow {
   font-size: 12px;
   font-weight: 600;
+}
+
+/* ========================================
+   Toast Notification
+   ======================================== */
+.dormitory-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  background: #1e293b;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  animation: dormitoryToastSlideIn 0.3s ease;
+}
+
+@keyframes dormitoryToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dormitory-toast.success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.dormitory-toast.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.dormitory-toast.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.dormitory-toast.info {
+  background: linear-gradient(135deg, var(--dormitory-primary), #7c3aed);
+}
+
+.dormitory-toast .toast-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+}
+
+.dormitory-toast .toast-message {
+  flex: 1;
+}
+
+/* ========================================
+   Dormitory Activity Log
+   ======================================== */
+.dormitory-activity-log {
+  padding: 12px 0;
+}
+
+.dormitory-activity-timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.dormitory-activity-item {
+  position: relative;
+  padding: 12px 0;
+  padding-left: 24px;
+  border-left: 2px solid var(--dormitory-border);
+}
+
+.dormitory-activity-item:last-child {
+  border-left-color: transparent;
+}
+
+.dormitory-activity-dot {
+  position: absolute;
+  left: -9px;
+  top: 14px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  background: #f1f5f9;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px var(--dormitory-border);
+}
+
+.dormitory-activity-item.accept .dormitory-activity-dot {
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.dormitory-activity-item.complete .dormitory-activity-dot {
+  background: var(--dormitory-success);
+  color: white;
+  box-shadow: 0 0 0 2px var(--dormitory-success-light);
+}
+
+.dormitory-activity-item.add-note .dormitory-activity-dot,
+.dormitory-activity-item.update-note .dormitory-activity-dot {
+  background: var(--dormitory-primary-light);
+  box-shadow: 0 0 0 2px var(--dormitory-primary);
+}
+
+.dormitory-activity-item.student-confirm .dormitory-activity-dot {
+  background: #d1fae5;
+  box-shadow: 0 0 0 2px #10b981;
+}
+
+.dormitory-activity-item.student-confirm .dormitory-activity-badge {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.dormitory-activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dormitory-activity-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dormitory-activity-action {
+  font-weight: 600;
+  color: var(--dormitory-text);
+  font-size: 14px;
+}
+
+.dormitory-activity-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dormitory-activity-badge.accept {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dormitory-activity-badge.complete {
+  background: var(--dormitory-success-light);
+  color: #166534;
+}
+
+.dormitory-activity-badge.add-note,
+.dormitory-activity-badge.update-note {
+  background: var(--dormitory-primary-light);
+  color: var(--dormitory-primary);
+}
+
+.dormitory-activity-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--dormitory-text-muted);
+}
+
+.dormitory-activity-staff,
+.dormitory-activity-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dormitory-activity-staff .meta-icon,
+.dormitory-activity-time .meta-icon {
+  font-size: 12px;
+}
+
+.dormitory-activity-details {
+  background: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--dormitory-text);
+  border-left: 3px solid var(--dormitory-primary);
+  margin-top: 4px;
+}
+
+.dormitory-activity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--dormitory-text-muted);
+}
+
+.dormitory-activity-empty .empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.dormitory-activity-empty p {
+  margin: 0;
+  font-size: 14px;
 }

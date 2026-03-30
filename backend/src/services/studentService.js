@@ -2,6 +2,8 @@ const studentRepository = require('../repositories/studentRepository');
 const Room = require('../models/Room');
 const User = require('../models/User');
 const Major = require('../models/Major');
+const CertificateRequest = require('../models/CertificateRequest');
+const DormitoryRequest = require('../models/DormitoryRequest');
 const { AppError } = require('../utils/appError');
 
 /**
@@ -449,11 +451,49 @@ class StudentService {
   }
 
   /**
-   * Xóa sinh viên (Hard Delete)
+   * Xem trước dữ liệu sẽ bị xóa khi xóa sinh viên
+   * Dùng để hiển thị thông tin trong modal xác nhận
+   * @param {string} id - ID sinh viên
+   * @returns {Object} - Thông tin sinh viên và số yêu cầu liên quan
+   */
+  async getDeletePreview(id) {
+    const student = await studentRepository.findById(id);
+    if (!student) {
+      throw this.createError('Không tìm thấy sinh viên', 404);
+    }
+
+    // Đếm số yêu cầu CTSV
+    const certificateRequestCount = await CertificateRequest.countDocuments({ student: id });
+    
+    // Đếm số yêu cầu KTX
+    const dormitoryRequestCount = await DormitoryRequest.countDocuments({ student: id });
+
+    return {
+      success: true,
+      data: {
+        student: {
+          _id: student._id,
+          fullName: student.fullName,
+          email: student.user?.email,
+          isDormResident: student.isDormResident,
+          roomName: student.roomId?.name || null
+        },
+        relatedData: {
+          certificateRequests: certificateRequestCount,
+          dormitoryRequests: dormitoryRequestCount
+        }
+      }
+    };
+  }
+
+  /**
+   * Xóa sinh viên hoàn toàn (Hard Delete) - CẢI TIẾN
    * Business Logic:
-   * 1. Nếu ở KTX: giảm occupied -1
-   * 2. Xóa User liên quan
-   * 3. Xóa Student
+   * 1. Xóa tất cả CertificateRequest của sinh viên
+   * 2. Xóa tất cả DormitoryRequest của sinh viên (nếu ở KTX)
+   * 3. Nếu ở KTX: giảm occupied -1
+   * 4. Xóa User liên quan
+   * 5. Xóa Student
    */
   async deleteStudent(id) {
     const student = await studentRepository.findById(id);
@@ -461,34 +501,173 @@ class StudentService {
       throw this.createError('Không tìm thấy sinh viên', 404);
     }
 
-    // 1. Giảm room occupied nếu ở KTX
-    if (student.isDormResident && student.roomId) {
-      const roomId = student.roomId._id || student.roomId;
-      await this.decrementRoomOccupancy(roomId);
+    // Lưu thông tin trước khi xóa để emit socket event
+    const affectedRoomId = student.isDormResident && student.roomId 
+      ? (student.roomId._id || student.roomId).toString() 
+      : null;
+    
+    let deletedCertificateRequests = 0;
+    let deletedDormitoryRequests = 0;
+    
+    try {
+      // 1. Xóa tất cả CertificateRequest của sinh viên
+      const certResult = await CertificateRequest.deleteMany({ student: id });
+      deletedCertificateRequests = certResult.deletedCount;
+
+      // 2. Xóa tất cả DormitoryRequest của sinh viên (nếu ở KTX)
+      if (student.isDormResident) {
+        const dormResult = await DormitoryRequest.deleteMany({ student: id });
+        deletedDormitoryRequests = dormResult.deletedCount;
+      }
+
+      // 3. Giảm room occupied nếu ở KTX
+      if (student.isDormResident && student.roomId) {
+        const roomId = student.roomId._id || student.roomId;
+        await Room.findByIdAndUpdate(roomId, { $inc: { occupied: -1 } });
+      }
+
+      // 4. Xóa User
+      const userId = student.user?._id || student.user;
+      if (userId) {
+        await User.findByIdAndDelete(userId);
+      }
+
+      // 5. Xóa Student
+      await studentRepository.deleteById(id);
+      
+      return {
+        success: true,
+        message: `Đã xóa sinh viên "${student.fullName}"`,
+        data: {
+          deletedCertificateRequests,
+          deletedDormitoryRequests,
+          affectedRoomId
+        }
+      };
+
+    } catch (error) {
+      console.error('Delete student failed:', error);
+      throw this.createError('Không thể xóa sinh viên: ' + error.message, 500);
+    }
+  }
+
+  /**
+   * Chỉ xóa sinh viên khỏi KTX (không xóa sinh viên)
+   * Business Logic:
+   * 1. Kiểm tra sinh viên có ở KTX không
+   * 2. Xóa tất cả DormitoryRequest của sinh viên
+   * 3. Giảm room occupied -1
+   * 4. Cập nhật student: isDormResident = false, roomId = null
+   * @param {string} id - ID sinh viên
+   * @returns {Object} - Kết quả
+   */
+  async removeFromDormitory(id) {
+    const student = await studentRepository.findById(id);
+    
+    if (!student) {
+      throw this.createError('Không tìm thấy sinh viên', 404);
     }
 
-    // 2. Xóa User
-    const userId = student.user?._id || student.user;
-    if (userId) {
-      await User.findByIdAndDelete(userId);
+    if (!student.isDormResident) {
+      throw this.createError('Sinh viên này không ở ký túc xá', 400);
+    }
+    
+    // Lưu thông tin trước khi xóa để emit socket event
+    const affectedRoomId = student.roomId 
+      ? (student.roomId._id || student.roomId).toString() 
+      : null;
+    
+    let deletedDormitoryRequests = 0;
+    
+    try {
+      // 1. Xóa tất cả DormitoryRequest của sinh viên
+      const dormResult = await DormitoryRequest.deleteMany({ student: id });
+      deletedDormitoryRequests = dormResult.deletedCount;
+
+      // 2. Giảm room occupied
+      if (student.roomId) {
+        const roomId = student.roomId._id || student.roomId;
+        await Room.findByIdAndUpdate(roomId, { $inc: { occupied: -1 } });
+      }
+
+      // 3. Cập nhật student
+      await studentRepository.updateById(id, {
+        isDormResident: false,
+        roomId: null
+      });
+      
+      return {
+        success: true,
+        message: `Đã xóa sinh viên "${student.fullName}" khỏi ký túc xá`,
+        data: {
+          deletedDormitoryRequests,
+          affectedRoomId
+        }
+      };
+
+    } catch (error) {
+      console.error('Remove from dormitory failed:', error);
+      throw this.createError('Không thể xóa sinh viên khỏi KTX: ' + error.message, 500);
+    }
+  }
+
+  /**
+   * Xem trước dữ liệu sẽ bị xóa khi xóa nhiều sinh viên
+   * Dùng để hiển thị thông tin trong modal xác nhận xóa hàng loạt
+   * @param {string[]} ids - Mảng ID sinh viên cần xóa
+   * @returns {Object} - Thông tin tổng hợp
+   */
+  async getBulkDeletePreview(ids) {
+    const Student = require('../models/Student');
+
+    if (!ids || ids.length === 0) {
+      throw this.createError('Danh sách ID không được rỗng', 400);
     }
 
-    // 3. Xóa Student
-    await studentRepository.deleteById(id);
+    // Tìm tất cả sinh viên cần xóa
+    const students = await Student.find({ 
+      _id: { $in: ids },
+      isDeleted: false 
+    }).populate('roomId', 'name');
+
+    if (students.length === 0) {
+      throw this.createError('Không tìm thấy sinh viên nào', 404);
+    }
+
+    // Đếm số yêu cầu CTSV của tất cả sinh viên
+    const certificateRequestCount = await CertificateRequest.countDocuments({ 
+      student: { $in: ids } 
+    });
+    
+    // Đếm số yêu cầu KTX của tất cả sinh viên
+    const dormitoryRequestCount = await DormitoryRequest.countDocuments({ 
+      student: { $in: ids } 
+    });
+
+    // Đếm số sinh viên ở KTX
+    const dormResidentCount = students.filter(s => s.isDormResident).length;
 
     return {
       success: true,
-      message: `Đã xóa sinh viên "${student.fullName}"`
+      data: {
+        studentCount: students.length,
+        dormResidentCount,
+        relatedData: {
+          certificateRequests: certificateRequestCount,
+          dormitoryRequests: dormitoryRequestCount
+        }
+      }
     };
   }
 
   /**
-   * Xóa nhiều sinh viên cùng lúc (Bulk Delete)
+   * Xóa nhiều sinh viên cùng lúc (Bulk Delete) - CẢI TIẾN
    * Business Logic:
    * 1. Tìm tất cả sinh viên theo danh sách IDs
-   * 2. Giảm room occupied cho những SV ở KTX
-   * 3. Xóa tất cả User liên quan
-   * 4. Xóa tất cả Student
+   * 2. Xóa tất cả CertificateRequest & DormitoryRequest của các sinh viên
+   * 3. Giảm room occupied cho những SV ở KTX
+   * 4. Xóa tất cả User liên quan
+   * 5. Xóa tất cả Student
    * @param {string[]} ids - Mảng ID sinh viên cần xóa
    * @returns {Object} - Kết quả xóa
    */
@@ -528,46 +707,143 @@ class StudentService {
       }
     }
 
-    // 3. Thực hiện xóa với Transaction
-    const session = await mongoose.startSession();
-    
     try {
-      await session.withTransaction(async () => {
-        // 3.1: Bulk update room occupancy (giảm số người)
-        if (roomUpdates.size > 0) {
-          const bulkOps = Array.from(roomUpdates.entries()).map(([roomId, decrement]) => ({
-            updateOne: {
-              filter: { _id: new mongoose.Types.ObjectId(roomId) },
-              update: { $inc: { occupied: -decrement } }
-            }
-          }));
-          await Room.bulkWrite(bulkOps, { session });
-        }
+      let deletedCertificateRequests = 0;
+      let deletedDormitoryRequests = 0;
 
-        // 3.2: Xóa tất cả Users
-        if (userIds.length > 0) {
-          await User.deleteMany({ _id: { $in: userIds } }, { session });
-        }
+      // Xóa tất cả CertificateRequest của các sinh viên
+      const certResult = await CertificateRequest.deleteMany({ student: { $in: ids } });
+      deletedCertificateRequests = certResult.deletedCount;
 
-        // 3.3: Xóa tất cả Students
-        await Student.deleteMany({ _id: { $in: ids } }, { session });
-      });
+      // Xóa tất cả DormitoryRequest của các sinh viên
+      const dormResult = await DormitoryRequest.deleteMany({ student: { $in: ids } });
+      deletedDormitoryRequests = dormResult.deletedCount;
 
-      await session.endSession();
+      // Bulk update room occupancy (giảm số người)
+      if (roomUpdates.size > 0) {
+        const bulkOps = Array.from(roomUpdates.entries()).map(([roomId, decrement]) => ({
+          updateOne: {
+            filter: { _id: new mongoose.Types.ObjectId(roomId) },
+            update: { $inc: { occupied: -decrement } }
+          }
+        }));
+        await Room.bulkWrite(bulkOps);
+      }
+
+      // Xóa tất cả Users
+      if (userIds.length > 0) {
+        await User.deleteMany({ _id: { $in: userIds } });
+      }
+
+      // Xóa tất cả Students
+      await Student.deleteMany({ _id: { $in: ids } });
+
+      // Lấy danh sách roomIds bị ảnh hưởng để emit socket event
+      const affectedRoomIds = Array.from(roomUpdates.keys());
 
       return {
         success: true,
         message: `Đã xóa ${students.length} sinh viên thành công`,
         data: {
           deletedCount: students.length,
-          deletedNames: studentNames
+          deletedNames: studentNames,
+          deletedCertificateRequests,
+          deletedDormitoryRequests,
+          affectedRoomIds
         }
       };
 
     } catch (error) {
-      await session.endSession();
-      console.error('Bulk delete transaction failed:', error);
+      console.error('Bulk delete failed:', error);
       throw this.createError('Không thể xóa sinh viên: ' + error.message, 500);
+    }
+  }
+
+  /**
+   * Xóa nhiều sinh viên khỏi KTX (giữ lại sinh viên, chỉ xóa khỏi KTX)
+   * Business Logic:
+   * 1. Tìm tất cả sinh viên theo danh sách IDs
+   * 2. Xóa tất cả DormitoryRequest của các sinh viên
+   * 3. Giảm room occupied cho những SV ở KTX
+   * 4. Cập nhật sinh viên: isDormResident = false, roomId = null
+   * @param {string[]} ids - Mảng ID sinh viên cần xóa khỏi KTX
+   * @returns {Object} - Kết quả xóa
+   */
+  async bulkRemoveFromDormitory(ids) {
+    const mongoose = require('mongoose');
+    const Student = require('../models/Student');
+
+    if (!ids || ids.length === 0) {
+      throw this.createError('Danh sách ID không được rỗng', 400);
+    }
+
+    // 1. Tìm tất cả sinh viên cần xóa khỏi KTX (chỉ lấy những SV đang ở KTX)
+    const students = await Student.find({ 
+      _id: { $in: ids },
+      isDeleted: false,
+      isDormResident: true
+    }).populate('roomId', 'name');
+
+    if (students.length === 0) {
+      throw this.createError('Không tìm thấy sinh viên nào đang ở KTX để xóa', 404);
+    }
+
+    // 2. Thu thập thông tin cần thiết
+    const roomUpdates = new Map(); // roomId -> decrement count
+    const studentNames = [];
+    const studentIds = students.map(s => s._id);
+
+    for (const student of students) {
+      studentNames.push(student.fullName);
+      
+      // Track room decrement
+      if (student.roomId) {
+        const roomIdStr = (student.roomId._id || student.roomId).toString();
+        roomUpdates.set(roomIdStr, (roomUpdates.get(roomIdStr) || 0) + 1);
+      }
+    }
+
+    try {
+      let deletedDormitoryRequests = 0;
+
+      // Xóa tất cả DormitoryRequest của các sinh viên
+      const dormResult = await DormitoryRequest.deleteMany({ student: { $in: studentIds } });
+      deletedDormitoryRequests = dormResult.deletedCount;
+
+      // Bulk update room occupancy (giảm số người)
+      if (roomUpdates.size > 0) {
+        const bulkOps = Array.from(roomUpdates.entries()).map(([roomId, decrement]) => ({
+          updateOne: {
+            filter: { _id: new mongoose.Types.ObjectId(roomId) },
+            update: { $inc: { occupied: -decrement } }
+          }
+        }));
+        await Room.bulkWrite(bulkOps);
+      }
+
+      // Cập nhật tất cả sinh viên: isDormResident = false, roomId = null
+      await Student.updateMany(
+        { _id: { $in: studentIds } },
+        { $set: { isDormResident: false, roomId: null } }
+      );
+
+      // Lấy danh sách roomIds bị ảnh hưởng để emit socket event
+      const affectedRoomIds = Array.from(roomUpdates.keys());
+
+      return {
+        success: true,
+        message: `Đã xóa ${students.length} sinh viên khỏi ký túc xá`,
+        data: {
+          removedCount: students.length,
+          removedNames: studentNames,
+          deletedDormitoryRequests,
+          affectedRoomIds
+        }
+      };
+
+    } catch (error) {
+      console.error('Bulk remove from dormitory failed:', error);
+      throw this.createError('Không thể xóa sinh viên khỏi KTX: ' + error.message, 500);
     }
   }
 

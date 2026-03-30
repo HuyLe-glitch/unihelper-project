@@ -396,6 +396,7 @@ const StudentImportPage = () => {
                     accept=".csv" 
                     hidden 
                     onChange={(e) => handleFileSelect(e.target.files[0])}
+                    onClick={(e) => { e.target.value = null; }}
                   />
                   
                   {selectedFile ? (

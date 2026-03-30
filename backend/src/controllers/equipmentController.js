@@ -73,6 +73,19 @@ const equipmentController = {
     }
   },
 
+  /**
+   * GET /api/equipment/categories/:id/check-delete
+   * Kiểm tra có thể xóa danh mục không
+   */
+  checkCanDeleteCategory: async (req, res, next) => {
+    try {
+      const result = await equipmentService.checkCanDeleteCategory(req.params.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // ==========================================
   // ITEM ENDPOINTS
   // ==========================================
@@ -162,6 +175,19 @@ const equipmentController = {
   deleteItem: async (req, res, next) => {
     try {
       const result = await equipmentService.deleteItem(req.params.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * GET /api/equipment/items/:id/check-delete
+   * Kiểm tra có thể xóa thiết bị không
+   */
+  checkCanDeleteItem: async (req, res, next) => {
+    try {
+      const result = await equipmentService.checkCanDeleteItem(req.params.id);
       res.json(result);
     } catch (error) {
       next(error);

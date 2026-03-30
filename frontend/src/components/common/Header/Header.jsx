@@ -26,7 +26,7 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   // Close dropdown when clicking outside
@@ -88,17 +88,17 @@ const Header = ({ onToggleSidebar, isSidebarCollapsed }) => {
                 </div>
               </div>
               <div className="dropdown-divider"></div>
-              <button className="dropdown-item" onClick={() => {
-                setShowDropdown(false);
-                // Navigate based on user role
-                const profilePath = user?.role === 'student' ? '/student/profile' : 
-                                   user?.role === 'staff' ? '/staff/profile' : 
-                                   user?.role === 'admin' ? '/admin/profile' : '/profile';
-                navigate(profilePath);
-              }}>
-                Thông tin cá nhân
-              </button>
-              <div className="dropdown-divider"></div>
+              {user?.role === 'student' && (
+                <>
+                  <button className="dropdown-item" onClick={() => {
+                    setShowDropdown(false);
+                    navigate('/student/profile');
+                  }}>
+                    Thông tin cá nhân
+                  </button>
+                  <div className="dropdown-divider"></div>
+                </>
+              )}
               <button className="dropdown-item logout" onClick={handleLogout}>
                 Đăng xuất
               </button>

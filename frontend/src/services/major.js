@@ -58,6 +58,14 @@ export const majorService = {
   },
 
   /**
+   * Kiểm tra có thể xóa chuyên ngành không (đếm số sinh viên)
+   */
+  checkCanDeleteMajor: async (majorId) => {
+    const response = await apiClient.get(`/majors/${majorId}/check-delete`);
+    return response.data;
+  },
+
+  /**
    * Lấy danh sách chuyên ngành theo Khoa
    * @param {string} facultyId - ID của khoa
    */

@@ -35,6 +35,12 @@ const StaffCtsvRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // State cho infinite scroll pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const listRef = useRef(null); // Ref cho danh sách để detect scroll
+  
   // Toast notification
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   
@@ -103,16 +109,25 @@ const StaffCtsvRequests = () => {
     activityLog: req.activityLog || []
   }), []);
 
-  // Fetch requests từ API
-  const fetchRequests = useCallback(async () => {
+  // Fetch requests từ API - lần đầu hoặc reset
+  const fetchRequests = useCallback(async (reset = true) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setCurrentPage(1);
+      }
       setError(null);
-      const response = await certificateRequestService.getAllRequests();
+      
+      // Load trang đầu tiên với limit 50
+      const response = await certificateRequestService.getAllRequests({ page: 1, limit: 50 });
       if (response.success && response.data) {
-        // Transform data từ API sang format UI
         const transformedRequests = response.data.map(transformRequestFromAPI);
         setRequests(transformedRequests);
+        
+        // Check nếu còn data để load tiếp
+        const { pagination } = response;
+        setHasMore(pagination && pagination.page < pagination.totalPages);
+        setCurrentPage(1);
       }
     } catch (err) {
       console.error('Error fetching requests:', err);
@@ -121,6 +136,42 @@ const StaffCtsvRequests = () => {
       setLoading(false);
     }
   }, [transformRequestFromAPI]);
+
+  // Load thêm requests khi scroll xuống cuối
+  const loadMoreRequests = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
+      
+      const response = await certificateRequestService.getAllRequests({ page: nextPage, limit: 50 });
+      if (response.success && response.data) {
+        const transformedRequests = response.data.map(transformRequestFromAPI);
+        
+        // Append vào danh sách hiện tại
+        setRequests(prev => [...prev, ...transformedRequests]);
+        
+        // Update pagination state
+        const { pagination } = response;
+        setHasMore(pagination && pagination.page < pagination.totalPages);
+        setCurrentPage(nextPage);
+      }
+    } catch (err) {
+      console.error('Error loading more requests:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [currentPage, hasMore, loadingMore, transformRequestFromAPI]);
+
+  // Handle scroll để trigger load more
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    // Khi scroll gần đến cuối (còn 100px)
+    if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !loadingMore) {
+      loadMoreRequests();
+    }
+  }, [hasMore, loadingMore, loadMoreRequests]);
 
   // Fetch data khi component mount
   useEffect(() => {
@@ -198,10 +249,20 @@ const StaffCtsvRequests = () => {
       }
     });
 
+    // Lắng nghe sự kiện yêu cầu bị xóa (khi admin xóa sinh viên)
+    socketService.onStudentRequestsDeleted((data) => {
+      console.log('📡 [Socket] Student requests deleted:', data);
+      if (data.type === 'certificate' && data.deletedCount > 0) {
+        // Refresh lại danh sách yêu cầu
+        fetchRequests();
+      }
+    });
+
     // Cleanup khi unmount
     return () => {
       socketService.off('CERTIFICATE_REQUEST_CREATED');
       socketService.off('CERTIFICATE_REQUEST_UPDATED');
+      socketService.off('STUDENT_REQUESTS_DELETED');
     };
   }, [fetchRequests, showToast]);
 
@@ -697,16 +758,17 @@ const StaffCtsvRequests = () => {
         <div className="ctsv-list-panel">
           <div className="panel-header">
             <span className="panel-title">Danh sách yêu cầu</span>
-            <span className="panel-count">{filteredRequests.length} yêu cầu</span>
+            <span className="panel-count">{filteredRequests.length} yêu cầu{hasMore && ' +'}</span>
           </div>
-          <div className="request-list">
+          <div className="request-list" ref={listRef} onScroll={handleScroll}>
             {filteredRequests.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon">📭</span>
                 <p>Không tìm thấy yêu cầu nào</p>
               </div>
             ) : (
-              filteredRequests.map(request => (
+              <>
+              {filteredRequests.map(request => (
                 <div
                   key={request.id}
                   className={`request-card ${selectedRequest?.id === request.id ? 'active' : ''} ${request.status === 'ĐANG XỬ LÝ' ? 'pending' : ''}`}
@@ -734,7 +796,21 @@ const StaffCtsvRequests = () => {
                     </div>
                   </div>
                 </div>
-              ))
+              ))}
+              {/* Loading indicator khi load thêm */}
+              {loadingMore && (
+                <div className="loading-more">
+                  <div className="loading-spinner small"></div>
+                  <span>Đang tải thêm...</span>
+                </div>
+              )}
+              {/* Nút load more nếu còn data và không đang loading */}
+              {hasMore && !loadingMore && (
+                <button className="btn-load-more" onClick={loadMoreRequests}>
+                  Tải thêm yêu cầu
+                </button>
+              )}
+              </>
             )}
           </div>
         </div>

@@ -66,6 +66,18 @@ router.patch(
 );
 
 /**
+ * @route   GET /api/equipment/categories/:id/check-delete
+ * @desc    Kiểm tra có thể xóa danh mục không
+ * @access  Admin only
+ */
+router.get(
+  '/categories/:id/check-delete',
+  restrictTo('ADMIN'),
+  equipmentValidation.idValidation,
+  equipmentController.checkCanDeleteCategory
+);
+
+/**
  * @route   DELETE /api/equipment/categories/:id
  * @desc    Xóa danh mục (kèm tất cả thiết bị)
  * @access  Admin only
@@ -153,6 +165,18 @@ router.patch(
   equipmentValidation.idValidation,
   equipmentValidation.itemValidation.update,
   equipmentController.updateItem
+);
+
+/**
+ * @route   GET /api/equipment/items/:id/check-delete
+ * @desc    Kiểm tra có thể xóa thiết bị không
+ * @access  Admin only
+ */
+router.get(
+  '/items/:id/check-delete',
+  restrictTo('ADMIN'),
+  equipmentValidation.idValidation,
+  equipmentController.checkCanDeleteItem
 );
 
 /**

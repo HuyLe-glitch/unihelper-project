@@ -1,4 +1,6 @@
 const CertificateRequest = require('../models/CertificateRequest');
+const CertificateType = require('../models/CertificateType');
+const EquipmentCategory = require('../models/EquipmentCategory');
 const DormitoryRequest = require('../models/DormitoryRequest');
 const Semester = require('../models/Semester');
 
@@ -454,6 +456,23 @@ class ReportRepository {
     ]);
 
     return { total, approved };
+  }
+
+  // ==================== GET ALL TYPES FOR COMPLETE DISTRIBUTION ====================
+
+  /**
+   * Lấy tất cả loại chứng nhận
+   */
+  async getAllCertificateTypes() {
+    return await CertificateType.find({ isActive: true }).select('name').lean();
+  }
+
+  /**
+   * Lấy tất cả danh mục thiết bị
+   */
+  async getAllEquipmentCategories() {
+    const categories = await EquipmentCategory.find().select('name').lean();
+    return categories.map(cat => cat.name);
   }
 }
 

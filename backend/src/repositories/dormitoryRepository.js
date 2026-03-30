@@ -81,7 +81,12 @@ class DormitoryRepository {
    * @param {Object} options - Tùy chọn phân trang và filter
    */
   async findByStudents(studentIds, { skip = 0, limit = 50, filters = {} } = {}) {
-    const query = { student: { $in: studentIds }, ...filters };
+    // Mặc định không hiển thị yêu cầu đã ẩn (sau khi sinh viên xác nhận hoàn thành)
+    const query = { 
+      student: { $in: studentIds }, 
+      isHidden: { $ne: true },
+      ...filters 
+    };
     return DormitoryRequest.find(query)
       .populate({
         path: 'student',
@@ -107,7 +112,12 @@ class DormitoryRepository {
    * @param {Object} filters - Bộ lọc
    */
   async countByStudents(studentIds, filters = {}) {
-    const query = { student: { $in: studentIds }, ...filters };
+    // Mặc định không đếm yêu cầu đã ẩn
+    const query = { 
+      student: { $in: studentIds }, 
+      isHidden: { $ne: true },
+      ...filters 
+    };
     return DormitoryRequest.countDocuments(query).exec();
   }
 
@@ -126,7 +136,16 @@ class DormitoryRepository {
       },
       { 
         status: 'Approved',
-        confirmDate: new Date()
+        confirmDate: new Date(),
+        isHidden: true, // Ẩn yêu cầu sau khi sinh viên xác nhận hoàn thành
+        $push: {
+          activityLog: {
+            action: 'STUDENT_CONFIRM',
+            studentId: studentId,
+            details: 'Sinh viên xác nhận đã sửa chữa hoàn thành',
+            timestamp: new Date()
+          }
+        }
       },
       { new: true }
     )

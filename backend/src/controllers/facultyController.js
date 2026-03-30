@@ -27,6 +27,12 @@ class FacultyController {
     res.status(200).json(result);
   });
 
+  // Kiểm tra có thể xóa khoa không (đếm sinh viên)
+  checkCanDeleteFaculty = catchAsync(async (req, res) => {
+    const result = await facultyService.checkCanDeleteFaculty(req.params.id);
+    res.status(200).json(result);
+  });
+
   getMajorsByFaculty = catchAsync(async (req, res) => {
     const result = await facultyService.getMajorsByFaculty(req.params.id);
     res.status(200).json(result);

@@ -288,6 +288,7 @@ const SemesterModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
                 onChange={(e) => handleInputChange('year', e.target.value)}
                 min="2000"
                 max="2100"
+                placeholder="VD: 2025"
                 disabled={editingItem || isSubmitting}
               />
               {errors.year && (
@@ -383,24 +384,7 @@ const SemesterModal = ({ isOpen, onClose, onSuccess, editingItem = null }) => {
               />
             </div>
 
-            {/* Active Checkbox */}
-            <div className="semester-form-group semester-checkbox-group">
-              <label className="semester-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => handleInputChange('isActive', e.target.checked)}
-                  className="semester-checkbox-input"
-                  disabled={isSubmitting}
-                />
-                <span className="semester-checkbox-text">
-                  Kích hoạt ngay học kỳ này
-                </span>
-              </label>
-              <span className="semester-hint-text">
-                Nếu chọn, học kỳ khác đang active sẽ bị tắt
-              </span>
-            </div>
+            {/* Học kỳ được tự động kích hoạt dựa trên ngày hiện tại */}
           </div>
 
           <div className="semester-modal-footer">

@@ -20,7 +20,7 @@ const FAQ_RESPONSES = {
     `,
     quickReplies: [
       { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' },
-      { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+      { id: 'huongdan', icon: '📖', label: 'Hướng dẫn sử dụng', action: 'user_guide' }
     ]
   },
   'lien_he': {
@@ -38,7 +38,7 @@ const FAQ_RESPONSES = {
     `,
     quickReplies: [
       { id: 'giolam', icon: '🕐', label: 'Giờ làm việc', action: 'working_hours' },
-      { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+      { id: 'huongdan', icon: '📖', label: 'Hướng dẫn sử dụng', action: 'user_guide' }
     ]
   },
   'ktx_info': {
@@ -62,8 +62,7 @@ const FAQ_RESPONSES = {
     `,
     quickReplies: [
       { id: 'dangky', icon: '📝', label: 'Đăng ký KTX', action: 'ktx_register' },
-      { id: 'trangthai', icon: '📋', label: 'Kiểm tra yêu cầu', action: 'check_ktx_status' },
-      { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+      { id: 'trangthai', icon: '📋', label: 'Kiểm tra yêu cầu', action: 'check_ktx_status' }
     ]
   },
   'ktx_register': {
@@ -97,8 +96,7 @@ const FAQ_RESPONSES = {
       </div>
     `,
     quickReplies: [
-      { id: 'ktxinfo', icon: '🏠', label: 'Thông tin KTX', action: 'ktx_info' },
-      { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+      { id: 'ktxinfo', icon: '🏠', label: 'Thông tin KTX', action: 'ktx_info' }
     ]
   },
   'document_info': {
@@ -123,11 +121,7 @@ const FAQ_RESPONSES = {
         </div>
       </div>
     `,
-    quickReplies: [
-      { id: 'taoyeucau', icon: '📝', label: 'Tạo yêu cầu', action: 'create_document_request' },
-      { id: 'trangthai', icon: '📋', label: 'Kiểm tra yêu cầu', action: 'check_document_status' },
-      { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
-    ]
+    quickReplies: []
   },
   'main_menu': {
     message: `
@@ -139,11 +133,47 @@ const FAQ_RESPONSES = {
       </div>
     `,
     quickReplies: [
-      { id: 'ktx', icon: '🏠', label: 'KTX', action: 'ktx_info' },
-      { id: 'giayto', icon: '📄', label: 'Giấy tờ', action: 'document_info' },
-      { id: 'trangthai', icon: '📋', label: 'Trạng thái', action: 'check_status' },
-      { id: 'faq', icon: '❓', label: 'Hỏi đáp', action: 'faq' },
-      { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' }
+      { id: 'lienhe', icon: '📞', label: 'Thông tin liên hệ', action: 'contact' },
+      { id: 'huongdan', icon: '📖', label: 'Hướng dẫn sử dụng', action: 'user_guide' }
+    ]
+  },
+  'user_guide': {
+    message: `
+      <div class="info-card">
+        <div class="info-card-title">📖 HƯỚNG DẪN SỬ DỤNG UniHelper Bot</div>
+        <div class="info-card-content" style="line-height: 1.6;">
+          <p><strong>Trợ lý ảo hỗ trợ sinh viên</strong></p>
+          <p>UniHelper giúp bạn:</p>
+          <p>• Tư vấn & tạo yêu cầu giấy tờ<br>
+          • Báo cáo sự cố thiết bị KTX<br>
+          • Theo dõi trạng thái yêu cầu</p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">
+          <p><strong>DÀNH CHO TẤT CẢ SINH VIÊN</strong></p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">
+          
+          <p>🎓 <strong>YÊU CẦU GIẤY TỜ CTSV:</strong></p>
+          <p>• Gõ: "tôi cần giấy giảm trừ gia cảnh" → Bot tư vấn + tạo yêu cầu<br>
+          • Gõ: "kiểm tra yêu cầu giấy tờ" → Xem trạng thái</p>
+          <p>📋 Các loại giấy tờ: Bổ sung hồ sơ cá nhân, nghĩa vụ quân sự, Giấy tờ khác, Thẻ sinh viên...</p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">
+          <p><strong>DÀNH CHO SINH VIÊN NỘI TRÚ</strong></p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">
+          
+          <p>🔧 <strong>BÁO CÁO SỰ CỐ THIẾT BỊ:</strong></p>
+          <p>• Gõ: "báo sự cố máy lạnh" → Tạo báo cáo<br>
+          • Gõ: "kiểm tra báo cáo sự cố" → Xem trạng thái</p>
+          <p>📦 Danh mục: Điện, Nước, Nội thất</p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 12px 0;">
+          
+          <p>📞 Gõ "liên hệ" để xem thông tin liên hệ</p>
+        </div>
+      </div>
+    `,
+    quickReplies: [
+      { id: 'lienhe', icon: '📞', label: 'Thông tin liên hệ', action: 'contact' }
     ]
   }
 };
@@ -290,8 +320,7 @@ export const chatbotService = {
         `,
         quickReplies: [
           { id: 'ktx_status', icon: '🏠', label: 'Yêu cầu KTX', action: 'check_ktx_status_api' },
-          { id: 'doc_status', icon: '📄', label: 'Yêu cầu giấy tờ', action: 'check_document_status_api' },
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+          { id: 'doc_status', icon: '📄', label: 'Yêu cầu giấy tờ', action: 'check_document_status_api' }
         ]
       };
     }

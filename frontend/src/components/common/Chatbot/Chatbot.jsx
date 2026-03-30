@@ -30,7 +30,7 @@ const Chatbot = () => {
     return {
       id: 'welcome',
       type: 'bot',
-      content: `<div class="welcome-message"><div class="welcome-title">👋 Xin chào ${userName}!</div><p>Mình là <strong>UniHelper Bot</strong> - trợ lý ảo của bạn.</p><p>Mình có thể giúp bạn:</p><ul><li>🏠 Hỏi đáp thông tin về KTX</li><li>📄 Hướng dẫn xin giấy tờ, chứng chỉ</li><li>📋 Kiểm tra trạng thái yêu cầu</li><li>❓ Trả lời các câu hỏi thường gặp</li></ul><p>Bạn cần hỗ trợ gì?</p></div>`,
+      content: `<div class="welcome-message"><div class="welcome-title">👋 Xin chào ${userName}!</div><p>Mình là <strong>UniHelper Bot</strong> - trợ lý ảo hỗ trợ sinh viên.</p><p>Mình có thể giúp bạn:</p><ul><li>📄 Tư vấn & tạo yêu cầu giấy tờ chứng nhận CTSV(công tác sinh viên</li><li>🔧 Báo cáo sự cố thiết bị KTX(Ký túc xá)</li><li>📋 Theo dõi và cho bạn biết trạng thái các yêu cầu của bạn</li></ul><p>Bạn cần hỗ trợ gì?</p></div>`,
       timestamp: new Date().toISOString()
     };
   }, [user]);
@@ -40,11 +40,8 @@ const Chatbot = () => {
     if (isOpen && messages.length === 0) {
       setMessages([getWelcomeMessage()]);
       setQuickReplies([
-        { id: 'ktx', icon: '🏠', label: 'KTX', action: 'ktx_info' },
-        { id: 'giayto', icon: '📄', label: 'Giấy tờ', action: 'document_info' },
-        { id: 'trangthai', icon: '📋', label: 'Trạng thái', action: 'check_status' },
-        { id: 'faq', icon: '❓', label: 'Hỏi đáp', action: 'faq' },
-        { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' }
+        { id: 'lienhe', icon: '📞', label: 'Thông tin liên hệ', action: 'contact' },
+        { id: 'huongdan', icon: '📖', label: 'Hướng dẫn sử dụng', action: 'user_guide' }
       ]);
     }
   }, [isOpen, messages.length, getWelcomeMessage]);
@@ -200,8 +197,9 @@ const Chatbot = () => {
       'check_ktx_status': 'Kiểm tra trạng thái báo cáo sự cố',
       'check_document_status': 'Kiểm tra trạng thái yêu cầu giấy tờ',
       'faq': 'Tôi có câu hỏi cần hỏi đáp',
-      'contact': 'Thông tin liên hệ phòng CTSV',
-      'main_menu': 'Quay lại menu chính',
+      'contact': 'Thông tin liên hệ',
+      'main_menu': 'Menu chính',
+      'user_guide': 'Hướng dẫn sử dụng',
       // Luồng tư vấn
       'document_advice': 'Tôi cần tư vấn về giấy tờ',
       'advice_tax': 'Tôi cần giấy giảm trừ gia cảnh',

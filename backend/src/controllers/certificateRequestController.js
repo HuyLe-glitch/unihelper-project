@@ -93,8 +93,11 @@ class CertificateRequestController {
   });
 
   // GET /api/certificate-requests - Lấy tất cả yêu cầu (Staff/Admin only)
+  // Hỗ trợ infinite scroll với pagination
   getAllRequests = catchAsync(async (req, res) => {
-    const { page = 1, limit = 10, status, certificateType } = req.query;
+    // Default limit = 50 cho infinite scroll, tối đa 200
+    const { page = 1, limit = 50, status, certificateType } = req.query;
+    const safeLimit = Math.min(parseInt(limit), 200);
 
     const filters = {};
     if (status) filters.status = status;
@@ -103,7 +106,7 @@ class CertificateRequestController {
     const result = await certificateRequestService.getAllRequests(
       filters,
       parseInt(page),
-      parseInt(limit)
+      safeLimit
     );
 
     res.status(200).json(result);
@@ -127,6 +130,7 @@ class CertificateRequestController {
     if (req.io && result.success && (status === 'HỢP LỆ' || status === 'KHÔNG HỢP LỆ')) {
       req.io.emit('CERTIFICATE_REQUEST_UPDATED', {
         requestId: id,
+        requestCode: result.data.requestCode, // Thêm requestCode để frontend match được
         request: result.data,
         status: status,
         message: status === 'HỢP LỆ' ? 'Yêu cầu đã được duyệt' : 'Yêu cầu đã bị từ chối'

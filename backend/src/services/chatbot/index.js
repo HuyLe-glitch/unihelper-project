@@ -253,6 +253,34 @@ class ChatbotService {
       return { ...response, intent: 'ktx.bao_su_co' };
     }
 
+    // Xử lý hướng dẫn sử dụng
+    if (message === 'Hướng dẫn sử dụng' || message === 'user_guide') {
+      await this.saveUserMessage(sessionId, 'Hướng dẫn sử dụng');
+      // Gọi Dialogflow để lấy fulfillmentText
+      const dialogflowResult = await dialogflowHandler.detectIntent(sessionId, 'hướng dẫn sử dụng');
+      const response = commonHandler.handleUserGuide(dialogflowResult.fulfillmentText);
+      await this.saveBotMessage(sessionId, response.message, 'faq.huong_dan');
+      return { ...response, intent: 'faq.huong_dan' };
+    }
+
+    // Xử lý thông tin liên hệ
+    if (message === 'Thông tin liên hệ' || message === 'contact' || message === 'Liên hệ') {
+      await this.saveUserMessage(sessionId, 'Thông tin liên hệ');
+      // Gọi Dialogflow để lấy fulfillmentText từ intent faq.lien_he
+      const dialogflowResult = await dialogflowHandler.detectIntent(sessionId, 'liên hệ');
+      const response = commonHandler.handleFAQ(dialogflowResult.fulfillmentText);
+      await this.saveBotMessage(sessionId, response.message, 'faq.lien_he');
+      return { ...response, intent: 'faq.lien_he' };
+    }
+
+    // Xử lý menu chính
+    if (message === 'Menu chính' || message === 'main_menu') {
+      await this.saveUserMessage(sessionId, 'Menu chính');
+      const response = commonHandler.handleMainMenu();
+      await this.saveBotMessage(sessionId, response.message, 'menu.chinh');
+      return { ...response, intent: 'menu.chinh' };
+    }
+
     // ==========================================
     // KIỂM TRA CONTEXT - Đang chờ nhập mô tả sự cố
     // ==========================================
@@ -412,6 +440,14 @@ class ChatbotService {
 
     if (mappedIntent === 'unknown' || intent === 'Default Fallback Intent') {
       return commonHandler.handleFallback(fulfillmentText);
+    }
+
+    if (mappedIntent === 'user_guide' || intent === 'faq.huong_dan') {
+      return commonHandler.handleUserGuide(fulfillmentText);
+    }
+
+    if (mappedIntent === 'main_menu' || intent === 'menu.chinh') {
+      return commonHandler.handleMainMenu();
     }
 
     // ==========================================

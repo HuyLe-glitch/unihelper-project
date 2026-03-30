@@ -68,8 +68,11 @@ const studentSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// Indexes
+// Indexes - Thêm các index để tối ưu query
 studentSchema.index({ major: 1 });
+studentSchema.index({ isDeleted: 1, createdAt: -1 }); // Compound index cho query chính
+studentSchema.index({ user: 1 });
+studentSchema.index({ roomId: 1 });
 
 // Virtual populate
 studentSchema.virtual('userInfo', {

@@ -37,6 +37,13 @@ router.get('/:id/majors',
   facultyController.getMajorsByFaculty
 );
 
+// GET /api/faculties/:id/check-delete - Kiểm tra có thể xóa khoa không
+router.get('/:id/check-delete', 
+  restrictTo('ADMIN'),
+  idValidation.validateObjectId, 
+  facultyController.checkCanDeleteFaculty
+);
+
 // =============== ADMIN ROUTES ===============
 
 // POST /api/faculties - Tạo khoa mới

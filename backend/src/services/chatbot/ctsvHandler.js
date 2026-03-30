@@ -71,10 +71,7 @@ class CtsvHandler {
               Bạn có muốn tạo yêu cầu mới không?
             </div>
           </div>`,
-          quickReplies: [
-            { id: 'taoyeucau', icon: '📝', label: 'Tạo yêu cầu', action: 'document_info' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
-          ]
+          quickReplies: []
         };
       }
 
@@ -160,8 +157,7 @@ class CtsvHandler {
           </div>`,
           quickReplies: [
             { id: 'tatca', icon: '📋', label: 'Xem tất cả yêu cầu', action: 'check_document_status' },
-            { id: 'taoyeucau', icon: '📝', label: 'Tạo yêu cầu mới', action: 'create_document_request' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+            { id: 'taoyeucau', icon: '📝', label: 'Tạo yêu cầu mới', action: 'create_document_request' }
           ]
         };
       }
@@ -192,8 +188,7 @@ class CtsvHandler {
             </div>
           </div>`,
           quickReplies: [
-            { id: 'chitiet', icon: '📜', label: 'Chi tiết gần nhất', action: 'document_detail' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+            { id: 'chitiet', icon: '📜', label: 'Chi tiết gần nhất', action: 'document_detail' }
           ]
         };
       }
@@ -213,13 +208,12 @@ class CtsvHandler {
             certificateType: latestRequest.certificateType?.name || 'N/A',
             certificateName: latestRequest.certificateName?.name || 'N/A',
             status: latestRequest.status,
+            responseTime: latestRequest.responseTime || null,
             estimatedTime: '1-3 ngày làm việc',
             reason: latestRequest.reason || null
           }
         },
-        quickReplies: [
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
-        ]
+        quickReplies: []
       };
     } catch (error) {
       console.error('Error getting document status:', error);
@@ -287,7 +281,7 @@ class CtsvHandler {
         `;
       }
       
-      quickReplies.push({ id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' });
+      quickReplies.push({ id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' });
 
       return {
         message: `<div class="info-card">
@@ -328,8 +322,7 @@ class CtsvHandler {
         </div>`,
         quickReplies: [
           { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' },
-          { id: 'dsgiayto', icon: '📄', label: 'Xem danh sách', action: 'document_info' },
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+          { id: 'dsgiayto', icon: '📄', label: 'Xem danh sách', action: 'document_info' }
         ]
       };
     }
@@ -355,8 +348,7 @@ class CtsvHandler {
             </div>
           </div>`,
           quickReplies: [
-            { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' },
-            { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+            { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' }
           ]
         };
       }
@@ -377,7 +369,7 @@ class CtsvHandler {
         action: `select_certificate_${cert._id}`
       }));
       
-      quickReplies.push({ id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' });
+      quickReplies.push({ id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' });
 
       // Lưu context với thông tin loại
       const student = await studentRepository.findByUser(userId);
@@ -424,8 +416,7 @@ class CtsvHandler {
         </div>`,
         quickReplies: [
           { id: 'lienhe', icon: '📞', label: 'Liên hệ', action: 'contact' },
-          { id: 'dsgiayto', icon: '📄', label: 'Xem danh sách', action: 'document_info' },
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+          { id: 'dsgiayto', icon: '📄', label: 'Xem danh sách', action: 'document_info' }
         ]
       };
     }
@@ -462,7 +453,7 @@ class CtsvHandler {
 
     const selfGuideText = `
       <ol style="margin: 8px 0; padding-left: 20px;">
-        <li>Vào menu <strong>"Yêu cầu chứng nhận"</strong></li>
+        <li>Tại mục sidebar bên trái ở mục gửi yêu cầu  chọn <strong>"Công tác sinh viên"</strong></li>
         <li>Chọn loại chứng nhận: <strong>${certificateTypeName}</strong></li>
         <li>Chọn tên chứng nhận: <strong>${certificateName}</strong></li>
         <li>Điền thông tin và gửi yêu cầu</li>
@@ -493,8 +484,7 @@ class CtsvHandler {
       </div>`,
       quickReplies: [
         { id: 'taoluon', icon: '✅', label: 'Tạo luôn cho tôi', action: 'create_from_advice' },
-        { id: 'huongdan', icon: '📖', label: 'Xem hướng dẫn tự làm', action: 'document_info' },
-        { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+        { id: 'huongdan', icon: '📖', label: 'Xem hướng dẫn tự làm', action: 'document_info' }
       ]
     };
   }
@@ -948,11 +938,7 @@ class CtsvHandler {
             </div>
           </div>
         </div>`,
-        quickReplies: [
-          { id: 'status', icon: '📋', label: 'Xem trạng thái', action: 'check_document_status' },
-          { id: 'new', icon: '📝', label: 'Tạo yêu cầu mới', action: 'create_document_request' },
-          { id: 'menu', icon: '🏠', label: 'Menu chính', action: 'main_menu' }
-        ]
+        quickReplies: []
       };
     } catch (error) {
       console.error('Error confirming request:', error);
@@ -1066,8 +1052,7 @@ class CtsvHandler {
         </div>`,
         quickReplies: [
           { id: 'taoluon', icon: '✅', label: 'Tạo luôn cho tôi', action: 'create_from_advice' },
-          { id: 'huongdan', icon: '📖', label: 'Xem hướng dẫn tự làm', action: 'document_info' },
-          { id: 'quaylai', icon: '🔙', label: 'Quay lại', action: 'main_menu' }
+          { id: 'huongdan', icon: '📖', label: 'Xem hướng dẫn tự làm', action: 'document_info' }
         ]
       };
     } catch (error) {

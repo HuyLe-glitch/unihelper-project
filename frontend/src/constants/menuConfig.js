@@ -87,13 +87,6 @@ export const MENU_CONFIGS = {
       path: '/staff/requests',
     },
     {
-      id: 'history',
-      icon: '🕓',
-      label: 'Lịch sử xử lý',
-      type: 'single',
-      path: '/staff/history',
-    },
-    {
       id: 'reports',
       icon: '📈',
       label: 'Thống kê',

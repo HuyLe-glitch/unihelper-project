@@ -116,12 +116,75 @@ class StudentController {
   };
 
   /**
+   * GET /api/students/:id/delete-preview
+   * Xem trước dữ liệu sẽ bị xóa khi xóa sinh viên
+   */
+  getDeletePreview = async (req, res, next) => {
+    try {
+      const result = await studentService.getDeletePreview(req.params.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * DELETE /api/students/:id
-   * Xóa sinh viên
+   * Xóa sinh viên hoàn toàn (bao gồm tất cả yêu cầu CTSV & KTX)
    */
   deleteStudent = async (req, res, next) => {
     try {
       const result = await studentService.deleteStudent(req.params.id);
+      
+      if (req.io) {
+        // Emit socket event nếu sinh viên ở KTX (để cập nhật số người trong phòng)
+        if (result.data?.affectedRoomId) {
+          req.io.emit('STUDENT_ROOM_UPDATED', {
+            action: 'deleted',
+            roomId: result.data.affectedRoomId
+          });
+        }
+        
+        // Emit event để Staff CTSV cập nhật danh sách yêu cầu
+        if (result.data?.deletedCertificateRequests > 0) {
+          req.io.emit('STUDENT_REQUESTS_DELETED', {
+            type: 'certificate',
+            deletedCount: result.data.deletedCertificateRequests
+          });
+        }
+        
+        // Emit event để Staff KTX cập nhật danh sách yêu cầu
+        if (result.data?.deletedDormitoryRequests > 0) {
+          req.io.emit('STUDENT_REQUESTS_DELETED', {
+            type: 'dormitory',
+            deletedCount: result.data.deletedDormitoryRequests
+          });
+        }
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * PATCH /api/students/:id/remove-dormitory
+   * Chỉ xóa sinh viên khỏi KTX (giữ lại sinh viên và yêu cầu CTSV)
+   */
+  removeFromDormitory = async (req, res, next) => {
+    try {
+      const result = await studentService.removeFromDormitory(req.params.id);
+      
+      // Emit socket event để cập nhật số người trong phòng
+      if (result.data?.affectedRoomId && req.io) {
+        req.io.emit('STUDENT_ROOM_UPDATED', {
+          action: 'removed_from_dorm',
+          roomId: result.data.affectedRoomId
+        });
+        console.log('📡 Emitted STUDENT_ROOM_UPDATED for room:', result.data.affectedRoomId);
+      }
+      
       res.json(result);
     } catch (error) {
       next(error);
@@ -219,6 +282,30 @@ class StudentController {
   };
 
   /**
+   * POST /api/students/bulk-delete-preview
+   * Xem trước dữ liệu sẽ bị xóa khi xóa hàng loạt
+   */
+  getBulkDeletePreview = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
+
+      const { ids } = req.body;
+      const result = await studentService.getBulkDeletePreview(ids);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * DELETE /api/students/bulk
    * Xóa nhiều sinh viên cùng lúc
    */
@@ -236,6 +323,85 @@ class StudentController {
 
       const { ids } = req.body;
       const result = await studentService.bulkDeleteStudents(ids);
+      
+      if (req.io) {
+        // Emit socket event cho các phòng bị ảnh hưởng
+        if (result.data?.affectedRoomIds?.length > 0) {
+          result.data.affectedRoomIds.forEach(roomId => {
+            req.io.emit('STUDENT_ROOM_UPDATED', {
+              action: 'bulk_deleted',
+              roomId
+            });
+          });
+          console.log('📡 Emitted STUDENT_ROOM_UPDATED for rooms:', result.data.affectedRoomIds);
+        }
+        
+        // Emit event để Staff CTSV cập nhật danh sách yêu cầu
+        if (result.data?.deletedCertificateRequests > 0) {
+          req.io.emit('STUDENT_REQUESTS_DELETED', {
+            type: 'certificate',
+            deletedCount: result.data.deletedCertificateRequests
+          });
+          console.log('📡 Emitted STUDENT_REQUESTS_DELETED (certificate):', result.data.deletedCertificateRequests);
+        }
+        
+        // Emit event để Staff KTX cập nhật danh sách yêu cầu
+        if (result.data?.deletedDormitoryRequests > 0) {
+          req.io.emit('STUDENT_REQUESTS_DELETED', {
+            type: 'dormitory',
+            deletedCount: result.data.deletedDormitoryRequests
+          });
+          console.log('📡 Emitted STUDENT_REQUESTS_DELETED (dormitory):', result.data.deletedDormitoryRequests);
+        }
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * PATCH /api/students/bulk-remove-dormitory
+   * Xóa nhiều sinh viên khỏi KTX (giữ lại sinh viên)
+   */
+  bulkRemoveFromDormitory = async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
+
+      const { ids } = req.body;
+      const result = await studentService.bulkRemoveFromDormitory(ids);
+      
+      if (req.io) {
+        // Emit socket event cho các phòng bị ảnh hưởng
+        if (result.data?.affectedRoomIds?.length > 0) {
+          result.data.affectedRoomIds.forEach(roomId => {
+            req.io.emit('STUDENT_ROOM_UPDATED', {
+              action: 'bulk_removed_from_dorm',
+              roomId
+            });
+          });
+          console.log('📡 Emitted STUDENT_ROOM_UPDATED for rooms:', result.data.affectedRoomIds);
+        }
+        
+        // Emit event để Staff KTX cập nhật danh sách yêu cầu
+        if (result.data?.deletedDormitoryRequests > 0) {
+          req.io.emit('STUDENT_REQUESTS_DELETED', {
+            type: 'dormitory',
+            deletedCount: result.data.deletedDormitoryRequests
+          });
+          console.log('📡 Emitted STUDENT_REQUESTS_DELETED (dormitory):', result.data.deletedDormitoryRequests);
+        }
+      }
+      
       res.json(result);
     } catch (error) {
       next(error);

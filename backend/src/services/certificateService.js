@@ -1,4 +1,5 @@
 const certificateRepository = require('../repositories/certificateRepository');
+const CertificateRequest = require('../models/CertificateRequest');
 
 /**
  * Helper function để tạo operational error với field
@@ -113,12 +114,23 @@ const certificateService = {
   },
 
   /**
-   * Xóa loại chứng nhận - BUSINESS LOGIC: Xóa kèm tất cả chứng nhận trong đó
+   * Xóa loại chứng nhận - BUSINESS LOGIC: Kiểm tra ràng buộc trước khi xóa
    */
   deleteType: async (typeId) => {
     const type = await certificateRepository.getTypeById(typeId);
     if (!type) {
       throw createError('Không tìm thấy loại chứng nhận', 404);
+    }
+
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateType: typeId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa loại chứng nhận "${type.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`,
+        400,
+        'certificateType',
+        { relatedRequestsCount }
+      );
     }
 
     // Đếm số chứng nhận sẽ bị xóa
@@ -133,6 +145,48 @@ const certificateService = {
     return {
       success: true,
       message: `Đã xóa loại chứng nhận "${type.name}" và ${certificateCount} chứng nhận liên quan`
+    };
+  },
+
+  /**
+   * Kiểm tra có thể xóa loại chứng nhận không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteType: async (typeId) => {
+    const type = await certificateRepository.getTypeById(typeId);
+    if (!type) {
+      throw createError('Không tìm thấy loại chứng nhận', 404);
+    }
+
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateType: typeId });
+    
+    // Đếm số chứng nhận trong loại
+    const certificateCount = await certificateRepository.countCertificatesByType(typeId);
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          type,
+          relatedRequestsCount,
+          certificateCount,
+          message: `Không thể xóa loại chứng nhận "${type.name}" vì đã có ${relatedRequestsCount} yêu cầu chứng nhận liên quan trong hệ thống`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        type,
+        certificateCount,
+        message: certificateCount > 0 
+          ? `Xóa loại chứng nhận "${type.name}" sẽ xóa luôn ${certificateCount} chứng nhận trong đó`
+          : `Bạn có chắc chắn muốn xóa loại chứng nhận "${type.name}"?`
+      }
     };
   },
 
@@ -349,7 +403,7 @@ const certificateService = {
   },
 
   /**
-   * Xóa chứng nhận
+   * Xóa chứng nhận - Kiểm tra ràng buộc trước khi xóa
    */
   deleteCertificate: async (certificateId) => {
     const certificate = await certificateRepository.getCertificateById(certificateId);
@@ -357,11 +411,57 @@ const certificateService = {
       throw createError('Không tìm thấy chứng nhận', 404);
     }
 
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateName: certificateId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa chứng nhận "${certificate.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`,
+        400,
+        'certificate',
+        { relatedRequestsCount }
+      );
+    }
+
     await certificateRepository.deleteCertificate(certificateId);
 
     return {
       success: true,
       message: `Đã xóa chứng nhận "${certificate.name}"`
+    };
+  },
+
+  /**
+   * Kiểm tra có thể xóa chứng nhận không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteCertificate: async (certificateId) => {
+    const certificate = await certificateRepository.getCertificateById(certificateId);
+    if (!certificate) {
+      throw createError('Không tìm thấy chứng nhận', 404);
+    }
+
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateName: certificateId });
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          certificate,
+          relatedRequestsCount,
+          message: `Không thể xóa chứng nhận "${certificate.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        certificate,
+        message: `Bạn có chắc chắn muốn xóa chứng nhận "${certificate.name}"?`
+      }
     };
   },
 

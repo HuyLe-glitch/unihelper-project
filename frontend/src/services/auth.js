@@ -99,14 +99,15 @@ export const authService = {
     }
   }, */
 
-  // Logout
+  // Logout - chỉ clear storage, không reload trang
   logout: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
     localStorage.removeItem('staffType');
     localStorage.removeItem('isDormResident');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    // Không dùng window.location.href để tránh refresh trang
+    // Component sẽ handle redirect bằng React Router
   },
 
   // Get staff type

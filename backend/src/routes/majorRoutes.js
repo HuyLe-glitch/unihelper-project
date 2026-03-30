@@ -31,6 +31,13 @@ router.get('/:id',
   majorController.getMajorById
 );
 
+// GET /api/majors/:id/check-delete - Kiểm tra có thể xóa chuyên ngành không
+router.get('/:id/check-delete', 
+  restrictTo('ADMIN'),
+  idValidation.validateObjectId, 
+  majorController.checkCanDeleteMajor
+);
+
 // =============== ADMIN ROUTES ===============
 
 // POST /api/majors - Tạo chuyên ngành mới

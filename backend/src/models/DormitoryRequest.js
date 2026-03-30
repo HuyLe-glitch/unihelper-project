@@ -49,6 +49,42 @@ const dormitoryRequestSchema = new mongoose.Schema({
         type: String,
         enum: ['Pending', 'Under Review', 'Approved'],
         default: 'Pending'
+    },
+    // Lịch sử hoạt động (tracking mọi thao tác của Staff và Student)
+    activityLog: [{
+        action: {
+            type: String,
+            enum: ['ACCEPT', 'COMPLETE', 'ADD_NOTE', 'UPDATE_NOTE', 'STUDENT_CONFIRM'],
+            required: true
+        },
+        // staffId hoặc studentId - một trong hai
+        staffId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Staff'
+        },
+        studentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Student'
+        },
+        details: {
+            type: String,
+            trim: true
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    // Ghi chú của staff
+    staffNote: {
+        type: String,
+        trim: true
+    },
+    // Ẩn yêu cầu sau khi sinh viên xác nhận hoàn thành
+    // Để tránh tích tụ yêu cầu cũ trong lịch sử phòng
+    isHidden: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
