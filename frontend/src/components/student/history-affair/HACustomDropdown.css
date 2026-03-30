@@ -1,0 +1,203 @@
+/* ============================================
+   HA CUSTOM DROPDOWN - History Affair
+   Prefix: ha-cd để tránh conflict CSS
+   ============================================ */
+
+.ha-cd-wrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.ha-cd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: left;
+  min-width: 0;
+}
+
+.ha-cd-trigger:hover {
+  border-color: #667eea;
+}
+
+.ha-cd-trigger:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ha-cd-trigger.ha-cd-open {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ha-cd-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.ha-cd-placeholder {
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.ha-cd-arrow {
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.ha-cd-arrow-up {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.ha-cd-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: haDropdownSlideDown 0.2s ease;
+}
+
+@keyframes haDropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ha-cd-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f3f5;
+  /* Text wrap cho options dài */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.ha-cd-option:last-child {
+  border-bottom: none;
+}
+
+.ha-cd-option:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.ha-cd-option-selected {
+  background: #f0f0ff;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.ha-cd-option-selected:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Disabled State */
+.ha-cd-disabled .ha-cd-trigger {
+  background: #e9ecef;
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+.ha-cd-disabled .ha-cd-trigger:hover {
+  border-color: #dee2e6;
+}
+
+/* Custom Scrollbar */
+.ha-cd-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ha-cd-menu::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 3px;
+}
+
+.ha-cd-menu::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+
+.ha-cd-menu::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .ha-cd-trigger {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .ha-cd-option {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+  
+  .ha-cd-menu {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ha-cd-trigger {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  
+  .ha-cd-arrow {
+    font-size: 9px;
+  }
+  
+  .ha-cd-option {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .ha-cd-menu {
+    max-height: 160px;
+    border-radius: 6px;
+  }
+}

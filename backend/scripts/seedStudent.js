@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 
 const User = require('../src/models/User');
 const Student = require('../src/models/Student');
+const Major = require('../src/models/Major');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/unihelper';
 
@@ -15,55 +16,56 @@ async function main() {
     await mongoose.connect(MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
+    // Lấy major "Công nghệ thông tin"
+    const major = await Major.findOne({ code: 'CNTT01' });
+    if (!major) {
+      console.error('❌ Major not found! Chạy seedFacultyAndMajor.js trước.');
+      process.exit(1);
+    }
+
     const email = 'student@example.com';
     const password = 'Password123!';
-    const name = 'Test Student';
 
-    let user = await User.findOne({ email });
-    if (!user) {
-      const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-      const hashed = await bcrypt.hash(password, saltRounds);
-
-      user = new User({ name, email, password: hashed, role: 'STUDENT' });
-      await user.save();
-      console.log(`🆕 User created: ${email} / ${password}`);
-    } else {
-      console.log(`ℹ️ User already exists: ${email}`);
+    // Xóa student cũ nếu có
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      await Student.deleteOne({ user: existingUser._id });
+      await User.deleteOne({ email });
+      console.log('🗑️ Cleared existing student');
     }
 
-    let student = await Student.findOne({ user: user._id });
-    if (!student) {
-      student = new Student({
-        user: user._id,
-        studentId: 'S20250001',
-        major: 'Công nghệ thông tin',
-        faculty: 'Khoa Công nghệ thông tin',
-        academicYear: '2025',
-        gpa: 3.5,
-        phone: '0123456789',
-        className: 'CNTT-01',
-        currentAddress: 'Hà Nội',
-        permanentAddress: 'Hà Nội',
-        dateOfBirth: new Date('2003-01-15'),
-        citizenId: '123456789',
-        citizenIdIssueDate: new Date('2020-01-01'),
-        citizenIdIssuePlace: 'Hà Nội'
-      });
+    // Tạo User (không cần hash trước vì User model sẽ tự hash)
+    const user = await User.create({
+      email,
+      password, // User model sẽ tự hash trong pre('save')
+      role: 'STUDENT',
+      isActive: true
+    });
+    console.log(`🆕 User created: ${email}`);
 
-      await student.save();
-      console.log('🆕 Student profile created');
-    } else {
-      console.log('ℹ️ Student profile already exists for this user');
-    }
+    // Tạo Student profile theo model mới
+    // Các trường: fullName, dateOfBirth, phone, email(từ User), citizenId, address, major, isDormResident, roomId
+    const student = await Student.create({
+      user: user._id,
+      fullName: 'Nguyễn Văn Test',
+      dateOfBirth: new Date('2003-01-15'),
+      phone: '0123456789',
+      citizenId: '001203012345',
+      address: '123 Đường ABC, Quận 1, TP.HCM',
+      major: major._id,
+      isDormResident: false,
+      roomId: null
+    });
 
-    console.log('\n--- KẾT QUẢ ---');
-    console.log('Email:', email);
-    console.log('Password:', password);
-    console.log('Bạn có thể dùng credentials trên để gọi API POST /api/auth/login để lấy token.');
+    console.log('🎉 Student created successfully!');
+    console.log(`   👤 Name: ${student.fullName}`);
+    console.log(`   📧 Email: ${email}`);
+    console.log(`   🔑 Password: ${password}`);
+    console.log(`   🏫 Major: ${major.name}`);
 
     await mongoose.connection.close();
-    console.log('📴 Connection closed');
-    process.exit(0);
+    console.log('📴 Connection closed\n');
+
   } catch (err) {
     console.error('❌ Seeder failed:', err);
     process.exit(1);

@@ -15,7 +15,7 @@ import axios from 'axios';
 // Create axios instance with retry logic
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Tăng từ 10s lên 30s để xử lý các request lớn
   headers: {
     'Content-Type': 'application/json',
   },
@@ -43,11 +43,18 @@ apiClient.interceptors.response.use(
       // You could dispatch to a global error state here
     }
 
-    // Authentication errors
+    // Authentication errors - để component tự xử lý, không dùng alert
     else if (error.response.status === 401) {
-      window.alert('Sai tên đăng nhập hoặc mật khẩu! Vui lòng kiểm tra và đăng nhập lại!');
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      // Không clear token hoặc redirect ở đây nếu đang ở trang login
+      // Component sẽ tự hiển thị lỗi
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      
+      if (!isLoginRequest) {
+        // Chỉ clear và redirect nếu token hết hạn (không phải login sai)
+        localStorage.removeItem('authToken');
+        window.location.href = '/';
+      }
+      // Không dùng window.alert - để component handle error
     }
 
     // Server errors

@@ -1,3 +1,2 @@
-export { default as StudentList } from './StudentList';
-export { default as AddStudent } from './AddStudent';
-export { default as EditStudent } from './EditStudent';
+export { default as StudentManagement } from './StudentManagement';
+export { default as StudentImportPage } from './StudentImportPage';

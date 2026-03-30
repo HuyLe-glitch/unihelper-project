@@ -19,7 +19,7 @@ const handleValidationErrors = (req, res, next) => {
 const certificateRequestValidation = {
   // Validation cho tạo yêu cầu chứng nhận
   createRequest: [
-    body('certificateTypeId')
+    body('certificateType')
       .notEmpty()
       .withMessage('Loại chứng nhận là bắt buộc')
       .isMongoId()
@@ -27,14 +27,13 @@ const certificateRequestValidation = {
     body('certificateName')
       .notEmpty()
       .withMessage('Tên chứng nhận là bắt buộc')
-      .isLength({ min: 5, max: 200 })
-      .withMessage('Tên chứng nhận phải từ 5-200 ký tự')
-      .trim(),
+      .isMongoId()
+      .withMessage('ID tên chứng nhận không hợp lệ'),
     body('semester')
       .notEmpty()
       .withMessage('Học kỳ là bắt buộc')
-      .matches(/^(HK[1-3]|HKH) - \d{4}$/)
-      .withMessage('Học kỳ phải có định dạng: HK1 - 2024, HK2 - 2024, HK3 - 2024, hoặc HKH - 2024'),
+      .matches(/^(HK[1-3]|Học kỳ [1-3]|HKH|Học kỳ Hè)\s*[(-]\s*\d{4}(-\d{4})?\)?$/)
+      .withMessage('Học kỳ phải có định dạng hợp lệ, ví dụ: HK1 (2024-2025) hoặc HK1 - 2024'),
     handleValidationErrors
   ],
 
@@ -43,13 +42,15 @@ const certificateRequestValidation = {
     body('status')
       .notEmpty()
       .withMessage('Trạng thái là bắt buộc')
-      .isIn(['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED', 'COMPLETED'])
-      .withMessage('Trạng thái không hợp lệ'),
+      .isIn(['ĐANG XỬ LÝ', 'HỢP LỆ', 'KHÔNG HỢP LỆ'])
+      .withMessage('Trạng thái không hợp lệ. Cho phép: ĐANG XỬ LÝ, HỢP LỆ, KHÔNG HỢP LỆ'),
     body('notes')
       .optional()
       .isLength({ max: 500 })
       .withMessage('Ghi chú không được quá 500 ký tự')
       .trim(),
+    body('staffFile')
+      .optional(),
     handleValidationErrors
   ],
 
@@ -65,7 +66,7 @@ const certificateRequestValidation = {
       .withMessage('Limit phải từ 1-100'),
     query('status')
       .optional()
-      .isIn(['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED', 'COMPLETED'])
+      .isIn(['ĐANG XỬ LÝ', 'HỢP LỆ', 'KHÔNG HỢP LỆ'])
       .withMessage('Status filter không hợp lệ'),
     query('certificateType')
       .optional()

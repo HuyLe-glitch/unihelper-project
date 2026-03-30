@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 //import { studentRoutes, staffRoutes, adminRoutes } from './routes';
 import { publicRoutes, studentRoutes, staffRoutes, adminRoutes } from './routes';
+import { Chatbot } from './components/common';
 
 const renderRoutes = (routes) =>
   routes.map(({ path, element, children }) => (
@@ -20,14 +21,15 @@ const renderRoutes = (routes) =>
 const App = () => (
   <div className="app">
     <Routes>
-      {/* Remove this line: <Route path="/" element={<Navigate to="/choose-role" replace />} /> */}
-      <Route path="/" element={<Navigate to="/choose-role" replace />} />
       {renderRoutes(publicRoutes)}
       {renderRoutes(studentRoutes)}
       {renderRoutes(staffRoutes)}
       {renderRoutes(adminRoutes)}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    
+    {/* Chatbot - Hiển thị khi đã đăng nhập */}
+    <Chatbot />
   </div>
 );
 

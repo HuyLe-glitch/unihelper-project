@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
 const certificateRequestSchema = new mongoose.Schema({
+  // Mã yêu cầu CTSV - format: CTSV1, CTSV2, ... (không giới hạn)
   requestCode: {
     type: String,
-    unique: true
+    unique: true,
+    sparse: true // Cho phép null/undefined nhưng vẫn đảm bảo unique khi có giá trị
   },
   student: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,9 +17,10 @@ const certificateRequestSchema = new mongoose.Schema({
     ref: 'CertificateType',
     required: true
   },
+  // Tên chứng nhận - ref đến model Certificate (tương tự EquipmentItem)
   certificateName: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'CertificateName',
+    ref: 'Certificate',
     required: true
   },
   semester: {
@@ -42,13 +45,25 @@ const certificateRequestSchema = new mongoose.Schema({
     default: '',
     trim: true
   },
-  // File đính kèm PDF
-  attachedFile: {
+  staffAssigned: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Staff'
+  },
+  // File đính kèm từ Staff (file phản hồi) - Lưu trên Firebase Storage
+  staffFile: {
     fileName: {
       type: String,
       default: ''
     },
-    filePath: {
+    storedName: {
+      type: String,
+      default: ''
+    },
+    fileUrl: {
+      type: String,
+      default: ''
+    },
+    fileType: {
       type: String,
       default: ''
     },
@@ -59,10 +74,46 @@ const certificateRequestSchema = new mongoose.Schema({
       type: Date
     }
   },
-  staffAssigned: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Staff'
-  },
+  // Lịch sử xử lý
+  processingHistory: [{
+    status: {
+      type: String,
+      enum: ['ĐANG XỬ LÝ', 'HỢP LỆ', 'KHÔNG HỢP LỆ']
+    },
+    staffId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Staff'
+    },
+    notes: {
+      type: String,
+      trim: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // Lịch sử hoạt động của Staff (tracking mọi thao tác: thêm file, sửa ghi chú, etc.)
+  activityLog: [{
+    action: {
+      type: String,
+      enum: ['ADD_FILE', 'UPDATE_FILE', 'DELETE_FILE', 'ADD_NOTE', 'UPDATE_NOTE', 'APPROVE', 'REJECT'],
+      required: true
+    },
+    staffId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Staff',
+      required: true
+    },
+    details: {
+      type: String,
+      trim: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   // Thông tin xử lý
   processingInfo: {
     assignedDate: {
@@ -88,18 +139,5 @@ certificateRequestSchema.index({ student: 1 });
 certificateRequestSchema.index({ status: 1 });
 certificateRequestSchema.index({ certificateType: 1 });
 certificateRequestSchema.index({ certificateName: 1 });
-
-// Generate request code before save
-certificateRequestSchema.pre('save', async function(next) {
-  if (!this.requestCode) {
-    try {
-      const count = await this.constructor.countDocuments();
-      this.requestCode = String(count + 1).padStart(8, '0');
-    } catch (error) {
-      return next(error);
-    }
-  }
-  next();
-});
 
 module.exports = mongoose.model('CertificateRequest', certificateRequestSchema);

@@ -1,0 +1,34 @@
+# Dependencies (will be installed in Docker)
+node_modules
+npm-debug.log
+
+# Environment files (use Cloud Run env vars)
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Documentation
+README.md
+*.md
+
+# Test files
+__tests__
+*.test.js
+coverage
+
+# Uploads (use Cloud Storage in production)
+uploads/*
+!uploads/.gitkeep
+
+# Firebase key (use IAM on Cloud Run)
+src/config/firebase-service-account.json
+
+# Scripts (not needed in production)
+scripts/

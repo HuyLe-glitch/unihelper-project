@@ -1,0 +1,113 @@
+/* ============================================
+   QUICK REPLIES
+   ============================================ */
+
+.quick-replies {
+  padding: 6px 12px 8px;
+  background: transparent;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Scrollbar luôn hiện, màu nhẹ */
+.quick-replies::-webkit-scrollbar {
+  height: 3px;
+  display: block;
+}
+
+.quick-replies::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.quick-replies::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.4);
+  border-radius: 3px;
+}
+
+/* Firefox scrollbar - luôn hiện */
+.quick-replies {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.4) rgba(0, 0, 0, 0.05);
+}
+
+.quick-replies-container {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: max-content;
+}
+
+/* Quick Reply Button */
+.quick-reply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: none;
+  width: auto;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* Label - đảm bảo hiển thị đầy đủ */
+.quick-reply-label {
+  line-height: 1.2;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+  max-width: none;
+}
+
+.quick-reply-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.quick-reply-btn:active {
+  transform: translateY(0);
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.quick-reply-btn:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Icon */
+.quick-reply-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .quick-replies {
+    padding: 6px 12px 0;
+  }
+
+  .quick-reply-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+

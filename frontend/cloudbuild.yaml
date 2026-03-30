@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=https://unihelper-backend-715097834178.asia-southeast1.run.app/api'
+      - '-t'
+      - 'gcr.io/unihelper-lkxr/unihelper-frontend'
+      - '.'
+images:
+  - 'gcr.io/unihelper-lkxr/unihelper-frontend'

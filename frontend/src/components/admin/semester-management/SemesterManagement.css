@@ -1,0 +1,1467 @@
+/* ============================================
+   SEMESTER MANAGEMENT - FULL WIDTH DESIGN
+   ============================================ */
+
+/* Container - Full width responsive pattern */
+.semester-management {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: -250px;
+  padding-left: 280px;
+  padding-right: 50px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.main-content.sidebar-collapsed .semester-management {
+  margin-left: -70px;
+  padding-left: 100px;
+}
+
+/* Loading State */
+.semester-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   PAGE HEADER
+   ============================================ */
+.page-header {
+  margin-bottom: 25px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+/* ============================================
+   CURRENT SEMESTER CARD
+   ============================================ */
+.current-semester-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 6px solid #10b981;
+  position: relative;
+  overflow: hidden;
+}
+
+.current-semester-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #10b98120 0%, #10b98105 100%);
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.current-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #9ca3af;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.current-name {
+  font-size: 36px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+}
+
+.current-details {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.current-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: #6c757d;
+}
+
+.time-icon {
+  font-size: 20px;
+}
+
+.time-text {
+  font-weight: 500;
+}
+
+.current-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.active-badge {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   TABLE SECTION - FULL WIDTH WITH HORIZONTAL SCROLL
+   ============================================ */
+.table-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 25px 30px;
+  background: white;
+  border-bottom: 2px solid #f1f3f5;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  font-size: 18px;
+  color: #9ca3af;
+  z-index: 1;
+}
+
+.search-input {
+  flex: 1;
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  background: #f8f9fa;
+  font-size: 15px;
+  color: #2c3e50;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-input::placeholder {
+  color: #adb5bd;
+}
+
+/* Table Container - Allow horizontal scroll */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+/* Custom scrollbar */
+.table-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f3f5;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #adb5bd;
+  border-radius: 5px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #868e96;
+}
+
+.semester-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+  table-layout: fixed;
+}
+
+/* Column widths */
+.semester-table th:nth-child(1),
+.semester-table td:nth-child(1) {
+  width: 22%;
+}
+
+.semester-table th:nth-child(2),
+.semester-table td:nth-child(2) {
+  width: 10%;
+}
+
+.semester-table th:nth-child(3),
+.semester-table td:nth-child(3) {
+  width: 12%;
+}
+
+.semester-table th:nth-child(4),
+.semester-table td:nth-child(4) {
+  width: 22%;
+}
+
+.semester-table th:nth-child(5),
+.semester-table td:nth-child(5) {
+  width: 16%;
+}
+
+.semester-table th:nth-child(6),
+.semester-table td:nth-child(6) {
+  width: 18%;
+}
+
+/* Table Header */
+.semester-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.semester-table thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.semester-table th.th-center {
+  text-align: center;
+}
+
+.semester-table th.th-right {
+  text-align: right;
+}
+
+/* Table Body */
+.semester-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.semester-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.semester-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.semester-table td {
+  padding: 18px 20px;
+  font-size: 15px;
+  color: #495057;
+  vertical-align: middle;
+}
+
+.semester-table td.td-left {
+  text-align: left;
+}
+
+.semester-table td.td-center {
+  text-align: center;
+}
+
+.semester-table td.td-right {
+  text-align: right;
+}
+
+.semester-name {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.edit-btn:hover {
+  background: #c7d2fe;
+  transform: scale(1.1);
+}
+
+.delete-btn {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #fecaca;
+  transform: scale(1.1);
+}
+
+.delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* No Data */
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-data-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.no-data-icon {
+  font-size: 64px;
+  opacity: 0.5;
+}
+
+.no-data-content p {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 20px 30px;
+  background: white;
+  border-top: 1px solid #e9ecef;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8f9fa;
+}
+
+.page-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  padding: 0 6px;
+  color: #9ca3af;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  border-bottom: 2px solid #f1f3f5;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f1f3f5;
+  border-radius: 8px;
+  font-size: 20px;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #2c3e50;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+/* Input Section */
+.input-section {
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.form-select,
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #2c3e50;
+  background: white;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-select:focus,
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Preview Section */
+.preview-section {
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 2px dashed #dee2e6;
+}
+
+.preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #495057;
+  margin: 0 0 18px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-label {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-value {
+  font-size: 15px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  margin-bottom: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.checkbox-text {
+  font-size: 15px;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 30px;
+  border-top: 2px solid #f1f3f5;
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.btn-cancel:hover {
+  background: #dee2e6;
+  color: #495057;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .semester-management {
+    margin-left: -70px;
+    padding-left: 90px;
+    padding-right: 20px;
+  }
+
+  .main-content.sidebar-collapsed .semester-management {
+    margin-left: -70px;
+    padding-left: 90px;
+  }
+
+  /* Mobile overlay mode */
+  .main-content.mobile .semester-management {
+    margin-left: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .current-name {
+    font-size: 30px;
+  }
+
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-content {
+    padding: 20px 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .current-semester-card {
+    padding: 24px;
+  }
+}
+
+/* Mobile (max 768px) */
+@media (max-width: 768px) {
+  .semester-management {
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .main-content.sidebar-collapsed .semester-management,
+  .main-content.mobile .semester-management {
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .header-content {
+    padding: 18px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .current-semester-card {
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .current-semester-card::before {
+    width: 100px;
+    height: 100px;
+  }
+
+  .current-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .current-name {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .current-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .current-time {
+    font-size: 14px;
+  }
+
+  .current-badge {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .table-section {
+    margin-bottom: 20px;
+    border-radius: 10px;
+  }
+
+  .toolbar {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .search-box {
+    max-width: 100%;
+    min-width: unset;
+  }
+
+  .search-input {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .semester-table {
+    min-width: 700px;
+  }
+
+  .semester-table thead th {
+    padding: 12px 14px;
+    font-size: 11px;
+  }
+
+  .semester-table td {
+    padding: 14px;
+    font-size: 13px;
+  }
+
+  .semester-name {
+    font-size: 14px;
+  }
+
+  .semester-type-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    font-size: 11px;
+    min-width: 100px;
+  }
+
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  /* Delete Dialog Mobile */
+  .delete-dialog {
+    width: 94%;
+    max-width: 360px;
+  }
+
+  .delete-dialog-header {
+    padding: 16px 20px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 1rem;
+  }
+
+  .delete-dialog-content {
+    padding: 16px 20px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 0.9rem;
+  }
+
+  .delete-dialog-actions {
+    padding: 14px 20px;
+    flex-direction: column;
+  }
+
+  .delete-dialog-actions .btn {
+    width: 100%;
+    padding: 12px;
+  }
+
+  /* Toast Mobile */
+  .toast-notification {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 20px !important;
+    max-width: none !important;
+  }
+}
+
+/* Small Mobile (max 480px) */
+@media (max-width: 480px) {
+  .semester-management {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-top: 16px;
+  }
+
+  .header-content {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .add-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .current-semester-card {
+    padding: 16px 14px;
+  }
+
+  .current-label {
+    font-size: 9px;
+    margin-bottom: 8px;
+  }
+
+  .current-name {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .current-time {
+    font-size: 12px;
+  }
+
+  .time-icon {
+    font-size: 16px;
+  }
+
+  .current-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .toolbar {
+    padding: 12px;
+  }
+
+  .search-input {
+    height: 40px;
+    padding: 10px 14px 10px 40px;
+    font-size: 13px;
+  }
+
+  .search-icon {
+    left: 12px;
+    font-size: 16px;
+  }
+
+  .semester-table {
+    min-width: 600px;
+  }
+
+  .semester-table thead th {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .semester-table td {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .semester-name {
+    font-size: 13px;
+  }
+
+  .semester-type-badge {
+    padding: 4px 8px;
+    font-size: 10px;
+    min-width: 40px;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    min-width: 90px;
+  }
+
+  .action-buttons {
+    gap: 6px;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .pagination {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+
+  .page-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  /* Delete Dialog Small Mobile */
+  .delete-dialog {
+    width: 96%;
+    max-width: none;
+  }
+
+  .delete-dialog-header {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-header .delete-icon {
+    font-size: 24px;
+  }
+
+  .delete-dialog-header h3 {
+    font-size: 0.95rem;
+  }
+
+  .delete-dialog-content {
+    padding: 14px 16px;
+  }
+
+  .delete-dialog-content p {
+    font-size: 0.85rem;
+  }
+
+  .delete-warning-text {
+    font-size: 0.8rem !important;
+  }
+
+  .delete-dialog-actions {
+    padding: 12px 16px;
+  }
+
+  .delete-dialog-actions .btn {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .no-data-icon {
+    font-size: 48px;
+  }
+
+  .no-data-content p {
+    font-size: 14px;
+  }
+
+  .current-name {
+    font-size: 22px;
+  }
+
+  .current-time {
+    font-size: 14px;
+  }
+
+  .toolbar {
+    padding: 16px;
+  }
+
+  .semester-table {
+    min-width: 700px;
+  }
+}
+
+/* ============================================
+   ADDITIONAL STYLES - NEW COMPONENTS
+   ============================================ */
+
+/* Semester Type Badge */
+.semester-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 45px;
+}
+
+/* Activate Button */
+.action-btn.activate-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+}
+
+.action-btn.activate-btn:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 30px !important;
+  left: auto !important;
+  top: auto !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px !important;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  animation: slideInRight 0.3s ease;
+  max-width: 400px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: auto !important;
+}
+
+.toast-notification.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.toast-notification.error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.toast-icon {
+  font-size: 18px;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   Delete Confirmation Dialog (giống FacultyMajor)
+   ======================================== */
+.delete-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.delete-dialog {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.delete-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.delete-dialog-header .delete-icon {
+  font-size: 28px;
+}
+
+.delete-dialog-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #991b1b;
+}
+
+.delete-dialog-content {
+  padding: 20px 24px;
+}
+
+.delete-dialog-content p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.delete-dialog-content strong {
+  color: #111827;
+}
+
+.delete-warning-text {
+  margin-top: 12px !important;
+  font-size: 0.85rem !important;
+  color: #dc2626 !important;
+}
+
+.delete-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0 0 16px 16px;
+}
+
+.delete-dialog-actions .btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.delete-dialog-actions .btn-outline {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.delete-dialog-actions .btn-outline:hover {
+  background: #f3f4f6;
+}
+
+.delete-dialog-actions .btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.delete-dialog-actions .btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Delete Error Styles */
+.delete-error-content {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.delete-error-message {
+  color: #dc2626;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.delete-error-hint {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.delete-dialog-actions .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.delete-dialog-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.delete-dialog-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}

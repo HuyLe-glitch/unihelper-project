@@ -1,167 +1,308 @@
-import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService, staffService } from '../../../services';
+import SDCustomDropdown from './SDCustomDropdown';
 import './StaffDashboard.css';
-import { CTSV_REQUESTS, TTX_REQUESTS } from '../mockData';
 
 const STATUS_LABELS = {
   processing: 'Đang xử lý',
-  approved: 'Đã duyệt',
-  'needs-update': 'Cần bổ sung',
-  'pending-confirmation': 'Chờ xác nhận',
-  assigned: 'Đã xếp phòng',
-  rejected: 'Từ chối',
+  approved: 'Đã hoàn thành',
+  rejected: 'Đã từ chối',
 };
 
 const StaffDashboard = () => {
-  const stats = useMemo(() => {
-    const ctsvProcessing = CTSV_REQUESTS.filter((item) => item.status === 'processing').length;
-    const ttxProcessing = TTX_REQUESTS.filter((item) => item.status === 'processing').length;
-    const totalToday = CTSV_REQUESTS.concat(TTX_REQUESTS).filter(
-      (item) => item.submittedAt === '2024-10-12',
-    ).length;
+  const navigate = useNavigate();
+  
+  // Get staff type from localStorage
+  const staffType = authService.getStaffType();
+  const isCTSV = staffType === 'CTSV';
+  const isKTX = staffType === 'KTX';
 
-    return {
-      totalCtsv: CTSV_REQUESTS.length,
-      totalTtx: TTX_REQUESTS.length,
-      ctsvProcessing,
-      ttxProcessing,
-      totalToday,
-    };
-  }, []);
+  // State
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [stats, setStats] = useState({
+    total: 0,
+    processing: 0,
+    approved: 0,
+    rejected: 0
+  });
+  const [requests, setRequests] = useState([]);
 
-  const quickLinks = [
-    {
-      title: 'Yêu cầu CTSV',
-      description: 'Tra cứu, duyệt chứng nhận',
-      to: '/staff/cts-requests',
-      icon: '📑',
-    },
-    {
-      title: 'Yêu cầu KTX',
-      description: 'Quản lý ký túc xá',
-      to: '/staff/ktx-requests',
-      icon: '🏠',
-    },
-    {
-      title: 'Lịch sử xử lý',
-      description: 'Theo dõi hoạt động gần đây',
-      to: '/staff/history',
-      icon: '🕓',
-    },
-    {
-      title: 'Phòng ban',
-      description: 'Thông tin liên hệ nội bộ',
-      to: '/staff/department',
-      icon: '🏢',
-    },
-  ];
+  // Fetch dashboard data
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  const recentItems = useMemo(
-    () =>
-      CTSV_REQUESTS.slice(0, 3).map((item) => ({
-        ...item,
-        type: 'CTS',
-      })),
-    [],
-  );
+      let response;
+      if (isCTSV) {
+        response = await staffService.getCtsvDashboard({ 
+          limit: 10, 
+          status: filterStatus !== 'all' ? filterStatus : null 
+        });
+      } else if (isKTX) {
+        response = await staffService.getKtxDashboard({ 
+          limit: 10, 
+          status: filterStatus !== 'all' ? filterStatus : null 
+        });
+      }
+
+      if (response?.success && response?.data) {
+        setStats(response.data.stats || {
+          total: 0,
+          processing: 0,
+          approved: 0,
+          rejected: 0
+        });
+        setRequests(response.data.recentRequests || []);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard:', err);
+      setError('Không thể tải dữ liệu dashboard. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  }, [isCTSV, isKTX, filterStatus]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  // Get status badge class
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'processing': return 'status-processing';
+      case 'approved': return 'status-approved';
+      case 'rejected': return 'status-rejected';
+      default: return 'status-default';
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="staff-dashboard">
+        <div className="dashboard-loading">
+          <div className="loading-spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="staff-dashboard">
+        <div className="dashboard-error">
+          <div className="error-icon">⚠️</div>
+          <p>{error}</p>
+          <button onClick={fetchDashboard} className="retry-button">
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="staff-dashboard">
-      <section className="search-wrapper">
-        <form className="search-inline">
-          <div className="search-control icon">
-            <span className="search-icon">🔍</span>
-            <input type="text" placeholder="Tìm kiếm yêu cầu, sinh viên..." />
-          </div>
-          <div className="search-control select">
-            <label htmlFor="search-type" className="sr-only">
-              Loại tra cứu
-            </label>
-            <select id="search-type" defaultValue="all">
-              <option value="all">Tất cả</option>
-              <option value="cts">Yêu cầu CTSV</option>
-              <option value="ktx">Yêu cầu KTX</option>
-              <option value="history">Lịch sử xử lý</option>
-            </select>
-          </div>
-          <button type="button" className="btn primary">
-            Tra cứu
-          </button>
-        </form>
-      </section>
+      {/* Header */}
+      <div className="dashboard-header">
+        <div>
+          <h1 className="page-title">
+            Dashboard {isCTSV ? 'CTSV' : 'KTX'}
+          </h1>
+          <p className="page-subtitle">
+            Tổng quan và quản lý yêu cầu {isCTSV ? 'Công tác Sinh viên' : 'Ký túc xá'}
+          </p>
+        </div>
+      </div>
 
-      <section className="stats-and-recent">
-        <div className="stats-row">
-          <div className="stats-cards-row">
-            <div className="stat-card highlight">
-              <div className="stat-icon">📑</div>
-              <div className="stat-details">
-                <p className="stat-label">Yêu cầu CTSV</p>
-                <p className="stat-number">{stats.totalCtsv}</p>
-                <span className="stat-meta">{stats.ctsvProcessing} đang xử lý</span>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">🏠</div>
-              <div className="stat-details">
-                <p className="stat-label">Yêu cầu KTX</p>
-                <p className="stat-number">{stats.totalTtx}</p>
-                <span className="stat-meta">{stats.ttxProcessing} đang xử lý</span>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon">📝</div>
-              <div className="stat-details">
-                <p className="stat-label">Phát sinh trong ngày</p>
-                <p className="stat-number">{stats.totalToday}</p>
-                <span className="stat-meta">Ngày 12/10/2024</span>
-              </div>
-            </div>
+      {/* KPI Cards */}
+      <div className="kpi-cards-grid">
+        <div className="kpi-card kpi-total">
+          <div className="kpi-icon">📊</div>
+          <div className="kpi-content">
+            <h3 className="kpi-label">Tổng số yêu cầu</h3>
+            <div className="kpi-value">{stats.total}</div>
           </div>
         </div>
 
-        <article className="panel stats-row__panel">
-          <div className="panel__heading">
-            <h2>Yêu cầu CTSV gần đây</h2>
-            <Link to="/staff/cts-requests" className="panel__link">
-              Xem tất cả
-            </Link>
+        <div className="kpi-card kpi-processing">
+          <div className="kpi-icon">⏳</div>
+          <div className="kpi-content">
+            <h3 className="kpi-label">Đang xử lý</h3>
+            <div className="kpi-value">{stats.processing}</div>
           </div>
-          <ul className="item-list">
-            {recentItems.map((item) => (
-              <li key={item.id} className="item-list__item">
-                <div>
-                  <p className="item-list__title">{item.student}</p>
-                  <p className="item-list__meta">
-                    {item.id} • {STATUS_LABELS[item.status] || item.status}
-                  </p>
-                </div>
-                <div className="item-list__status">
-                  <span className="item-list__date">{item.submittedAt}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </article>
-      </section>
-
-      <section className="panel panel--links">
-        <h2>Tác vụ nhanh</h2>
-        <div className="quick-links">
-          {quickLinks.map((link) => (
-            <Link key={link.title} to={link.to} className="quick-link-card">
-              <div className="quick-link-icon">{link.icon}</div>
-              <div className="quick-link-content">
-                <p className="quick-link-title">{link.title}</p>
-                <p className="quick-link-description">{link.description}</p>
-              </div>
-              <span className="quick-link-arrow">→</span>
-            </Link>
-          ))}
         </div>
-      </section>
+
+        <div className="kpi-card kpi-approved">
+          <div className="kpi-icon">✅</div>
+          <div className="kpi-content">
+            <h3 className="kpi-label">Đã hoàn thành</h3>
+            <div className="kpi-value">{stats.approved}</div>
+          </div>
+        </div>
+
+        <div className="kpi-card kpi-rejected">
+          <div className="kpi-icon">❌</div>
+          <div className="kpi-content">
+            <h3 className="kpi-label">Đã từ chối</h3>
+            <div className="kpi-value">{stats.rejected}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Requests Table */}
+      <div className="table-section">
+        <div className="table-header-row">
+          <h3 className="table-title">
+            Yêu cầu {isCTSV ? 'CTSV' : 'KTX'} gần đây
+          </h3>
+          <div className="table-filters">
+            <SDCustomDropdown
+              value={filterStatus}
+              onChange={(value) => setFilterStatus(value)}
+              options={[
+                { value: 'all', label: 'Tất cả trạng thái' },
+                { value: 'processing', label: 'Đang xử lý' },
+                { value: 'approved', label: 'Đã hoàn thành' },
+                { value: 'rejected', label: 'Đã từ chối' }
+              ]}
+              placeholder="Chọn trạng thái"
+            />
+          </div>
+        </div>
+
+        <div className="table-container">
+          {requests.length === 0 ? (
+            <div className="no-data">
+              <div className="no-data-icon">📭</div>
+              <p>Không có yêu cầu nào</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <table className="requests-table desktop-table">
+                <thead>
+                  <tr>
+                    <th>Mã YC</th>
+                    <th>Sinh viên</th>
+                    {isCTSV && (
+                      <>
+                        <th>Loại chứng nhận</th>
+                        <th>Tên chứng nhận</th>
+                      </>
+                    )}
+                    {isKTX && (
+                      <>
+                        <th>Danh mục</th>
+                        <th>Thiết bị</th>
+                        <th>Phòng</th>
+                      </>
+                    )}
+                    <th>Ngày gửi</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map((request) => (
+                    <tr key={request._id || request.id} onClick={() => navigate('/staff/requests')}>
+                      <td><strong className="request-id">{request.id}</strong></td>
+                      <td>
+                        <div>{request.student}</div>
+                        <small className="student-id-text">({request.studentEmail})</small>
+                      </td>
+                      {isCTSV && (
+                        <>
+                          <td>{request.certificateType}</td>
+                          <td>{request.certificateName}</td>
+                        </>
+                      )}
+                      {isKTX && (
+                        <>
+                          <td>{request.category}</td>
+                          <td>{request.item}</td>
+                          <td>{request.room}</td>
+                        </>
+                      )}
+                      <td>{request.submittedAt}</td>
+                      <td>
+                        <span className={`status-badge ${getStatusClass(request.status)}`}>
+                          {STATUS_LABELS[request.status] || request.statusOriginal}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Mobile Cards */}
+              <div className="mobile-cards">
+                {requests.map((request) => (
+                  <div 
+                    key={request._id || request.id} 
+                    className="mobile-request-card"
+                    onClick={() => navigate('/staff/requests')}
+                  >
+                    <div className="mobile-card-header">
+                      <span className="mobile-request-id">{request.id}</span>
+                      <span className={`status-badge ${getStatusClass(request.status)}`}>
+                        {STATUS_LABELS[request.status] || request.statusOriginal}
+                      </span>
+                    </div>
+                    <div className="mobile-card-body">
+                      <div className="mobile-info-row">
+                        <span className="mobile-label">👤 Sinh viên:</span>
+                        <span className="mobile-value">{request.student}</span>
+                      </div>
+                      <div className="mobile-info-row mobile-email">
+                        <span className="mobile-value-small">{request.studentEmail}</span>
+                      </div>
+                      {isCTSV && (
+                        <>
+                          <div className="mobile-info-row">
+                            <span className="mobile-label">📋 Loại:</span>
+                            <span className="mobile-value">{request.certificateType}</span>
+                          </div>
+                          <div className="mobile-info-row">
+                            <span className="mobile-label">📄 Tên:</span>
+                            <span className="mobile-value">{request.certificateName}</span>
+                          </div>
+                        </>
+                      )}
+                      {isKTX && (
+                        <>
+                          <div className="mobile-info-row">
+                            <span className="mobile-label">🔧 Danh mục:</span>
+                            <span className="mobile-value">{request.category}</span>
+                          </div>
+                          <div className="mobile-info-row">
+                            <span className="mobile-label">🛠️ Thiết bị:</span>
+                            <span className="mobile-value">{request.item}</span>
+                          </div>
+                          <div className="mobile-info-row">
+                            <span className="mobile-label">🏠 Phòng:</span>
+                            <span className="mobile-value">{request.room}</span>
+                          </div>
+                        </>
+                      )}
+                      <div className="mobile-info-row">
+                        <span className="mobile-label">📅 Ngày gửi:</span>
+                        <span className="mobile-value">{request.submittedAt}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

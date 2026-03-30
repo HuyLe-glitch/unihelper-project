@@ -34,22 +34,46 @@ const handleJWTExpiredError = () =>
 
 // Gửi lỗi trong môi trường development
 const sendErrorDev = (err, res) => {
-  res.status(err.statusCode).json({
+  const response = {
     status: err.status,
     error: err,
     message: err.message,
     stack: err.stack
-  });
+  };
+  
+  // Thêm field nếu có (cho inline validation)
+  if (err.field) {
+    response.field = err.field;
+  }
+  
+  // Thêm errors array nếu có (cho batch validation)
+  if (err.errors) {
+    response.errors = err.errors;
+  }
+  
+  res.status(err.statusCode).json(response);
 };
 
 // Gửi lỗi trong môi trường production
 const sendErrorProd = (err, res) => {
   // Lỗi có thể kiểm soát được: gửi message cho client
   if (err.isOperational) {
-    res.status(err.statusCode).json({
+    const response = {
       status: err.status,
       message: err.message
-    });
+    };
+    
+    // Thêm field nếu có (cho inline validation)
+    if (err.field) {
+      response.field = err.field;
+    }
+    
+    // Thêm errors array nếu có (cho batch validation)
+    if (err.errors) {
+      response.errors = err.errors;
+    }
+    
+    res.status(err.statusCode).json(response);
   } else {
     // Lỗi programming: không tiết lộ chi tiết cho client
     console.error('ERROR 💥', err);

@@ -1,459 +1,688 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts';
+import { useAuthContext } from '../../../contexts/AuthContext';
+import { 
+  reportsService, 
+  generateMonthsInSemester, 
+  generateWeeksInSemester,
+  getChartGranularity,
+  findCurrentPeriod,
+  findCurrentSemester
+} from '../../../services/reports';
+import SRCustomDropdown from './SRCustomDropdown';
 import './StaffReports.css';
 
-// Mock data cho demo
-const mockData = {
-  kpi: {
-    totalRequests: 1248,
-    processed: 1156,
-    pending: 92
-  },
-  trendData: [
-    { date: '2024-11-01', new: 45, approved: 38, rejected: 5 },
-    { date: '2024-11-02', new: 52, approved: 41, rejected: 7 },
-    { date: '2024-11-03', new: 38, approved: 45, rejected: 3 },
-    { date: '2024-11-04', new: 61, approved: 52, rejected: 8 },
-    { date: '2024-11-05', new: 49, approved: 47, rejected: 6 },
-    { date: '2024-11-06', new: 55, approved: 49, rejected: 4 },
-    { date: '2024-11-07', new: 43, approved: 51, rejected: 5 },
-  ],
-  requestTypeDistribution: [
-    { type: 'Yêu cầu CTSV', count: 748, percentage: 60 },
-    { type: 'Yêu cầu KTX', count: 374, percentage: 30 },
-    { type: 'Yêu cầu khác', count: 126, percentage: 10 }
-  ],
-  statusDistribution: [
-    { status: 'Đã duyệt', count: 923, percentage: 80 },
-    { status: 'Bị từ chối', count: 233, percentage: 20 }
-  ],
-  topStaff: [
-    { name: 'Nguyễn Văn An', processed: 156, department: 'CTSV' },
-    { name: 'Trần Thị Bình', processed: 142, department: 'KTX' },
-    { name: 'Lê Hoàng Nam', processed: 128, department: 'CTSV' },
-    { name: 'Phạm Minh Châu', processed: 115, department: 'KTX' },
-    { name: 'Võ Thị Dung', processed: 98, department: 'CTSV' }
-  ],
-  staffDetails: [
-    { 
-      name: 'Nguyễn Văn An', 
-      position: 'Chuyên viên CTSV', 
-      totalProcessed: 156, 
-      pending: 8
-    },
-    { 
-      name: 'Trần Thị Bình', 
-      position: 'Chuyên viên KTX', 
-      totalProcessed: 142, 
-      pending: 12
-    },
-    { 
-      name: 'Lê Hoàng Nam', 
-      position: 'Chuyên viên CTSV', 
-      totalProcessed: 128, 
-      pending: 6
-    },
-    { 
-      name: 'Phạm Minh Châu', 
-      position: 'Chuyên viên KTX', 
-      totalProcessed: 115, 
-      pending: 15
-    },
-    { 
-      name: 'Võ Thị Dung', 
-      position: 'Trưởng phòng CTSV', 
-      totalProcessed: 98, 
-      pending: 4
-    }
-  ]
+// Màu cho biểu đồ
+const CHART_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#6B7280'];
+
+// CTSV status colors
+const STATUS_COLORS_CTSV = {
+  'Đã duyệt': '#10B981',
+  'Bị từ chối': '#EF4444',
+  'Đang chờ': '#F59E0B'
+};
+
+// KTX status colors - Trạng thái báo cáo sự cố
+const STATUS_COLORS_KTX = {
+  'Đã gửi': '#F59E0B',      // Pending - Sinh viên gửi yêu cầu
+  'Tiếp nhận': '#3B82F6',   // Under Review - Staff tiếp nhận
+  'Hoàn thành': '#10B981'   // Approved - Đã hoàn thành xử lý
 };
 
 const StaffReports = () => {
-  const [filters, setFilters] = useState({
-    timeRange: 'month',
-    customDate: { start: '', end: '' },
-    staff: 'all'
-  });
+  const { user } = useAuthContext();
   
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  // Xác định module dựa trên staffType của user
+  // staffType được set từ auth service khi login: 'CTSV' hoặc 'KTX'
+  const staffModule = user?.staffType || 'CTSV'; // Mặc định là CTSV nếu không xác định được
 
-  const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: value
-    }));
-  };
+  // ==================== STATE ====================
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Filters state
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState(null);
+  const [viewType, setViewType] = useState('all'); // 'all' | 'month' | 'week' | 'custom'
+  const [availableMonths, setAvailableMonths] = useState([]);
+  const [availableWeeks, setAvailableWeeks] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  // Report data state
+  const [reportData, setReportData] = useState(null);
 
-  const getSortedData = () => {
-    if (!sortConfig.key) return mockData.staffDetails;
-    
-    return [...mockData.staffDetails].sort((a, b) => {
-      if (sortConfig.key === 'totalProcessed' || sortConfig.key === 'pending') {
-        return sortConfig.direction === 'asc' 
-          ? a[sortConfig.key] - b[sortConfig.key]
-          : b[sortConfig.key] - a[sortConfig.key];
+  // ==================== FETCH SEMESTERS ====================
+  useEffect(() => {
+    const fetchSemesters = async () => {
+      try {
+        const response = await reportsService.getAllSemesters();
+        if (response.success && response.data.length > 0) {
+          setSemesters(response.data);
+          
+          // Tìm học kỳ hiện tại hoặc lấy học kỳ đầu tiên
+          const currentSem = findCurrentSemester(response.data);
+          setSelectedSemester(currentSem);
+        }
+      } catch (err) {
+        console.error('Error fetching semesters:', err);
+        setError('Không thể tải danh sách học kỳ');
       }
+    };
+
+    fetchSemesters();
+  }, []);
+
+  // ==================== GENERATE MONTHS/WEEKS KHI CHỌN HỌC KỲ ====================
+  useEffect(() => {
+    if (selectedSemester) {
+      const months = generateMonthsInSemester(selectedSemester.startDate, selectedSemester.endDate);
+      const weeks = generateWeeksInSemester(selectedSemester.startDate, selectedSemester.endDate);
       
-      return sortConfig.direction === 'asc'
-        ? a[sortConfig.key].localeCompare(b[sortConfig.key])
-        : b[sortConfig.key].localeCompare(a[sortConfig.key]);
-    });
+      setAvailableMonths(months);
+      setAvailableWeeks(weeks);
+      
+      // Set default values
+      const currentMonth = findCurrentPeriod(months);
+      const currentWeek = findCurrentPeriod(weeks);
+      
+      setSelectedMonth(currentMonth);
+      setSelectedWeek(currentWeek);
+      
+      // Reset custom dates
+      setCustomStartDate(selectedSemester.startDate.split('T')[0]);
+      setCustomEndDate(selectedSemester.endDate.split('T')[0]);
+    }
+  }, [selectedSemester]);
+
+  // ==================== FETCH REPORT DATA ====================
+  const fetchReportData = useCallback(async () => {
+    if (!selectedSemester) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Xác định date range dựa trên viewType
+      let startDate, endDate;
+      
+      switch (viewType) {
+        case 'month':
+          if (selectedMonth) {
+            startDate = selectedMonth.startDate;
+            endDate = selectedMonth.endDate;
+          }
+          break;
+        case 'week':
+          if (selectedWeek) {
+            startDate = selectedWeek.startDate;
+            endDate = selectedWeek.endDate;
+          }
+          break;
+        case 'custom':
+          startDate = customStartDate;
+          endDate = customEndDate;
+          break;
+        default: // 'all'
+          startDate = selectedSemester.startDate.split('T')[0];
+          endDate = selectedSemester.endDate.split('T')[0];
+      }
+
+      if (!startDate || !endDate) {
+        setLoading(false);
+        return;
+      }
+
+      // Xác định granularity cho chart
+      const granularity = getChartGranularity(startDate, endDate);
+
+      // Gọi API tương ứng với module
+      const response = staffModule === 'KTX' 
+        ? await reportsService.getKTXReport({ startDate, endDate, granularity })
+        : await reportsService.getCTSVReport({ startDate, endDate, granularity });
+
+      if (response.success) {
+        setReportData(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching report:', err);
+      setError('Không thể tải dữ liệu báo cáo');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedSemester, viewType, selectedMonth, selectedWeek, customStartDate, customEndDate, staffModule]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
+
+  // ==================== HANDLERS ====================
+  const handleSemesterChange = (semId) => {
+    const semester = semesters.find(s => s._id === semId);
+    setSelectedSemester(semester);
+    setViewType('all'); // Reset về toàn bộ HK
   };
+
+  const handleViewTypeChange = (type) => {
+    setViewType(type);
+  };
+
+  const handleMonthChange = (monthValue) => {
+    const month = availableMonths.find(m => m.value === monthValue);
+    setSelectedMonth(month);
+  };
+
+  const handleWeekChange = (weekValue) => {
+    const week = availableWeeks.find(w => w.value === parseInt(weekValue));
+    setSelectedWeek(week);
+  };
+
+  // ==================== FORMAT HELPERS ====================
+  const formatChange = (value) => {
+    if (value === 0) return '0%';
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value}%`;
+  };
+
+  const getChangeClass = (value) => {
+    if (value > 0) return 'positive';
+    if (value < 0) return 'negative';
+    return 'neutral';
+  };
+
+  // Transform KTX status distribution: hiển thị Chờ tiếp nhận, Đã hoàn thành, Tổng đã tiếp nhận
+  const getTransformedStatusDistribution = () => {
+    if (!reportData?.statusDistribution) return [];
+    
+    if (staffModule === 'KTX') {
+      // Tìm các status
+      const pending = reportData.statusDistribution.find(s => s.status === 'Đã gửi');
+      const underReview = reportData.statusDistribution.find(s => s.status === 'Tiếp nhận');
+      const approved = reportData.statusDistribution.find(s => s.status === 'Hoàn thành');
+      
+      // Tính tổng đã tiếp nhận = underReview + approved
+      const receivedCount = (underReview?.count || 0) + (approved?.count || 0);
+      const total = (pending?.count || 0) + receivedCount;
+      
+      return [
+        {
+          status: 'Chờ tiếp nhận',
+          count: pending?.count || 0,
+          percentage: total > 0 ? Math.round(((pending?.count || 0) / total) * 100) : 0
+        },
+        {
+          status: 'Đã hoàn thành',
+          count: approved?.count || 0,
+          percentage: total > 0 ? Math.round(((approved?.count || 0) / total) * 100) : 0
+        },
+        {
+          status: 'Tổng đã tiếp nhận',
+          count: receivedCount,
+          percentage: total > 0 ? Math.round((receivedCount / total) * 100) : 0
+        }
+      ];
+    }
+    
+    return reportData.statusDistribution;
+  };
+
+  // ==================== RENDER ====================
+  if (loading && !reportData) {
+    return (
+      <div className="staff-reports">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải dữ liệu báo cáo...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !reportData) {
+    return (
+      <div className="staff-reports">
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={fetchReportData}>Thử lại</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="staff-reports">
       {/* HEADER */}
       <div className="reports-header">
-        <h1>Báo cáo Hiệu suất Xử lý Yêu cầu</h1>
-        <p>Tổng quan tình hình xử lý yêu cầu và hiệu suất làm việc</p>
+        <h1>Báo cáo {staffModule === 'KTX' ? 'Ký túc xá' : 'Công tác sinh viên'}</h1>
+        <p>{staffModule === 'KTX' 
+          ? 'Tổng quan tình hình xử lý báo cáo sự cố thiết bị' 
+          : 'Tổng quan tình hình xử lý yêu cầu và thống kê'}</p>
       </div>
 
-      {/* BỘ LỌC CHÍNH */}
-      <div className="global-filters">
-        <div className="filters-row">
-          {/* Chọn thời gian nhanh */}
-          <div className="filter-group">
-            <label>Thời gian</label>
-            <div className="segmented-control">
-              <button 
-                className={filters.timeRange === 'week' ? 'active' : ''}
-                onClick={() => handleFilterChange('timeRange', 'week')}
-              >
-                Tuần này
-              </button>
-              <button 
-                className={filters.timeRange === 'month' ? 'active' : ''}
-                onClick={() => handleFilterChange('timeRange', 'month')}
-              >
-                Tháng này
-              </button>
-              <button 
-                className={filters.timeRange === 'year' ? 'active' : ''}
-                onClick={() => handleFilterChange('timeRange', 'year')}
-              >
-                Năm nay
-              </button>
-            </div>
+      {/* BỘ LỌC */}
+      <div className="staff-reports-filters">
+        <div className="staff-reports-filters-row">
+          {/* Chọn Học kỳ */}
+          <div className="staff-reports-filter-item">
+            <label className="sr-filter-label">Học kỳ</label>
+            <SRCustomDropdown
+              value={selectedSemester?._id || ''}
+              onChange={handleSemesterChange}
+              options={semesters.map(sem => ({
+                value: sem._id,
+                label: sem.name
+              }))}
+              placeholder="Chọn học kỳ"
+            />
           </div>
 
-          {/* Chọn khoảng thời gian tùy chỉnh */}
-          <div className="filter-group">
-            <label>Tùy chỉnh</label>
-            <div className="date-range">
-              <input 
-                type="date" 
-                value={filters.customDate.start}
-                onChange={(e) => handleFilterChange('customDate', 
-                  { ...filters.customDate, start: e.target.value })}
+          {/* Loại xem - Dropdown */}
+          <div className="staff-reports-filter-item">
+            <label className="sr-filter-label">Xem theo</label>
+            <SRCustomDropdown
+              value={viewType}
+              onChange={handleViewTypeChange}
+              options={[
+                { value: 'all', label: 'Toàn bộ học kỳ' },
+                { value: 'month', label: 'Theo tháng' },
+                { value: 'week', label: 'Theo tuần' },
+                { value: 'custom', label: 'Tùy chỉnh' }
+              ]}
+              placeholder="Chọn kiểu xem"
+            />
+          </div>
+
+          {/* Sub-filter hiển thị ngay bên cạnh dựa trên viewType */}
+          {viewType === 'month' && (
+            <div className="staff-reports-filter-item">
+              <label className="sr-filter-label">Chọn tháng</label>
+              <SRCustomDropdown
+                value={selectedMonth?.value || ''}
+                onChange={handleMonthChange}
+                options={availableMonths.map(month => ({
+                  value: month.value,
+                  label: month.label
+                }))}
+                placeholder="Chọn tháng"
               />
-              <span>-</span>
-              <input 
-                type="date" 
-                value={filters.customDate.end}
-                onChange={(e) => handleFilterChange('customDate', 
-                  { ...filters.customDate, end: e.target.value })}
+            </div>
+          )}
+
+          {viewType === 'week' && (
+            <div className="staff-reports-filter-item">
+              <label className="sr-filter-label">Chọn tuần</label>
+              <SRCustomDropdown
+                value={selectedWeek?.value?.toString() || ''}
+                onChange={handleWeekChange}
+                options={availableWeeks.map(week => ({
+                  value: week.value.toString(),
+                  label: week.label
+                }))}
+                placeholder="Chọn tuần"
               />
             </div>
-          </div>
+          )}
 
-          {/* Lọc theo nhân viên */}
-          <div className="filter-group">
-            <label>Nhân viên</label>
-            <select 
-              value={filters.staff}
-              onChange={(e) => handleFilterChange('staff', e.target.value)}
-            >
-              <option value="all">Tất cả nhân viên</option>
-              <option value="nguyen-van-an">Nguyễn Văn An</option>
-              <option value="tran-thi-binh">Trần Thị Bình</option>
-              <option value="le-hoang-nam">Lê Hoàng Nam</option>
-            </select>
-          </div>
+          {viewType === 'custom' && (
+            <div className="staff-reports-filter-item sr-date-range-item">
+              <label className="sr-filter-label">Khoảng thời gian</label>
+              <div className="sr-date-range-inputs">
+                <input 
+                  type="date" 
+                  value={customStartDate}
+                  min={selectedSemester?.startDate?.split('T')[0]}
+                  max={selectedSemester?.endDate?.split('T')[0]}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="sr-date-input"
+                />
+                <span className="sr-date-separator">-</span>
+                <input 
+                  type="date" 
+                  value={customEndDate}
+                  min={customStartDate || selectedSemester?.startDate?.split('T')[0]}
+                  max={selectedSemester?.endDate?.split('T')[0]}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="sr-date-input"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* HÀNG 1: KPI CARDS */}
-      <div className="kpi-section">
-        <div className="kpi-cards">
-          <div className="kpi-card total">
-            <div className="kpi-icon">📊</div>
-            <div className="kpi-content">
-              <div className="kpi-number">{mockData.kpi.totalRequests.toLocaleString()}</div>
-              <div className="kpi-label">Tổng Yêu cầu</div>
-              <div className="kpi-change">+12% so với tháng trước</div>
-            </div>
-          </div>
-
-          <div className="kpi-card processed">
-            <div className="kpi-icon">✅</div>
-            <div className="kpi-content">
-              <div className="kpi-number">{mockData.kpi.processed.toLocaleString()}</div>
-              <div className="kpi-label">Đã Xử lý</div>
-              <div className="kpi-change">+8% so với tháng trước</div>
-            </div>
-          </div>
-
-          <div className="kpi-card pending">
-            <div className="kpi-icon">⏳</div>
-            <div className="kpi-content">
-              <div className="kpi-number">{mockData.kpi.pending}</div>
-              <div className="kpi-label">Đang chờ</div>
-              <div className="kpi-change">-15% so với tháng trước</div>
-            </div>
-          </div>
-
-
-        </div>
-      </div>
-
-      {/* HÀNG 2: BIỂU ĐỒ XU HƯỚNG */}
-      <div className="trend-section">
-        <div className="section-header">
-          <h2>Xu hướng Xử lý Yêu cầu</h2>
-          <div className="chart-legend">
-            <div className="legend-item">
-              <div className="legend-color new"></div>
-              <span>Yêu cầu Mới</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color approved"></div>
-              <span>Đã duyệt</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color rejected"></div>
-              <span>Bị từ chối</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="trend-chart">
-          <div className="chart-placeholder">
-            <div className="chart-mock">
-              {/* Mock line chart visualization */}
-              <svg viewBox="0 0 800 300" className="trend-svg">
-                <defs>
-                  <linearGradient id="newGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
-                  </linearGradient>
-                  <linearGradient id="approvedGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-                
-                {/* Grid lines */}
-                <g className="grid-lines">
-                  {[0, 1, 2, 3, 4, 5].map(i => (
-                    <line key={i} x1="50" y1={50 + i * 40} x2="750" y2={50 + i * 40} stroke="#e5e7eb" strokeWidth="1"/>
-                  ))}
-                  {[0, 1, 2, 3, 4, 5, 6].map(i => (
-                    <line key={i} x1={50 + i * 100} y1="50" x2={50 + i * 100} y2="250" stroke="#e5e7eb" strokeWidth="1"/>
-                  ))}
-                </g>
-
-                {/* Trend lines */}
-                <polyline 
-                  fill="none" 
-                  stroke="#3b82f6" 
-                  strokeWidth="3"
-                  points="50,150 150,130 250,170 350,110 450,140 550,120 650,160"
-                />
-                <polyline 
-                  fill="none" 
-                  stroke="#10b981" 
-                  strokeWidth="3"
-                  points="50,180 150,160 250,140 350,130 450,150 550,140 650,130"
-                />
-                <polyline 
-                  fill="none" 
-                  stroke="#ef4444" 
-                  strokeWidth="3"
-                  points="50,220 150,210 250,230 350,200 450,215 550,225 650,210"
-                />
-
-                {/* Data points */}
-                {[50, 150, 250, 350, 450, 550, 650].map((x, i) => (
-                  <g key={i}>
-                    <circle cx={x} cy={150 + Math.sin(i) * 20} r="4" fill="#3b82f6"/>
-                    <circle cx={x} cy={160 + Math.cos(i) * 15} r="4" fill="#10b981"/>
-                    <circle cx={x} cy={215 + Math.sin(i + 1) * 10} r="4" fill="#ef4444"/>
-                  </g>
-                ))}
-
-                {/* Labels */}
-                <g className="axis-labels">
-                  {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day, i) => (
-                    <text key={i} x={50 + i * 100} y="275" textAnchor="middle" className="chart-label">{day}</text>
-                  ))}
-                </g>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HÀNG 3: BIỂU ĐỒ PHÂN BỔ */}
-      <div className="breakdown-section">
-        <div className="breakdown-charts">
-          {/* Phân bổ theo loại yêu cầu */}
-          <div className="chart-container">
-            <h3>Phân bổ theo Loại yêu cầu</h3>
-            <div className="donut-chart">
-              <div className="donut-mock">
-                <svg viewBox="0 0 200 200" className="donut-svg">
-                  <circle cx="100" cy="100" r="60" fill="none" stroke="#3b82f6" strokeWidth="20" 
-                          strokeDasharray="226 377" strokeDashoffset="0" transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="60" fill="none" stroke="#10b981" strokeWidth="20" 
-                          strokeDasharray="113 490" strokeDashoffset="-226" transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="60" fill="none" stroke="#f59e0b" strokeWidth="20" 
-                          strokeDasharray="38 565" strokeDashoffset="-339" transform="rotate(-90 100 100)"/>
-                  <text x="100" y="100" textAnchor="middle" dy="0.3em" className="donut-center">60%</text>
-                </svg>
-              </div>
-              <div className="chart-legend-vertical">
-                <div className="legend-item">
-                  <div className="legend-color" style={{backgroundColor: '#3b82f6'}}></div>
-                  <span>CTSV (60%)</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color" style={{backgroundColor: '#10b981'}}></div>
-                  <span>KTX (30%)</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color" style={{backgroundColor: '#f59e0b'}}></div>
-                  <span>Khác (10%)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Phân bổ theo trạng thái */}
-          <div className="chart-container">
-            <h3>Phân bổ theo Trạng thái</h3>
-            <div className="donut-chart">
-              <div className="donut-mock">
-                <svg viewBox="0 0 200 200" className="donut-svg">
-                  <circle cx="100" cy="100" r="60" fill="none" stroke="#10b981" strokeWidth="20" 
-                          strokeDasharray="301 377" strokeDashoffset="0" transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="60" fill="none" stroke="#ef4444" strokeWidth="20" 
-                          strokeDasharray="75 603" strokeDashoffset="-301" transform="rotate(-90 100 100)"/>
-                  <text x="100" y="100" textAnchor="middle" dy="0.3em" className="donut-center">80%</text>
-                </svg>
-              </div>
-              <div className="chart-legend-vertical">
-                <div className="legend-item">
-                  <div className="legend-color" style={{backgroundColor: '#10b981'}}></div>
-                  <span>Đã duyệt (80%)</span>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color" style={{backgroundColor: '#ef4444'}}></div>
-                  <span>Bị từ chối (20%)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Staff */}
-          <div className="chart-container">
-            <h3>Nhân viên Xử lý Nhiều nhất</h3>
-            <div className="bar-chart">
-              {mockData.topStaff.map((staff, index) => (
-                <div key={index} className="bar-item">
-                  <div className="bar-label">
-                    <span className="staff-name">{staff.name}</span>
-                    <span className="staff-count">{staff.processed}</span>
-                  </div>
-                  <div className="bar-background">
-                    <div 
-                      className="bar-fill" 
-                      style={{width: `${(staff.processed / mockData.topStaff[0].processed) * 100}%`}}
-                    ></div>
+      {/* KPI CARDS */}
+      {reportData && (
+        <div className="kpi-section">
+          <div className="kpi-cards">
+            {/* ========== CTSV CARDS ========== */}
+            {staffModule === 'CTSV' && (
+              <>
+                {/* Card 1: Tổng yêu cầu */}
+                <div className="kpi-card total">
+                  <div className="kpi-icon">📊</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
+                    <div className="kpi-label">Tổng Yêu cầu</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* HÀNG 4: BẢNG DỮ LIỆU CHI TIẾT */}
-      <div className="data-table-section">
-        <div className="section-header">
-          <h2>Hiệu suất Chi tiết theo Nhân viên</h2>
-        </div>
-        
-        <div className="data-table">
-          <table>
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('name')} className="sortable">
-                  Tên nhân viên 
-                  {sortConfig.key === 'name' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('position')} className="sortable">
-                  Chức vụ
-                  {sortConfig.key === 'position' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('totalProcessed')} className="sortable">
-                  Tổng đã xử lý
-                  {sortConfig.key === 'totalProcessed' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
-                <th onClick={() => handleSort('pending')} className="sortable">
-                  Đang chờ
-                  {sortConfig.key === 'pending' && (
-                    <span className={`sort-icon ${sortConfig.direction}`}>
-                      {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </th>
+                {/* Card 2: Đã hoàn thành */}
+                <div className="kpi-card completed">
+                  <div className="kpi-icon">✅</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
+                    <div className="kpi-label">Đã Hoàn thành</div>
+                  </div>
+                </div>
 
-              </tr>
-            </thead>
-            <tbody>
-              {getSortedData().map((staff, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className="staff-cell">
-                      <div className="staff-avatar">{staff.name.charAt(0)}</div>
-                      <span>{staff.name}</span>
+                {/* Card 3: Đang xử lý */}
+                <div className="kpi-card processing">
+                  <div className="kpi-icon">⏳</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.pending?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đang Xử lý</div>
+                  </div>
+                </div>
+
+                {/* Card 4: Từ chối */}
+                <div className="kpi-card rejected">
+                  <div className="kpi-icon">❌</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.rejected?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đã Từ chối</div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ========== KTX CARDS ========== */}
+            {staffModule === 'KTX' && (
+              <>
+                {/* Card 1: Tổng báo cáo sự cố */}
+                <div className="kpi-card total">
+                  <div className="kpi-icon">🔧</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.total.toLocaleString()}</div>
+                    <div className="kpi-label">Tổng Báo cáo sự cố</div>
+                  </div>
+                </div>
+
+                {/* Card 2: Tổng đã tiếp nhận (underReview + approved) */}
+                <div className="kpi-card received">
+                  <div className="kpi-icon">📥</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">
+                      {((reportData.kpi.underReview || 0) + (reportData.kpi.approved || 0)).toLocaleString()}
                     </div>
-                  </td>
-                  <td>{staff.position}</td>
-                  <td>
-                    <span className="number-highlight">{staff.totalProcessed}</span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${staff.pending > 10 ? 'high' : 'normal'}`}>
-                      {staff.pending}
-                    </span>
-                  </td>
+                    <div className="kpi-label">Tổng đã tiếp nhận</div>
+                  </div>
+                </div>
 
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                {/* Card 3: Đã hoàn thành */}
+                <div className="kpi-card completed">
+                  <div className="kpi-icon">✅</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.approved.toLocaleString()}</div>
+                    <div className="kpi-label">Đã hoàn thành</div>
+                  </div>
+                </div>
+
+                {/* Card 4: Đang xử lý */}
+                <div className="kpi-card processing">
+                  <div className="kpi-icon">📋</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number">{reportData.kpi.underReview?.toLocaleString() || 0}</div>
+                    <div className="kpi-label">Đang xử lý</div>
+                  </div>
+                </div>
+
+                {/* Card 5: Chờ tiếp nhận - có badge cảnh báo */}
+                <div className="kpi-card pending-warning">
+                  <div className="kpi-icon">📨</div>
+                  <div className="kpi-content">
+                    <div className="kpi-number-wrapper">
+                      <div className="kpi-number">{reportData.kpi.pending?.toLocaleString() || 0}</div>
+                      {(reportData.kpi.pending || 0) > 0 && (
+                        <span className="kpi-badge warning">Cần xử lý</span>
+                      )}
+                    </div>
+                    <div className="kpi-label">Chờ tiếp nhận</div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* BIỂU ĐỒ XU HƯỚNG */}
+      {reportData && reportData.trendData && reportData.trendData.length > 0 && (
+        <div className="trend-section">
+          <div className="section-header">
+            <h2>{staffModule === 'KTX' ? 'Xu hướng Báo cáo sự cố' : 'Xu hướng Xử lý Yêu cầu'}</h2>
+            <div className="chart-legend">
+              <div className="legend-item">
+                <div className="legend-color new"></div>
+                <span>{staffModule === 'KTX' ? 'Báo cáo mới' : 'Yêu cầu Mới'}</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color approved"></div>
+                <span>{staffModule === 'KTX' ? 'Hoàn thành' : 'Đã duyệt'}</span>
+              </div>
+              <div className="legend-item">
+                <div className="legend-color received"></div>
+                <span>{staffModule === 'KTX' ? 'Đã tiếp nhận' : 'Bị từ chối'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="trend-chart">
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart
+                data={staffModule === 'KTX' 
+                  ? reportData.trendData.map(item => ({
+                      ...item,
+                      received: (item.underReview || 0) + (item.approved || 0)
+                    }))
+                  : reportData.trendData
+                }
+                margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fill: '#6b7280', fontSize: 11 }}
+                  axisLine={{ stroke: '#e5e7eb' }}
+                  tickMargin={8}
+                  interval="preserveStartEnd"
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis 
+                  tick={{ fill: '#6b7280', fontSize: 11 }}
+                  axisLine={{ stroke: '#e5e7eb' }}
+                  width={35}
+                  tickMargin={4}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    fontSize: '12px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="new" 
+                  name="Yêu cầu Mới"
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: '#3b82f6' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="approved" 
+                  name="Đã duyệt"
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: '#10b981' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey={staffModule === 'KTX' ? 'received' : 'rejected'} 
+                  name={staffModule === 'KTX' ? 'Đã tiếp nhận' : 'Bị từ chối'}
+                  stroke={staffModule === 'KTX' ? '#06b6d4' : '#ef4444'} 
+                  strokeWidth={2}
+                  dot={{ fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444', strokeWidth: 1, r: 3 }}
+                  activeDot={{ r: 6, fill: staffModule === 'KTX' ? '#06b6d4' : '#ef4444' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* BIỂU ĐỒ PHÂN BỔ */}
+      {reportData && (
+        <div className="breakdown-section">
+          <div className="breakdown-charts">
+            {/* Phân bổ theo loại */}
+            <div className="chart-container">
+              <h3>
+                {staffModule === 'KTX' 
+                  ? 'Phân bổ theo Danh mục thiết bị' 
+                  : 'Phân bổ theo Loại chứng nhận'}
+              </h3>
+              <div className="donut-chart-wrapper">
+                {(staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution)?.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie
+                          data={staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={85}
+                          paddingAngle={2}
+                          dataKey="count"
+                          nameKey="type"
+                        >
+                          {(staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value, name, props) => [
+                            `${value} yêu cầu (${props.payload.percentage}%)`,
+                            props.payload.type
+                          ]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="chart-legend-vertical">
+                      {(staffModule === 'KTX' ? reportData.categoryDistribution : reportData.typeDistribution).map((item, index) => (
+                        <div key={index} className="legend-item">
+                          <div 
+                            className="legend-color" 
+                            style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                          ></div>
+                          <span>{item.type} ({item.percentage}%)</span>
+                          <span className="legend-count">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="no-data">Không có dữ liệu</div>
+                )}
+              </div>
+            </div>
+
+            {/* Phân bổ theo trạng thái */}
+            <div className="chart-container">
+              <h3>Phân bổ theo Trạng thái</h3>
+              <div className="donut-chart-wrapper">
+                {(() => {
+                  const statusData = getTransformedStatusDistribution();
+                  const statusColors = staffModule === 'KTX' 
+                    ? { 
+                        'Chờ tiếp nhận': '#F59E0B',      // Vàng
+                        'Đã hoàn thành': '#10B981',      // Xanh lá
+                        'Tổng đã tiếp nhận': '#3B82F6'   // Xanh dương
+                      }
+                    : STATUS_COLORS_CTSV;
+                  
+                  return statusData?.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie
+                            data={statusData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={85}
+                            paddingAngle={2}
+                            dataKey="count"
+                            nameKey="status"
+                          >
+                            {statusData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={statusColors[entry.status] || CHART_COLORS[index]} 
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            formatter={(value, name, props) => [
+                              `${value} yêu cầu (${props.payload.percentage}%)`,
+                              props.payload.status
+                            ]}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="chart-legend-vertical">
+                        {statusData.map((item, index) => (
+                          <div key={index} className="legend-item">
+                            <div 
+                              className="legend-color" 
+                              style={{ backgroundColor: statusColors[item.status] || CHART_COLORS[index] }}
+                            ></div>
+                            <span>{item.status} ({item.percentage}%)</span>
+                            <span className="legend-count">{item.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="no-data">Không có dữ liệu</div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {reportData && reportData.kpi.total === 0 && (
+        <div className="empty-state">
+          <div className="empty-icon">📭</div>
+          <h3>Không có dữ liệu</h3>
+          <p>Không có yêu cầu nào trong khoảng thời gian đã chọn</p>
+        </div>
+      )}
     </div>
   );
 };

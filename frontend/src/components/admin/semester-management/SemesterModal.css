@@ -1,0 +1,463 @@
+/* SemesterModal Styles */
+
+.semester-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.semester-modal-container {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.semester-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
+}
+
+.semester-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.semester-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: calc(90vh - 160px);
+  
+  /* Custom Scrollbar - Nhỏ và sáng */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180, 180, 180, 0.5) transparent;
+}
+
+/* Webkit Scrollbar (Chrome, Safari, Edge) */
+.semester-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.semester-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.semester-modal-body::-webkit-scrollbar-thumb {
+  background-color: rgba(180, 180, 180, 0.7);
+  border-radius: 10px;
+}
+
+.semester-modal-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(150, 150, 150, 0.9);
+}
+
+.semester-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f9fafb;
+  border-radius: 0 0 12px 12px;
+  flex-shrink: 0;
+}
+
+/* Error Banner */
+.semester-error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.semester-error-banner .error-icon {
+  flex-shrink: 0;
+}
+
+/* Form Groups */
+.semester-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.semester-form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.semester-form-label .required {
+  color: #dc2626;
+}
+
+.semester-form-input,
+.semester-form-select,
+.semester-form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #1f2937;
+  background-color: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.semester-form-input:focus,
+.semester-form-select:focus,
+.semester-form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.semester-form-input:disabled,
+.semester-form-select:disabled,
+.semester-form-textarea:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.semester-form-input.has-error,
+.semester-form-select.has-error {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.semester-form-input.has-error:focus,
+.semester-form-select.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.semester-form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.semester-error-text {
+  font-size: 0.8125rem;
+  color: #dc2626;
+}
+
+.semester-hint-text {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Preview Section */
+.semester-preview-loading {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.semester-preview-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.semester-preview-title {
+  margin: 0 0 12px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.semester-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.semester-preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.semester-preview-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.semester-preview-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.semester-preview-value.highlight {
+  color: #0369a1;
+  font-weight: 600;
+}
+
+/* Checkbox */
+.semester-checkbox-group {
+  background: #f9fafb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.semester-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.semester-checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.semester-checkbox-text {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Buttons */
+.semester-btn-cancel,
+.semester-btn-save {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.semester-btn-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.semester-btn-cancel:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.semester-btn-save {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.semester-btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+.semester-btn-cancel:disabled,
+.semester-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .semester-modal-overlay {
+    padding: 16px;
+  }
+
+  .semester-modal-container {
+    max-width: 100%;
+    max-height: 92vh;
+  }
+
+  .semester-modal-header {
+    padding: 16px 20px;
+  }
+
+  .semester-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .semester-modal-body {
+    padding: 20px;
+    gap: 16px;
+    max-height: calc(92vh - 150px);
+  }
+
+  .semester-preview-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .semester-modal-footer {
+    padding: 14px 20px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 540px) {
+  .semester-modal-overlay {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .semester-modal-container {
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .semester-modal-header {
+    padding: 14px 18px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .semester-modal-title {
+    font-size: 1rem;
+  }
+
+  .semester-modal-body {
+    padding: 16px;
+    gap: 14px;
+    max-height: calc(90vh - 140px);
+  }
+
+  .semester-form-label {
+    font-size: 0.8125rem;
+  }
+
+  .semester-form-input,
+  .semester-form-select,
+  .semester-form-textarea {
+    padding: 10px 12px;
+    font-size: 0.875rem;
+  }
+
+  .semester-preview-section {
+    padding: 14px;
+  }
+
+  .semester-preview-title {
+    font-size: 0.8125rem;
+  }
+
+  .semester-preview-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .semester-preview-label {
+    font-size: 0.7rem;
+  }
+
+  .semester-preview-value {
+    font-size: 0.8125rem;
+  }
+
+  .semester-checkbox-group {
+    padding: 10px 14px;
+  }
+
+  .semester-checkbox-text {
+    font-size: 0.875rem;
+  }
+
+  .semester-modal-footer {
+    padding: 14px 16px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .semester-btn-cancel,
+  .semester-btn-save {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.875rem;
+  }
+
+  .semester-error-banner {
+    padding: 10px 14px;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 380px) {
+  .semester-modal-overlay {
+    padding: 0;
+  }
+
+  .semester-modal-container {
+    max-height: 92vh;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .semester-modal-header {
+    padding: 12px 14px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .semester-modal-title {
+    font-size: 0.95rem;
+  }
+
+  .semester-modal-body {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .semester-form-input,
+  .semester-form-select {
+    padding: 9px 10px;
+    font-size: 0.8125rem;
+  }
+
+  .semester-preview-section {
+    padding: 12px;
+  }
+
+  .semester-modal-footer {
+    padding: 12px 14px;
+  }
+
+  .semester-btn-cancel,
+  .semester-btn-save {
+    padding: 10px;
+    font-size: 0.8125rem;
+  }
+}

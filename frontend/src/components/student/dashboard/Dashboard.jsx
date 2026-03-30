@@ -1,254 +1,288 @@
-import React, { useEffect, useState } from 'react';
-import { ProfilePanel } from '../profile';
-import { Modal } from '../../common';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import studentService from '../../../services/student';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [modalTitle, setModalTitle] = useState('');
-  const [userName, setUserName] = useState(''); //  thêm state cho tên
+  const navigate = useNavigate();
+  
+  // State for dashboard data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [activeOverviewTab, setActiveOverviewTab] = useState('ctsv'); // Tab cho phần tổng quan
+  const [activeRequestTab, setActiveRequestTab] = useState('ctsv'); // Tab cho phần yêu cầu gần đây
 
+  // Fetch dashboard data on mount
   useEffect(() => {
-    // Get user data from localStorage (set by auth service)
-    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (storedUser && storedUser.name) {
-      setUserName(storedUser.name.split(' ')[0]);
-    } else {
-      setUserName('User'); // fallback
-    }
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await studentService.getDashboard();
+        if (result.success) {
+          setDashboardData(result.data);
+        } else {
+          setError('Không thể tải dữ liệu dashboard');
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard:', err);
+        setError(err.response?.data?.message || 'Có lỗi xảy ra khi tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
-  // Mock data - sau này sẽ lấy từ API
-  const statsData = {
-    processing: 18,
-    completed: 23,
-    rejected: 15,
-    total: 56
-  };
-
-  const requestsData = [
-    {
-      id: 'REQ001',
-      type: 'Xác nhận sinh viên',
-      date: '2024-10-01',
-      status: 'processing'
-    },
-    {
-      id: 'REQ002', 
-      type: 'Cấp lại thẻ sinh viên',
-      date: '2024-09-30',
-      status: 'completed'
-    },
-    {
-      id: 'REQ003',
-      type: 'Báo cáo sự cố ký túc xá',
-      date: '2024-09-29',
-      status: 'rejected'
-    },
-    {
-      id: 'REQ004',
-      type: 'Phúc khảo điểm',
-      date: '2024-09-28',
-      status: 'processing'
-    },
-    {
-      id: 'REQ005',
-      type: 'Xin nghỉ học',
-      date: '2024-09-27',
-      status: 'completed'
-    }
-  ];
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'processing': return 'Đang xử lý';
-      case 'completed': return 'Đã hoàn thành';
-      case 'rejected': return 'Đã từ chối';
-      default: return status;
+  const handleViewHistory = () => {
+    if (activeRequestTab === 'ctsv') {
+      navigate('/student/history-affair');
+    } else {
+      navigate('/student/history-dormitory');
     }
   };
 
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'processing': return 'status-processing';
-      case 'completed': return 'status-completed';
-      case 'rejected': return 'status-rejected';
-      default: return '';
-    }
+  const getStatusInfo = (status) => {
+    const statusMap = {
+      valid: { label: 'Hợp lệ', class: 'status-valid', icon: '✓' },
+      processing: { label: 'Đang xử lý', class: 'status-processing', icon: '⟳' },
+      invalid: { label: 'Không hợp lệ', class: 'status-invalid', icon: '✕' },
+      pending: { label: 'Chờ duyệt', class: 'status-pending', icon: '⏳' },
+    };
+    return statusMap[status] || statusMap.processing;
   };
 
-  const filterRequestsByStatus = (status) => {
-    if (status === 'all') return requestsData;
-    return requestsData.filter(request => request.status === status);
+  // Loading state
+  if (loading) {
+    return (
+      <div className="student-dashboard-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="student-dashboard-container">
+        <div className="error-container">
+          <span className="error-icon">⚠️</span>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Thử lại</button>
+        </div>
+      </div>
+    );
+  }
+
+  const { isDormResident, stats, recentRequests } = dashboardData || {};
+  const currentRequests = activeRequestTab === 'ctsv' ? recentRequests?.ctsv : recentRequests?.ktx;
+
+  const handleCreateCTSVRequest = () => {
+    navigate('/student/student-affairs');
   };
 
-  const handleCardClick = (status) => {
-    if (status === 'add') {
-      // Xử lý thêm yêu cầu mới
-      console.log('Thêm yêu cầu mới');
-      return;
-    }
-    setSelectedStatus(status);
-    setModalTitle(`Danh sách yêu cầu - ${getStatusText(status)}`);
-    setIsModalOpen(true);
+  const handleCreateKTXRequest = () => {
+    navigate('/student/dormitory');
   };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedStatus('');
-    setModalTitle('');
-  };
-
-  const filteredRequests = filterRequestsByStatus(selectedStatus);
 
   return (
-    <div className="dashboard">{/* Removed list view - now using modal */}
-      <div className="dashboard-layout">
-        <div className="main-section">
-          <div className="header-bar">
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm yêu cầu, thông báo..."
-                className="search-input"
-              />
-            </div>
-            
-            <div className="header-actions">
-              <div className="notification-box">
-                <span className="notification-icon">🔔</span>
-                <span className="notification-badge">3</span>
-              </div>
-              
-              <div className="account-box">
-                <div className="user-avatar">{userName.charAt(0)}</div>
-                <div className="user-info">
-                  <span className="welcome-text">Welcome back</span>
-                  <span className="user-name">{userName}</span>
-                </div>
-                <div className="profile-link-icon">
-                  <span className="link-arrow">→</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="overview-section">
-            <h2>Tổng quan</h2>
-            <div className="stats-grid">
-              <div 
-                className="stat-card processing"
-                onClick={() => handleCardClick('processing')}
+    <div className="student-dashboard-container">
+      {/* Statistics Overview với Tabs */}
+      <div className="overview-section">
+        <div className="section-header-with-tabs">
+          <h2 className="section-title">Tổng quan yêu cầu</h2>
+          {/* Tabs cho phần tổng quan */}
+          {isDormResident && (
+            <div className="overview-tabs">
+              <button 
+                className={`overview-tab-btn ${activeOverviewTab === 'ctsv' ? 'active' : ''}`}
+                onClick={() => setActiveOverviewTab('ctsv')}
               >
-                <div className="stat-icon">📋</div>
-                <div className="stat-content">
-                  <h3>Yêu cầu đang xử lý</h3>
-                  <div className="stat-number">{statsData.processing}</div>
-                </div>
-              </div>
-
-              <div 
-                className="stat-card completed"
-                onClick={() => handleCardClick('completed')}
+                <span className="tab-icon">📋</span>
+                CTSV
+              </button>
+              <button 
+                className={`overview-tab-btn ${activeOverviewTab === 'ktx' ? 'active' : ''}`}
+                onClick={() => setActiveOverviewTab('ktx')}
               >
-                <div className="stat-icon">✅</div>
-                <div className="stat-content">
-                  <h3>Yêu cầu đã hoàn thành</h3>
-                  <div className="stat-number">{statsData.completed}</div>
-                </div>
-              </div>
-
-              <div 
-                className="stat-card rejected"
-                onClick={() => handleCardClick('rejected')}
-              >
-                <div className="stat-icon">❌</div>
-                <div className="stat-content">
-                  <h3>Yêu cầu đã từ chối</h3>
-                  <div className="stat-number">{statsData.rejected}</div>
-                </div>
-              </div>
-
-              <div 
-                className="stat-card add-new"
-                onClick={() => handleCardClick('add')}
-              >
-                <div className="stat-icon">➕</div>
-                <div className="stat-content">
-                  <h3>Thêm yêu cầu</h3>
-                  <div className="stat-description">Tạo yêu cầu mới</div>
-                </div>
-              </div>
+                <span className="tab-icon">🏠</span>
+                KTX
+              </button>
             </div>
-          </div>
-
-          <div className="assignments-section">
-            <h2>Yêu cầu gần đây</h2>
-            <div className="assignments-list">
-              {requestsData.slice(0, 3).map(request => (
-                <div key={request.id} className="assignment-item">
-                  <div className="assignment-icon">
-                    {request.status === 'completed' ? '✅' : 
-                     request.status === 'rejected' ? '❌' : '📝'}
-                  </div>
-                  <div className="assignment-content">
-                    <h4>{request.type}</h4>
-                    <p>{request.date}</p>
-                  </div>
-                  <div className="assignment-meta">
-                    <span className={`status ${getStatusClass(request.status)}`}>
-                      {getStatusText(request.status)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
 
-        <ProfilePanel />
-      </div>
+        {/* CTSV Stats */}
+        {activeOverviewTab === 'ctsv' && (
+          <div className="stats-grid">
+            <div className="stat-card stat-pending">
+              <div className="stat-icon">📋</div>
+              <div className="stat-content">
+                <div className="stat-label">YÊU CẦU ĐANG XỬ LÝ</div>
+                <div className="stat-value">{stats?.ctsv?.pending || 0}</div>
+              </div>
+            </div>
 
-      {/* Modal for showing filtered requests */}
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        title={modalTitle}
-      >
-        {filteredRequests.length > 0 ? (
-          <table className="modal-requests-table">
-            <thead>
-              <tr>
-                <th>Mã yêu cầu</th>
-                <th>Loại yêu cầu</th>
-                <th>Ngày yêu cầu</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRequests.map(request => (
-                <tr key={request.id}>
-                  <td>{request.id}</td>
-                  <td>{request.type}</td>
-                  <td>{request.date}</td>
-                  <td>
-                    <span className={`status ${getStatusClass(request.status)}`}>
-                      {getStatusText(request.status)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="modal-empty-state">
-            <div className="empty-icon">📋</div>
-            <p>Không có yêu cầu nào trong danh mục này</p>
+            <div className="stat-card stat-completed">
+              <div className="stat-icon">✅</div>
+              <div className="stat-content">
+                <div className="stat-label">YÊU CẦU ĐÃ HOÀN THÀNH</div>
+                <div className="stat-value">{stats?.ctsv?.completed || 0}</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-rejected">
+              <div className="stat-icon">❌</div>
+              <div className="stat-content">
+                <div className="stat-label">YÊU CẦU ĐÃ TỪ CHỐI</div>
+                <div className="stat-value">{stats?.ctsv?.rejected || 0}</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-create" onClick={handleCreateCTSVRequest}>
+              <div className="stat-icon-large">➕</div>
+              <div className="stat-content">
+                <div className="stat-label-create">THÊM YÊU CẦU</div>
+                <div className="stat-sublabel">Tạo yêu cầu mới</div>
+              </div>
+            </div>
           </div>
         )}
-      </Modal>
+
+        {/* KTX Stats */}
+        {activeOverviewTab === 'ktx' && isDormResident && (
+          <div className="stats-grid">
+            <div className="stat-card stat-pending ktx-card">
+              <div className="stat-icon">�</div>
+              <div className="stat-content">
+                <div className="stat-label">CHỜ TIẾP NHẬN</div>
+                <div className="stat-value">{stats?.ktx?.pending || 0}</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-processing ktx-card">
+              <div className="stat-icon">⟳</div>
+              <div className="stat-content">
+                <div className="stat-label">ĐANG XỬ LÝ</div>
+                <div className="stat-value">{stats?.ktx?.processing || 0}</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-total ktx-card">
+              <div className="stat-icon">📊</div>
+              <div className="stat-content">
+                <div className="stat-label">TỔNG YÊU CẦU</div>
+                <div className="stat-value">{stats?.ktx?.total || 0}</div>
+              </div>
+            </div>
+
+            <div className="stat-card stat-create ktx-card" onClick={handleCreateKTXRequest}>
+              <div className="stat-icon-large">➕</div>
+              <div className="stat-content">
+                <div className="stat-label-create">BÁO SỰ CỐ</div>
+                <div className="stat-sublabel">Tạo yêu cầu KTX</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Requests */}
+      <div className="recent-section">
+        <div className="section-header">
+          <h2 className="section-title">Yêu cầu gần đây</h2>
+          <button className="view-all-btn" onClick={handleViewHistory}>
+            Xem tất cả →
+          </button>
+        </div>
+
+        {/* Tabs - Only show if student is in dormitory */}
+        {isDormResident && (
+          <div className="request-tabs">
+            <button 
+              className={`tab-btn ${activeRequestTab === 'ctsv' ? 'active' : ''}`}
+              onClick={() => setActiveRequestTab('ctsv')}
+            >
+              <span className="tab-icon">📋</span>
+              Yêu cầu CTSV
+              {stats?.ctsv && (
+                <span className="tab-badge">{stats.ctsv.pending + stats.ctsv.completed + stats.ctsv.rejected}</span>
+              )}
+            </button>
+            <button 
+              className={`tab-btn ${activeRequestTab === 'ktx' ? 'active' : ''}`}
+              onClick={() => setActiveRequestTab('ktx')}
+            >
+              <span className="tab-icon">🏠</span>
+              Yêu cầu KTX
+              {stats?.ktx && (
+                <span className="tab-badge">{stats.ktx.pending + stats.ktx.completed + stats.ktx.rejected}</span>
+              )}
+            </button>
+          </div>
+        )}
+        
+        <div className="recent-requests-grid">
+          {currentRequests && currentRequests.length > 0 ? (
+            currentRequests.map((request) => {
+              const statusInfo = getStatusInfo(request.status);
+              return (
+                <div key={request.id} className="request-card">
+                  <div className="request-header">
+                    <span className="request-id">{request.id}</span>
+                    <span className={`status-badge ${statusInfo.class}`}>
+                      <span className="status-icon">{statusInfo.icon}</span>
+                      {statusInfo.label}
+                    </span>
+                  </div>
+                  <div className="request-body">
+                    {activeRequestTab === 'ctsv' ? (
+                      <>
+                        <h3 className="request-name">{request.certificateName}</h3>
+                        <p className="request-type">{request.certificateType}</p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="request-name">{request.item}</h3>
+                        <p className="request-type">{request.category}</p>
+                        {request.description && (
+                          <p className="request-description">{request.description}</p>
+                        )}
+                      </>
+                    )}
+                    <div className="request-meta">
+                      <span className="meta-item">
+                        <span className="meta-icon">📅</span>
+                        {request.requestDate}
+                      </span>
+                      <span className="meta-item">
+                        <span className="meta-icon">📚</span>
+                        {request.semester}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="no-requests">
+              <span className="no-requests-icon">📭</span>
+              <p>Chưa có yêu cầu {activeRequestTab === 'ctsv' ? 'CTSV' : 'KTX'} nào</p>
+              <button 
+                className="create-request-btn" 
+                onClick={activeRequestTab === 'ctsv' ? handleCreateCTSVRequest : handleCreateKTXRequest}
+              >
+                Tạo yêu cầu mới
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

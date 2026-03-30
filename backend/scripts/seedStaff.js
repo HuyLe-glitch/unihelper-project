@@ -64,16 +64,13 @@ async function seedStaff() {
     for (const accountData of STAFF_ACCOUNTS) {
       const { user: userData, staff: staffData } = accountData;
 
-      // Tạo hoặc tìm User
+      // Tạo hoặc tìm User (không cần hash trước vì User model sẽ tự hash)
       let user = await User.findOne({ email: userData.email });
       
       if (!user) {
-        const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
-        const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-
         user = new User({
           ...userData,
-          password: hashedPassword
+          password: userData.password // User model sẽ tự hash trong pre('save')
         });
         await user.save();
         console.log(`🆕 User created: ${userData.email}`);

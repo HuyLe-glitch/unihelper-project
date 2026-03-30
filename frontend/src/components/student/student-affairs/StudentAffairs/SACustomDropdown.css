@@ -1,0 +1,285 @@
+/* ============================================
+   SA CUSTOM DROPDOWN - StudentAffairs Custom Dropdown
+   Prefix: sa-cd (Student Affairs Custom Dropdown)
+   Tên độc nhất để tránh conflict CSS
+   ============================================ */
+
+/* Wrapper */
+.sa-cd-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.sa-cd-wrapper.sa-cd-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Trigger Button */
+.sa-cd-trigger {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-height: 44px !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.sa-cd-trigger:hover:not(:disabled) {
+  border-color: #667eea !important;
+}
+
+.sa-cd-trigger:focus {
+  outline: none !important;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15) !important;
+}
+
+.sa-cd-trigger.sa-cd-open {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15) !important;
+}
+
+.sa-cd-trigger:disabled {
+  cursor: not-allowed !important;
+  background: #f5f5f5 !important;
+}
+
+/* Value Text - QUAN TRỌNG: Cắt ngắn với ellipsis */
+.sa-cd-value {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 30px) !important;
+  width: auto !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-weight: 500 !important;
+  display: block !important;
+  line-height: 1.4 !important;
+}
+
+.sa-cd-placeholder {
+  color: #999 !important;
+  font-weight: 400 !important;
+}
+
+/* Arrow */
+.sa-cd-arrow {
+  font-size: 10px !important;
+  color: #666 !important;
+  margin-left: 10px !important;
+  transition: transform 0.2s ease !important;
+  flex-shrink: 0 !important;
+  width: 20px !important;
+  text-align: center !important;
+}
+
+.sa-cd-arrow-up {
+  transform: rotate(180deg) !important;
+}
+
+/* Dropdown Menu - QUAN TRỌNG: Không cho tràn */
+.sa-cd-menu {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  z-index: 1000 !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  animation: sa-cd-slideDown 0.2s ease !important;
+  box-sizing: border-box !important;
+}
+
+@keyframes sa-cd-slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling */
+.sa-cd-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sa-cd-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.sa-cd-menu::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sa-cd-menu::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Option Items - QUAN TRỌNG: Wrap text xuống dòng cho TẤT CẢ trạng thái */
+.sa-cd-option {
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  /* Text wrap - áp dụng cho mọi option */
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+  line-height: 1.5 !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+.sa-cd-option:last-child {
+  border-bottom: none !important;
+}
+
+.sa-cd-option:hover {
+  background: #f5f7ff !important;
+  color: #667eea !important;
+}
+
+/* Option đã được chọn - QUAN TRỌNG: Vẫn phải wrap text */
+.sa-cd-option.sa-cd-option-selected {
+  background: #667eea !important;
+  color: #fff !important;
+  /* Đảm bảo vẫn wrap text khi selected */
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+  line-height: 1.5 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.sa-cd-option.sa-cd-option-selected:hover {
+  background: #5a6fd6 !important;
+  color: #fff !important;
+}
+
+.sa-cd-option-placeholder {
+  color: #999 !important;
+  font-style: italic !important;
+}
+
+/* ============================================
+   RESPONSIVE - Mobile
+   ============================================ */
+
+@media (max-width: 768px) {
+  .sa-cd-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .sa-cd-trigger {
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    min-height: 46px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .sa-cd-value {
+    font-size: 14px !important;
+    max-width: calc(100% - 30px) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .sa-cd-menu {
+    border-radius: 8px !important;
+    max-height: 50vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .sa-cd-option {
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .sa-cd-option.sa-cd-option-selected {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .sa-cd-arrow {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .sa-cd-trigger {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    min-height: 44px !important;
+  }
+
+  .sa-cd-value {
+    font-size: 13px !important;
+    max-width: calc(100% - 28px) !important;
+  }
+
+  .sa-cd-menu {
+    max-height: 45vh !important;
+  }
+
+  .sa-cd-option {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+}

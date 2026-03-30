@@ -4,6 +4,11 @@
 .env.production
 .env.staging
 
+# Firebase Service Account (SECURITY - NEVER COMMIT)
+src/config/firebase-service-account.json
+firebase-service-account.json
+**/firebase-service-account.json
+
 # Dependencies
 node_modules/
 npm-debug.log*

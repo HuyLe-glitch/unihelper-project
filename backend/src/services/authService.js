@@ -17,9 +17,18 @@ class AuthService {
     }
 
     // Find student by studentId (case insensitive)
+    // Populate user, major (with faculty), and roomId
     const student = await Student.findOne({ 
       studentId: { $regex: new RegExp(`^${studentId}$`, 'i') } 
-    }).populate('user');
+    })
+      .populate('user')
+      .populate({
+        path: 'major',
+        populate: {
+          path: 'faculty'
+        }
+      })
+      .populate('roomId');
     
     if (!student || !student.user) {
       throw new AppError('Student ID hoặc password không đúng', 401);
@@ -41,8 +50,7 @@ class AuthService {
         user: {
           id: user._id,
           email: user.email,
-          name: user.name,
-          role: user.role,
+          role: user.role, // Trả về uppercase để frontend normalize
           profile: student
         }
       }
@@ -73,18 +81,27 @@ class AuthService {
     // Tạo JWT token
     const token = this.generateToken(user._id, user.role);
 
+    // Prepare user data with staffType for staff users
+    const userData = {
+      id: user._id,
+      email: user.email,
+      role: user.role, // Trả về uppercase để frontend normalize
+      name: user.name || (profile ? profile.fullName : null),
+      profile
+    };
+
+    // Add staffType for staff users
+    if (user.role === 'STAFF' && profile && profile.staffType) {
+      userData.staffType = profile.staffType;
+      userData.department = profile.department;
+    }
+
     return {
       success: true,
       message: 'Đăng nhập thành công',
       data: {
         token,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          profile
-        }
+        user: userData
       }
     };
   }
@@ -104,7 +121,6 @@ class AuthService {
         data: {
           id: user._id,
           email: user.email,
-          name: user.name,
           role: user.role
         }
       };
@@ -128,15 +144,24 @@ class AuthService {
 
     const profile = await userRepository.getProfileByRole(userId, user.role);
 
+    // Prepare user data
+    const userData = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      name: user.name || (profile ? profile.fullName : null),
+      profile
+    };
+
+    // Add staffType for staff users
+    if (user.role === 'STAFF' && profile && profile.staffType) {
+      userData.staffType = profile.staffType;
+      userData.department = profile.department;
+    }
+
     return {
       success: true,
-      data: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        profile
-      }
+      data: userData
     };
   }
 

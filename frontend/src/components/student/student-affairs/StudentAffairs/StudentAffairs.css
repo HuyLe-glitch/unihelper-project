@@ -1,40 +1,74 @@
+/* ============================================
+   STUDENT AFFAIRS - FULL WIDTH RESPONSIVE DESIGN
+   ============================================ */
+
 .student-affairs {
+  /* Full viewport width strategy */
+  width: 100vw;
+  max-width: 100vw;
+  
+  /* Negative margin to offset sidebar */
+  margin-left: -250px; /* Sidebar expanded width */
+  
+  /* Padding to compensate for sidebar */
   padding: 20px;
+  padding-left: 270px; /* 250px sidebar + 20px spacing */
+  padding-right: 35px; /* Extra spacing from scrollbar */
+  
+  /* Smooth transition when sidebar toggles */
+  transition: margin-left 0.3s ease, padding-left 0.3s ease;
+  
+  /* Other essential styles */
   min-height: 100vh;
   background-color: #f5f7fa;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Adjust when sidebar is collapsed (70px) - ONLY for desktop > 1024px */
+@media (min-width: 1025px) {
+  .sidebar.collapsed ~ * .student-affairs,
+  .main-content.sidebar-collapsed .student-affairs {
+    margin-left: -70px; /* Offset sidebar collapsed */
+    padding-left: 90px; /* Compensate for smaller offset */
+  }
 }
 
 .student-affairs-container {
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 40px 20px;
+  padding: 0;
   gap: 30px;
+  box-sizing: border-box;
 }
 
 .info-section {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .section-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 15px 25px;
+  padding: 20px 30px;
   text-align: center;
 }
 
 .section-header h2 {
   color: white;
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
 }
@@ -42,59 +76,69 @@
 .info-form {
   padding: 30px 40px 20px 40px;
   background: #f8f9fa;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-row {
-  margin-bottom: 15px;
-  display: flex;
+  margin-bottom: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.form-group {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 15px;
+/* SA = Student Affairs - Unique class to avoid conflicts */
+.sa-form-group {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin-bottom: 18px;
 }
 
 .form-checkbox {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  cursor: pointer;
-  accent-color: #667eea;
-  flex-shrink: 0;
+  display: inline-block;
 }
 
-.form-group label {
+.sa-form-group label {
   font-weight: 600;
-  color: #000;
-  min-width: 180px;
-  text-align: left;
+  color: #2c3e50;
   font-size: 14px;
   text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  min-width: 220px;
   flex-shrink: 0;
 }
 
-.form-group input[type="text"] {
+.sa-form-group input[type="text"] {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  background: #f8f9fa;
-  color: #000;
   min-width: 0;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: #2c3e50;
   cursor: default;
+  box-sizing: border-box;
+  font-weight: 500;
+  transition: border-color 0.3s ease;
 }
 
-.form-group input[type="text"]:focus {
+.form-group input[type="text"]:focus,
+.sa-form-group input[type="text"]:focus {
   outline: none;
   border-color: #ddd;
   box-shadow: none;
 }
 
-.form-group input[type="text"]::placeholder {
+.form-group input[type="text"]::placeholder,
+.sa-form-group input[type="text"]::placeholder {
   color: #999;
   font-style: italic;
 }
@@ -123,14 +167,19 @@
 .certificate-form {
   padding: 30px 40px 20px 40px;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group-certificate {
-  display: flex;
+  display: grid;
+  grid-template-columns: 180px 1fr;
   align-items: center;
   gap: 15px;
   margin-bottom: 15px;
-  min-width: fit-content;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group-certificate label {
@@ -138,9 +187,16 @@
   color: #000;
   font-size: 14px;
   text-transform: uppercase;
-  min-width: 220px;
   text-align: left;
-  flex-shrink: 0;
+}
+
+/* Grid cell tự động có overflow visible - dropdown menu sẽ hiển thị đúng */
+.form-group-certificate .sa-cd-wrapper,
+.form-group-certificate .select-container {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  /* KHÔNG dùng overflow: hidden ở đây vì dropdown menu cần hiển thị */
 }
 
 .required {
@@ -150,24 +206,27 @@
 .select-container {
   position: relative;
   flex: 1;
-  min-width: 250px;
+  min-width: 0;
+  width: 100%;
 }
 
 .select-input {
   width: 100%;
-  min-width: 250px;
-  padding: 8px 35px 8px 12px;
+  min-width: 0;
+  padding: 10px 35px 10px 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #f8f9fa;
+  border-radius: 8px;
+  background: #fff;
   font-size: 14px;
   color: #000;
   cursor: pointer;
-  height: 38px;
+  height: auto;
+  min-height: 42px;
   box-sizing: border-box;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  /* Text overflow handling */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -181,11 +240,13 @@
 
 /* Style for dropdown options */
 .select-input option {
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: white;
   color: #000;
   font-size: 14px;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 /* Add dropdown arrow */
@@ -266,18 +327,29 @@
   margin-left: 0;
 }
 
+/* Semester display input - không có dropdown icon */
+.semester-display {
+  background-color: #f8f9fa !important;
+  cursor: default !important;
+}
+
+/* Confirmation wrapper - thẳng hàng với các field khác */
+.confirmation-wrapper {
+  padding-left: 195px; /* Thẳng hàng với input của các field (180px label + 15px gap) */
+}
+
 /* Special spacing for confirmation section */
 .confirmation-row {
-  margin-top: 20px !important;
-  margin-bottom: 20px !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding-left: 235px;
 }
 
 .confirmation-row .form-checkbox {
   margin-left: 0;
+  margin-top: 2px;
 }
 
 .form-checkbox {
@@ -323,38 +395,144 @@
   background: #138496;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Large Desktop (> 1200px) - Default styles above */
+
+/* Desktop (max-width: 1200px) */
+@media (max-width: 1200px) {
+  .student-affairs {
+    padding-right: 25px;
+  }
+  
+  .sa-form-group label,
+  .form-group-certificate label {
+    min-width: 180px;
+  }
+}
+
+/* Tablet/Mobile - Overlay sidebar mode */
+@media (max-width: 1024px) {
+  .student-affairs {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  
   .student-affairs-container {
-    padding: 20px 15px;
-    max-width: 100%;
+    gap: 24px;
   }
   
   .info-section {
-    max-width: 100%;
+    border-radius: 16px;
   }
   
   .info-form, .certificate-form {
-    padding: 25px 20px;
+    padding: 24px 28px;
   }
   
   .note-section {
-    padding: 15px 20px;
+    padding: 16px 28px;
   }
   
-  .form-group {
-    flex-direction: column;
-    align-items: flex-start;
+  .sa-form-group label,
+  .form-group-certificate label {
+    min-width: 160px;
+    font-size: 13px;
+  }
+  
+  .section-header {
+    padding: 18px 24px;
+  }
+  
+  .section-header h2 {
+    font-size: 17px;
+  }
+}
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .student-affairs {
+    padding: 16px !important;
+  }
+  
+  .student-affairs-container {
+    gap: 20px;
+  }
+  
+  .info-section {
+    border-radius: 12px;
+    width: 100%;
+  }
+  
+  .info-form, .certificate-form {
+    padding: 20px;
+  }
+  
+  .note-section {
+    padding: 14px 20px;
+  }
+  
+  /* Stack form fields vertically */
+  .form-group,
+  .sa-form-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
     gap: 8px;
   }
   
+  .form-group-certificate {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Đảm bảo dropdown không tràn trên mobile nhưng menu vẫn hiển thị */
+  .form-group-certificate .sa-cd-wrapper,
+  .form-group-certificate .select-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    /* KHÔNG dùng overflow: hidden ở wrapper vì dropdown menu cần hiển thị */
+  }
+  
+  .form-group-certificate .sa-cd-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .form-group-certificate .sa-cd-value {
+    min-width: 0 !important;
+    max-width: calc(100% - 30px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
   .form-checkbox {
     align-self: flex-start;
   }
   
-  .form-group label {
+  .form-group label,
+  .sa-form-group label,
+  .form-group-certificate label {
     min-width: auto;
     font-size: 13px;
+    text-align: left;
+  }
+  
+  .sa-form-group input[type="text"],
+  .text-input {
+    width: 100%;
   }
   
   .section-header h2 {
@@ -362,20 +540,280 @@
   }
   
   .section-header {
-    padding: 15px 20px;
+    padding: 16px 20px;
+  }
+
+  .confirmation-wrapper {
+    padding-left: 0;
+  }
+  
+  .confirmation-row {
+    padding-left: 0;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .select-container,
+  .select-input,
+  .text-input,
+  .textarea-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .select-input {
+    padding: 12px 35px 12px 12px;
+    min-height: 44px;
+    height: auto !important;
+    font-size: 14px;
+    border-radius: 8px;
+    background: #fff;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .select-input option {
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  .info-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .info-note p {
+    min-width: auto;
   }
 }
 
+/* Mobile (max-width: 480px) */
 @media (max-width: 480px) {
   .student-affairs {
-    padding: 10px;
+    padding: 12px !important;
   }
   
-  .info-form {
-    padding: 15px;
+  .student-affairs-container {
+    gap: 16px;
+  }
+  
+  .info-section {
+    border-radius: 10px;
+  }
+  
+  .info-form, .certificate-form {
+    padding: 16px 14px;
   }
   
   .note-section {
-    padding: 15px 20px;
+    padding: 12px 14px;
   }
+  
+  .section-header {
+    padding: 14px 16px;
+  }
+  
+  .section-header h2 {
+    font-size: 14px;
+  }
+  
+  .form-group label,
+  .sa-form-group label,
+  .form-group-certificate label {
+    font-size: 12px;
+  }
+  
+  .sa-form-group input[type="text"],
+  .text-input {
+    padding: 12px 14px;
+    font-size: 14px;
+    height: 44px;
+    border-radius: 8px;
+  }
+
+  .select-input {
+    padding: 12px 35px 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+    height: auto !important;
+    border-radius: 8px;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+
+  .select-input option {
+    padding: 12px 14px;
+    font-size: 14px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+  
+  /* QUAN TRỌNG: Đảm bảo dropdown không tràn trên mobile nhỏ nhưng menu vẫn hiển thị */
+  .form-group-certificate .sa-cd-wrapper,
+  .form-group-certificate .select-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    /* KHÔNG dùng overflow: hidden ở wrapper */
+  }
+  
+  .form-group-certificate .sa-cd-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .form-group-certificate .sa-cd-value {
+    min-width: 0 !important;
+    max-width: calc(100% - 30px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .note-text {
+    font-size: 11px;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  .confirmation-label {
+    font-size: 13px !important;
+  }
+}
+
+/* ============================================
+   SIDEBAR STATE HANDLING - DESKTOP ONLY
+   We adjust our negative margin and padding accordingly.
+   ============================================ */
+
+/* Desktop only - Sidebar Collapsed State (70px) */
+@media (min-width: 1025px) {
+  .main-content.sidebar-collapsed .student-affairs {
+    margin-left: -70px !important;
+    padding-left: 90px !important;
+  }
+
+  /* Sidebar Expanded State (250px) - Default */
+  .main-content.sidebar-expanded .student-affairs {
+    margin-left: -250px !important;
+    padding-left: 270px !important;
+  }
+}
+
+/* Tablet/Mobile - No sidebar offset needed */
+@media (max-width: 1024px) {
+  .main-content.sidebar-collapsed .student-affairs,
+  .main-content.sidebar-expanded .student-affairs {
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+  }
+}
+
+/* Ensure all child elements inherit box-sizing */
+.student-affairs *,
+.student-affairs *::before,
+.student-affairs *::after {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.student-affairs-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.student-affairs-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.student-affairs-loading p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ============================================
+   SEMESTER INPUT READONLY STYLE
+   ============================================ */
+
+.semester-input {
+  background: #e9ecef !important;
+  cursor: default !important;
+}
+
+/* ============================================
+   SUBMIT BUTTON DISABLED STATE
+   ============================================ */
+
+.submit-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
 }

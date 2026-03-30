@@ -27,14 +27,18 @@ class CertificateRequestService {
       throw new AppError('Thiếu thông tin bắt buộc: loại chứng nhận, tên chứng nhận, học kỳ', 400);
     }
 
+    // Lấy mã yêu cầu tiếp theo từ Repository (tuân thủ kiến trúc 4 lớp)
+    const requestCode = await certificateRequestRepository.getNextRequestCode();
+
     // Tạo yêu cầu mới với cấu trúc đúng
     const newRequest = await certificateRequestRepository.createRequest({
+      requestCode,
       student: studentProfile._id,
       certificateType: certificateType,
       certificateName: certificateName, // Đây là ObjectId của CertificateName
       semester,
       notes: notes || '',
-      status: 'PENDING'
+      status: 'ĐANG XỬ LÝ'
     });
 
     return {
@@ -63,6 +67,22 @@ class CertificateRequestService {
       limit
     );
 
+    // Filter dữ liệu: Sinh viên KHÔNG được thấy staffFile và notes khi yêu cầu đang xử lý
+    // Chỉ hiển thị khi staff đã DUYỆT hoặc TỪ CHỐI
+    if (result.requests && result.requests.length > 0) {
+      result.requests = result.requests.map(request => {
+        const requestObj = request.toObject ? request.toObject() : { ...request };
+        
+        // Nếu đang xử lý, ẩn staffFile và notes (draft của staff)
+        if (requestObj.status === 'ĐANG XỬ LÝ') {
+          requestObj.staffFile = null;
+          requestObj.notes = '';
+        }
+        
+        return requestObj;
+      });
+    }
+
     return {
       success: true,
       message: 'Lấy lịch sử yêu cầu thành công',
@@ -79,16 +99,27 @@ class CertificateRequestService {
 
     // Kiểm tra quyền truy cập
     const user = await userRepository.findById(userId);
+    let isStudent = false;
+    
     if (user.role === 'STUDENT') {
+      isStudent = true;
       const studentProfile = await userRepository.getProfileByRole(userId, 'STUDENT');
       if (!studentProfile || request.student.toString() !== studentProfile._id.toString()) {
         throw new AppError('Bạn không có quyền xem yêu cầu này', 403);
       }
     }
 
+    // Filter dữ liệu cho sinh viên: ẩn staffFile và notes khi đang xử lý
+    let responseData = request;
+    if (isStudent && request.status === 'ĐANG XỬ LÝ') {
+      responseData = request.toObject ? request.toObject() : { ...request };
+      responseData.staffFile = null;
+      responseData.notes = '';
+    }
+
     return {
       success: true,
-      data: request
+      data: responseData
     };
   }
 
@@ -99,12 +130,17 @@ class CertificateRequestService {
     return {
       success: true,
       message: 'Lấy danh sách yêu cầu thành công',
-      data: result
+      data: result.requests,
+      pagination: {
+        page: result.page,
+        totalPages: result.totalPages,
+        total: result.total
+      }
     };
   }
 
   // Cập nhật trạng thái yêu cầu (cho staff/admin)
-  async updateRequestStatus(requestId, status, staffUserId, notes = '') {
+  async updateRequestStatus(requestId, status, staffUserId, notes = '', staffFile = null) {
     // Lấy staff profile
     const staffUser = await userRepository.findById(staffUserId);
     if (!staffUser || !['STAFF', 'ADMIN'].includes(staffUser.role)) {
@@ -116,17 +152,23 @@ class CertificateRequestService {
       throw new AppError('Không tìm thấy thông tin staff', 404);
     }
 
-    // Validation trạng thái
-    const validStatuses = ['PENDING', 'PROCESSING', 'APPROVED', 'REJECTED', 'COMPLETED'];
+    // Validation trạng thái - phải khớp với enum trong Model
+    const validStatuses = ['ĐANG XỬ LÝ', 'HỢP LỆ', 'KHÔNG HỢP LỆ'];
     if (!validStatuses.includes(status)) {
-      throw new AppError('Trạng thái không hợp lệ', 400);
+      throw new AppError('Trạng thái không hợp lệ. Cho phép: ĐANG XỬ LÝ, HỢP LỆ, KHÔNG HỢP LỆ', 400);
+    }
+
+    // Validation business rules
+    if (status === 'KHÔNG HỢP LỆ' && !notes) {
+      throw new AppError('Vui lòng nhập lý do từ chối', 400);
     }
 
     const updatedRequest = await certificateRequestRepository.updateRequestStatus(
       requestId,
       status,
       staffProfile._id,
-      notes
+      notes,
+      staffFile
     );
 
     if (!updatedRequest) {
@@ -135,7 +177,9 @@ class CertificateRequestService {
 
     return {
       success: true,
-      message: 'Cập nhật trạng thái thành công',
+      message: status === 'HỢP LỆ' ? 'Duyệt yêu cầu thành công' : 
+               status === 'KHÔNG HỢP LỆ' ? 'Từ chối yêu cầu thành công' : 
+               'Cập nhật trạng thái thành công',
       data: updatedRequest
     };
   }
@@ -172,6 +216,20 @@ class CertificateRequestService {
     return {
       success: true,
       message: `Lấy danh sách yêu cầu ${status.toLowerCase()} thành công`,
+      data: requests
+    };
+  }
+
+  /**
+   * Lấy dữ liệu cho export CSV
+   * @param {Object} filters - Bộ lọc (status, semester, startDate, endDate)
+   * @returns {Promise<Object>} - Dữ liệu đã được transform cho CSV
+   */
+  async getDataForCSVExport(filters = {}) {
+    const requests = await certificateRequestRepository.getDataForCSVExport(filters);
+    
+    return {
+      success: true,
       data: requests
     };
   }

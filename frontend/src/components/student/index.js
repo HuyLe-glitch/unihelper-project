@@ -6,4 +6,4 @@ export * from './student-affairs';
 export * from './dormitory';
 export * from './history-affair';
 export * from './history-dormitory';
-export { default as StudentLayout } from './StudentLayout';
+// StudentLayout moved to layouts folder

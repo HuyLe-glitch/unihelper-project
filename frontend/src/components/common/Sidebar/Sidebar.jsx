@@ -1,13 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { MENU_CONFIGS } from '../../../constants';
+import { getMenuConfig } from '../../../constants';
+import { authService } from '../../../services';
 import './Sidebar.css';
 
-const Sidebar = ({ userRole = 'student' }) => {
+const Sidebar = ({ userRole = 'student', isCollapsed = false, className = '' }) => {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState({});
 
-  const menuItems = MENU_CONFIGS[userRole] || MENU_CONFIGS.student;
+  // Get staff type for staff users
+  const staffType = userRole === 'staff' ? authService.getStaffType() : null;
+  
+  // Get isDormResident for student users
+  const isDormResident = useMemo(() => {
+    if (userRole !== 'student') return false;
+    
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        // Check từ profile.isDormResident hoặc trực tiếp từ user
+        return user?.profile?.isDormResident || user?.isDormResident || false;
+      }
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+    }
+    return false;
+  }, [userRole]);
+  
+  // Get appropriate menu based on role, staff type, and dormitory status
+  const menuItems = getMenuConfig(userRole, staffType, isDormResident);
 
   useEffect(() => {
     menuItems.forEach((item) => {
@@ -34,7 +56,7 @@ const Sidebar = ({ userRole = 'student' }) => {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${className}`}>
       <div className="sidebar-header">
         <div className="app-logo">
           <div className="logo-icon">🎓</div>

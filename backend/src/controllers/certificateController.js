@@ -1,123 +1,269 @@
 const certificateService = require('../services/certificateService');
-const { catchAsync } = require('../utils/appError');
+const { validationResult } = require('express-validator');
 
 /**
- * Certificate Controller - Presentation Layer
- * Xử lý HTTP requests/responses cho Certificate Management
+ * Certificate Controller - Thin Controller
+ * Chỉ nhận request, gọi service và trả response
+ * KHÔNG chứa business logic
  */
-class CertificateController {
-  // =============== CERTIFICATE TYPES ===============
+const certificateController = {
+  // ==========================================
+  // CERTIFICATE TYPE OPERATIONS
+  // ==========================================
 
-  // Lấy danh sách certificate types
-  getCertificateTypes = catchAsync(async (req, res) => {
-    const { search } = req.query;
-    const filters = search ? { name: { $regex: search, $options: 'i' } } : {};
+  /**
+   * GET /api/certificates/types
+   * Lấy tất cả loại chứng nhận
+   */
+  getAllTypes: async (req, res, next) => {
+    try {
+      const result = await certificateService.getAllTypes();
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    const result = await certificateService.getCertificateTypes(filters);
+  /**
+   * GET /api/certificates/types/:id
+   * Lấy loại chứng nhận theo ID
+   */
+  getTypeById: async (req, res, next) => {
+    try {
+      const result = await certificateService.getTypeById(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(200).json(result);
-  });
+  /**
+   * POST /api/certificates/types
+   * Tạo loại chứng nhận mới
+   */
+  createType: async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-  // Tạo certificate type mới
-  createCertificateType = catchAsync(async (req, res) => {
-    const result = await certificateService.createCertificateType(req.body);
+      const result = await certificateService.createType(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(201).json(result);
-  });
+  /**
+   * PATCH /api/certificates/types/:id
+   * Cập nhật loại chứng nhận
+   */
+  updateType: async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-  // Cập nhật certificate type
-  updateCertificateType = catchAsync(async (req, res) => {
-    const { id } = req.params;
+      const result = await certificateService.updateType(req.params.id, req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    const result = await certificateService.updateCertificateType(id, req.body);
+  /**
+   * DELETE /api/certificates/types/:id
+   * Xóa loại chứng nhận
+   */
+  deleteType: async (req, res, next) => {
+    try {
+      const result = await certificateService.deleteType(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(200).json(result);
-  });
+  /**
+   * GET /api/certificates/types/:id/check-delete
+   * Kiểm tra có thể xóa loại chứng nhận không
+   */
+  checkCanDeleteType: async (req, res, next) => {
+    try {
+      const result = await certificateService.checkCanDeleteType(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  // Xóa certificate type
-  deleteCertificateType = catchAsync(async (req, res) => {
-    const { id } = req.params;
+  // ==========================================
+  // CERTIFICATE OPERATIONS
+  // ==========================================
 
-    const result = await certificateService.deleteCertificateType(id);
+  /**
+   * GET /api/certificates
+   * Lấy tất cả chứng nhận
+   */
+  getAllCertificates: async (req, res, next) => {
+    try {
+      const filters = {};
+      if (req.query.certificateType) {
+        filters.certificateType = req.query.certificateType;
+      }
+      const result = await certificateService.getAllCertificates(filters);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(200).json(result);
-  });
+  /**
+   * GET /api/certificates/:id
+   * Lấy chứng nhận theo ID
+   */
+  getCertificateById: async (req, res, next) => {
+    try {
+      const result = await certificateService.getCertificateById(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  // =============== CERTIFICATE TEMPLATES ===============
+  /**
+   * GET /api/certificates/by-type/:typeId
+   * Lấy chứng nhận theo loại
+   */
+  getCertificatesByType: async (req, res, next) => {
+    try {
+      const result = await certificateService.getCertificatesByType(req.params.typeId);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  // Lấy danh sách certificate templates
-  getCertificateTemplates = catchAsync(async (req, res) => {
-    const { certificateType, isActive } = req.query;
-    const filters = {};
+  /**
+   * POST /api/certificates
+   * Tạo chứng nhận mới
+   */
+  createCertificate: async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-    if (certificateType) filters.certificateType = certificateType;
-    if (isActive !== undefined) filters.isActive = isActive === 'true';
+      const result = await certificateService.createCertificate(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    const result = await certificateService.getCertificateTemplates(filters);
+  /**
+   * POST /api/certificates/batch
+   * Tạo nhiều chứng nhận cùng lúc
+   */
+  createCertificatesBatch: async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-    res.status(200).json(result);
-  });
+      const { typeId, certificates } = req.body;
+      const result = await certificateService.createCertificatesBatch(typeId, certificates);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  // Lấy template theo ID
-  getCertificateTemplateById = catchAsync(async (req, res) => {
-    const { id } = req.params;
+  /**
+   * PATCH /api/certificates/:id
+   * Cập nhật chứng nhận
+   */
+  updateCertificate: async (req, res, next) => {
+    try {
+      // Check validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu không hợp lệ',
+          errors: errors.array()
+        });
+      }
 
-    const result = await certificateService.getCertificateTemplateById(id);
+      const result = await certificateService.updateCertificate(req.params.id, req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(200).json(result);
-  });
+  /**
+   * DELETE /api/certificates/:id
+   * Xóa chứng nhận
+   */
+  deleteCertificate: async (req, res, next) => {
+    try {
+      const result = await certificateService.deleteCertificate(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  // Tạo certificate template mới
-  createCertificateTemplate = catchAsync(async (req, res) => {
-    const result = await certificateService.createCertificateTemplate(req.body);
+  /**
+   * GET /api/certificates/:id/check-delete
+   * Kiểm tra có thể xóa chứng nhận không
+   */
+  checkCanDeleteCertificate: async (req, res, next) => {
+    try {
+      const result = await certificateService.checkCanDeleteCertificate(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(201).json(result);
-  });
+  /**
+   * GET /api/certificates/stats
+   * Lấy thống kê
+   */
+  getStats: async (req, res, next) => {
+    try {
+      const result = await certificateService.getStats();
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+};
 
-  // Cập nhật certificate template
-  updateCertificateTemplate = catchAsync(async (req, res) => {
-    const { id } = req.params;
-
-    const result = await certificateService.updateCertificateTemplate(id, req.body);
-
-    res.status(200).json(result);
-  });
-
-  // Xóa certificate template
-  deleteCertificateTemplate = catchAsync(async (req, res) => {
-    const { id } = req.params;
-
-    const result = await certificateService.deleteCertificateTemplate(id);
-
-    res.status(200).json(result);
-  });
-
-  // Lấy templates theo type
-  getTemplatesByType = catchAsync(async (req, res) => {
-    const { typeId } = req.params;
-
-    const result = await certificateService.getTemplatesByType(typeId);
-
-    res.status(200).json(result);
-  });
-
-  // Lấy active templates theo type
-  getActiveTemplatesByType = catchAsync(async (req, res) => {
-    const { typeId } = req.params;
-
-    const result = await certificateService.getActiveTemplatesByType(typeId);
-
-    res.status(200).json(result);
-  });
-
-  // Toggle trạng thái template
-  toggleTemplateStatus = catchAsync(async (req, res) => {
-    const { id } = req.params;
-
-    const result = await certificateService.toggleTemplateStatus(id);
-
-    res.status(200).json(result);
-  });
-}
-
-module.exports = new CertificateController();
+module.exports = certificateController;

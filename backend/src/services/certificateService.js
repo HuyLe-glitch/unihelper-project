@@ -1,267 +1,480 @@
 const certificateRepository = require('../repositories/certificateRepository');
-const { AppError } = require('../utils/appError');
+const CertificateRequest = require('../models/CertificateRequest');
+
+/**
+ * Helper function để tạo operational error với field
+ */
+const createError = (message, statusCode, field = null, extra = {}) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.status = statusCode >= 500 ? 'error' : 'fail';
+  error.isOperational = true;
+  if (field) {
+    error.field = field;
+  }
+  Object.assign(error, extra);
+  return error;
+};
 
 /**
  * Certificate Service - Business Logic Layer
- * Xử lý logic nghiệp vụ liên quan đến Certificate Management
+ * Xử lý toàn bộ logic nghiệp vụ
  */
-class CertificateService {
-  // =============== CERTIFICATE TYPES ===============
+const certificateService = {
+  // ==========================================
+  // CERTIFICATE TYPE OPERATIONS
+  // ==========================================
 
-  // Lấy danh sách certificate types
-  async getCertificateTypes(filters = {}) {
-    const types = await certificateRepository.findAllTypes(filters);
-
+  /**
+   * Lấy tất cả loại chứng nhận
+   */
+  getAllTypes: async () => {
+    const types = await certificateRepository.getAllTypes();
     return {
       success: true,
-      message: 'Lấy danh sách certificate types thành công',
+      count: types.length,
       data: types
     };
-  }
+  },
 
-  // Tạo certificate type mới
-  async createCertificateType(typeData) {
-    const { name, description, requirements } = typeData;
+  /**
+   * Lấy loại chứng nhận theo ID
+   */
+  getTypeById: async (typeId) => {
+    const type = await certificateRepository.getTypeById(typeId);
+    if (!type) {
+      throw createError('Không tìm thấy loại chứng nhận', 404);
+    }
+    return { success: true, data: type };
+  },
 
-    // Validation
-    if (!name) {
-      throw new AppError('Tên certificate type là bắt buộc', 400);
+  /**
+   * Tạo loại chứng nhận mới - BUSINESS LOGIC: Check trùng tên
+   */
+  createType: async (typeData) => {
+    const { name } = typeData;
+
+    // BUSINESS LOGIC: Check trùng tên loại chứng nhận (unique trong toàn hệ thống)
+    const existingType = await certificateRepository.checkTypeNameExists(name);
+    if (existingType) {
+      throw createError(
+        `Tên loại chứng nhận "${name}" đã tồn tại trong hệ thống`,
+        409,
+        'name'
+      );
     }
 
-    // Kiểm tra tên đã tồn tại
-    const nameExists = await certificateRepository.typeNameExists(name);
-    if (nameExists) {
-      throw new AppError('Tên certificate type đã tồn tại', 400);
-    }
-
-    // Tạo type mới
     const newType = await certificateRepository.createType({
-      name,
-      description,
-      requirements
+      name: name.trim(),
+      description: typeData.description?.trim() || ''
     });
+
+    // Populate certificateCount
+    const populatedType = await certificateRepository.getTypeById(newType._id);
 
     return {
       success: true,
-      message: 'Tạo certificate type thành công',
-      data: newType
+      message: 'Tạo loại chứng nhận thành công',
+      data: populatedType
     };
-  }
+  },
 
-  // Cập nhật certificate type
-  async updateCertificateType(typeId, updateData) {
-    const { name, description, requirements } = updateData;
-
-    // Kiểm tra type tồn tại
-    const type = await certificateRepository.findTypeById(typeId);
-    if (!type) {
-      throw new AppError('Không tìm thấy certificate type', 404);
+  /**
+   * Cập nhật loại chứng nhận - BUSINESS LOGIC: Check trùng tên (trừ chính nó)
+   */
+  updateType: async (typeId, updateData) => {
+    // Kiểm tra loại chứng nhận tồn tại
+    const existingType = await certificateRepository.getTypeById(typeId);
+    if (!existingType) {
+      throw createError('Không tìm thấy loại chứng nhận', 404);
     }
 
-    // Kiểm tra tên mới nếu có
-    if (name && name !== type.name) {
-      const nameExists = await certificateRepository.typeNameExists(name, typeId);
-      if (nameExists) {
-        throw new AppError('Tên certificate type đã tồn tại', 400);
+    // BUSINESS LOGIC: Check trùng tên nếu có update tên
+    if (updateData.name && updateData.name.trim().toLowerCase() !== existingType.name.toLowerCase()) {
+      const duplicateType = await certificateRepository.checkTypeNameExists(updateData.name, typeId);
+      if (duplicateType) {
+        throw createError(
+          `Tên loại chứng nhận "${updateData.name}" đã tồn tại trong hệ thống`,
+          409,
+          'name'
+        );
       }
     }
 
-    // Cập nhật type
     const updatedType = await certificateRepository.updateType(typeId, {
-      name,
-      description,
-      requirements
+      name: updateData.name?.trim(),
+      description: updateData.description?.trim()
     });
 
     return {
       success: true,
-      message: 'Cập nhật certificate type thành công',
+      message: 'Cập nhật loại chứng nhận thành công',
       data: updatedType
     };
-  }
+  },
 
-  // Xóa certificate type
-  async deleteCertificateType(typeId) {
-    // Kiểm tra type tồn tại
-    const type = await certificateRepository.findTypeById(typeId);
+  /**
+   * Xóa loại chứng nhận - BUSINESS LOGIC: Kiểm tra ràng buộc trước khi xóa
+   */
+  deleteType: async (typeId) => {
+    const type = await certificateRepository.getTypeById(typeId);
     if (!type) {
-      throw new AppError('Không tìm thấy certificate type', 404);
+      throw createError('Không tìm thấy loại chứng nhận', 404);
     }
 
-    // Kiểm tra có template nào đang sử dụng không
-    const templateCount = await certificateRepository.countTemplatesByType(typeId);
-    if (templateCount > 0) {
-      throw new AppError('Không thể xóa certificate type đang được sử dụng', 400);
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateType: typeId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa loại chứng nhận "${type.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`,
+        400,
+        'certificateType',
+        { relatedRequestsCount }
+      );
     }
 
-    // Xóa type
+    // Đếm số chứng nhận sẽ bị xóa
+    const certificateCount = await certificateRepository.countCertificatesByType(typeId);
+
+    // Xóa tất cả chứng nhận trong loại
+    await certificateRepository.deleteCertificatesByType(typeId);
+
+    // Xóa loại chứng nhận
     await certificateRepository.deleteType(typeId);
 
     return {
       success: true,
-      message: 'Xóa certificate type thành công'
+      message: `Đã xóa loại chứng nhận "${type.name}" và ${certificateCount} chứng nhận liên quan`
     };
-  }
+  },
 
-  // =============== CERTIFICATE TEMPLATES ===============
-
-  // Lấy danh sách certificate templates
-  async getCertificateTemplates(filters = {}) {
-    const templates = await certificateRepository.findAllTemplates(filters);
-
-    return {
-      success: true,
-      message: 'Lấy danh sách certificate templates thành công',
-      data: templates
-    };
-  }
-
-  // Lấy template theo ID
-  async getCertificateTemplateById(templateId) {
-    const template = await certificateRepository.findTemplateById(templateId);
-    if (!template) {
-      throw new AppError('Không tìm thấy certificate template', 404);
-    }
-
-    return {
-      success: true,
-      data: template
-    };
-  }
-
-  // Tạo certificate template mới
-  async createCertificateTemplate(templateData) {
-    const { name, content, certificateType, isActive = true } = templateData;
-
-    // Validation
-    if (!name || !content || !certificateType) {
-      throw new AppError('Tên, nội dung và loại certificate là bắt buộc', 400);
-    }
-
-    // Kiểm tra certificate type tồn tại
-    const type = await certificateRepository.findTypeById(certificateType);
+  /**
+   * Kiểm tra có thể xóa loại chứng nhận không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteType: async (typeId) => {
+    const type = await certificateRepository.getTypeById(typeId);
     if (!type) {
-      throw new AppError('Certificate type không tồn tại', 404);
+      throw createError('Không tìm thấy loại chứng nhận', 404);
     }
 
-    // Tạo template mới
-    const newTemplate = await certificateRepository.createTemplate({
-      name,
-      content,
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateType: typeId });
+    
+    // Đếm số chứng nhận trong loại
+    const certificateCount = await certificateRepository.countCertificatesByType(typeId);
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          type,
+          relatedRequestsCount,
+          certificateCount,
+          message: `Không thể xóa loại chứng nhận "${type.name}" vì đã có ${relatedRequestsCount} yêu cầu chứng nhận liên quan trong hệ thống`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      canDelete: true,
+      data: {
+        type,
+        certificateCount,
+        message: certificateCount > 0 
+          ? `Xóa loại chứng nhận "${type.name}" sẽ xóa luôn ${certificateCount} chứng nhận trong đó`
+          : `Bạn có chắc chắn muốn xóa loại chứng nhận "${type.name}"?`
+      }
+    };
+  },
+
+  // ==========================================
+  // CERTIFICATE OPERATIONS
+  // ==========================================
+
+  /**
+   * Lấy tất cả chứng nhận
+   */
+  getAllCertificates: async (filters = {}) => {
+    const certificates = await certificateRepository.getAllCertificates(filters);
+    return {
+      success: true,
+      count: certificates.length,
+      data: certificates
+    };
+  },
+
+  /**
+   * Lấy chứng nhận theo ID
+   */
+  getCertificateById: async (certificateId) => {
+    const certificate = await certificateRepository.getCertificateById(certificateId);
+    if (!certificate) {
+      throw createError('Không tìm thấy chứng nhận', 404);
+    }
+    return { success: true, data: certificate };
+  },
+
+  /**
+   * Lấy chứng nhận theo loại
+   */
+  getCertificatesByType: async (typeId) => {
+    // Kiểm tra loại chứng nhận tồn tại
+    const type = await certificateRepository.getTypeById(typeId);
+    if (!type) {
+      throw createError('Không tìm thấy loại chứng nhận', 404);
+    }
+
+    const certificates = await certificateRepository.getCertificatesByType(typeId);
+    return {
+      success: true,
+      count: certificates.length,
+      data: certificates
+    };
+  },
+
+  /**
+   * Tạo chứng nhận đơn lẻ - BUSINESS LOGIC: Check trùng tên
+   */
+  createCertificate: async (certificateData) => {
+    const { name, certificateType } = certificateData;
+
+    // Kiểm tra loại chứng nhận tồn tại
+    const typeExists = await certificateRepository.getTypeById(certificateType);
+    if (!typeExists) {
+      throw createError('Không tìm thấy loại chứng nhận', 404, 'certificateType');
+    }
+
+    // BUSINESS LOGIC: Check trùng tên chứng nhận (unique trong toàn hệ thống)
+    const existingCertificate = await certificateRepository.checkCertificateNameExists(name);
+    if (existingCertificate) {
+      throw createError(
+        `Tên chứng nhận "${name}" đã tồn tại trong loại "${existingCertificate.certificateType.name}"`,
+        409,
+        'name'
+      );
+    }
+
+    const newCertificate = await certificateRepository.createCertificate({
+      name: name.trim(),
       certificateType,
-      isActive
+      description: certificateData.description?.trim() || ''
     });
 
+    const populatedCertificate = await certificateRepository.getCertificateById(newCertificate._id);
+
     return {
       success: true,
-      message: 'Tạo certificate template thành công',
-      data: newTemplate
+      message: 'Tạo chứng nhận thành công',
+      data: populatedCertificate
     };
-  }
+  },
 
-  // Cập nhật certificate template
-  async updateCertificateTemplate(templateId, updateData) {
-    const { name, content, certificateType, isActive } = updateData;
-
-    // Kiểm tra template tồn tại
-    const template = await certificateRepository.findTemplateById(templateId);
-    if (!template) {
-      throw new AppError('Không tìm thấy certificate template', 404);
+  /**
+   * BATCH CREATE CERTIFICATES - Thêm nhiều chứng nhận cùng lúc
+   * Business Logic:
+   * 1. Validate loại chứng nhận tồn tại
+   * 2. Kiểm tra trùng lặp tên giữa các entries
+   * 3. Kiểm tra trùng lặp tên với DB (toàn hệ thống)
+   * 4. Nếu có BẤT KỲ lỗi nào → KHÔNG thêm gì cả (atomic)
+   */
+  createCertificatesBatch: async (typeId, certificatesData) => {
+    // 1. Validate loại chứng nhận tồn tại
+    const type = await certificateRepository.getTypeById(typeId);
+    if (!type) {
+      throw createError('Không tìm thấy loại chứng nhận', 404);
     }
 
-    // Kiểm tra certificate type nếu có thay đổi
-    if (certificateType && certificateType !== template.certificateType.toString()) {
-      const type = await certificateRepository.findTypeById(certificateType);
-      if (!type) {
-        throw new AppError('Certificate type không tồn tại', 404);
+    const errors = [];
+
+    // 2. Kiểm tra trùng lặp giữa các entries (local)
+    const nameMap = {}; // { nameLower: index }
+
+    certificatesData.forEach((entry, index) => {
+      const nameLower = entry.name.trim().toLowerCase();
+
+      // Check tên trùng với entries trước
+      if (nameMap[nameLower] !== undefined) {
+        errors.push({
+          entryIndex: index,
+          field: 'name',
+          message: `Tên "${entry.name}" trùng với chứng nhận #${nameMap[nameLower] + 1}`
+        });
+      } else {
+        nameMap[nameLower] = index;
+      }
+    });
+
+    // Nếu có lỗi trùng local → dừng ngay
+    if (errors.length > 0) {
+      const error = createError('Có lỗi trùng lặp giữa các chứng nhận', 400);
+      error.errors = errors;
+      throw error;
+    }
+
+    // 3. Kiểm tra trùng lặp với DB (toàn hệ thống)
+    const names = certificatesData.map(e => e.name.trim());
+    const existingCertificates = await certificateRepository.checkCertificateNamesExist(names);
+
+    existingCertificates.forEach(existing => {
+      const index = names.findIndex(n => n.toLowerCase() === existing.name.toLowerCase());
+      if (index !== -1) {
+        errors.push({
+          entryIndex: index,
+          field: 'name',
+          message: `Tên "${existing.name}" đã tồn tại trong loại "${existing.certificateType.name}"`
+        });
+      }
+    });
+
+    // Nếu có lỗi trùng với DB → dừng ngay
+    if (errors.length > 0) {
+      const error = createError('Có chứng nhận đã tồn tại trong hệ thống', 409);
+      error.errors = errors;
+      throw error;
+    }
+
+    // 4. Tất cả hợp lệ → Tạo tất cả certificates
+    const certificatesToCreate = certificatesData.map(entry => ({
+      name: entry.name.trim(),
+      certificateType: typeId,
+      description: entry.description?.trim() || ''
+    }));
+
+    const createdCertificates = await certificateRepository.createManyCertificates(certificatesToCreate);
+
+    // Populate type info
+    const populatedCertificates = await certificateRepository.getAllCertificates({ certificateType: typeId });
+    const newCertificates = populatedCertificates.filter(cert => 
+      createdCertificates.some(c => c._id.toString() === cert._id.toString())
+    );
+
+    return {
+      success: true,
+      message: `Đã thêm ${createdCertificates.length} chứng nhận thành công`,
+      count: createdCertificates.length,
+      data: newCertificates
+    };
+  },
+
+  /**
+   * Cập nhật chứng nhận - BUSINESS LOGIC: Check trùng tên (trừ chính nó)
+   */
+  updateCertificate: async (certificateId, updateData) => {
+    // Kiểm tra chứng nhận tồn tại
+    const existingCertificate = await certificateRepository.getCertificateById(certificateId);
+    if (!existingCertificate) {
+      throw createError('Không tìm thấy chứng nhận', 404);
+    }
+
+    // BUSINESS LOGIC: Check trùng tên nếu có update tên
+    if (updateData.name && updateData.name.trim().toLowerCase() !== existingCertificate.name.toLowerCase()) {
+      const duplicateCertificate = await certificateRepository.checkCertificateNameExists(updateData.name, certificateId);
+      if (duplicateCertificate) {
+        throw createError(
+          `Tên chứng nhận "${updateData.name}" đã tồn tại trong loại "${duplicateCertificate.certificateType.name}"`,
+          409,
+          'name'
+        );
       }
     }
 
-    // Cập nhật template
-    const updatedTemplate = await certificateRepository.updateTemplate(templateId, {
-      name,
-      content,
-      certificateType,
-      isActive
+    // Nếu thay đổi loại chứng nhận, kiểm tra loại mới tồn tại
+    if (updateData.certificateType && updateData.certificateType !== existingCertificate.certificateType._id.toString()) {
+      const typeExists = await certificateRepository.getTypeById(updateData.certificateType);
+      if (!typeExists) {
+        throw createError('Không tìm thấy loại chứng nhận', 404, 'certificateType');
+      }
+    }
+
+    const updatedCertificate = await certificateRepository.updateCertificate(certificateId, {
+      name: updateData.name?.trim(),
+      certificateType: updateData.certificateType,
+      description: updateData.description?.trim()
     });
 
     return {
       success: true,
-      message: 'Cập nhật certificate template thành công',
-      data: updatedTemplate
+      message: 'Cập nhật chứng nhận thành công',
+      data: updatedCertificate
     };
-  }
+  },
 
-  // Xóa certificate template
-  async deleteCertificateTemplate(templateId) {
-    // Kiểm tra template tồn tại
-    const template = await certificateRepository.findTemplateById(templateId);
-    if (!template) {
-      throw new AppError('Không tìm thấy certificate template', 404);
+  /**
+   * Xóa chứng nhận - Kiểm tra ràng buộc trước khi xóa
+   */
+  deleteCertificate: async (certificateId) => {
+    const certificate = await certificateRepository.getCertificateById(certificateId);
+    if (!certificate) {
+      throw createError('Không tìm thấy chứng nhận', 404);
     }
 
-    // Xóa template
-    await certificateRepository.deleteTemplate(templateId);
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateName: certificateId });
+    if (relatedRequestsCount > 0) {
+      throw createError(
+        `Không thể xóa chứng nhận "${certificate.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`,
+        400,
+        'certificate',
+        { relatedRequestsCount }
+      );
+    }
+
+    await certificateRepository.deleteCertificate(certificateId);
 
     return {
       success: true,
-      message: 'Xóa certificate template thành công'
+      message: `Đã xóa chứng nhận "${certificate.name}"`
     };
-  }
+  },
 
-  // Lấy templates theo type
-  async getTemplatesByType(typeId) {
-    // Kiểm tra type tồn tại
-    const type = await certificateRepository.findTypeById(typeId);
-    if (!type) {
-      throw new AppError('Certificate type không tồn tại', 404);
+  /**
+   * Kiểm tra có thể xóa chứng nhận không
+   * Trả về thông tin để frontend hiển thị dialog phù hợp
+   */
+  checkCanDeleteCertificate: async (certificateId) => {
+    const certificate = await certificateRepository.getCertificateById(certificateId);
+    if (!certificate) {
+      throw createError('Không tìm thấy chứng nhận', 404);
     }
 
-    const templates = await certificateRepository.findTemplatesByType(typeId);
+    // Kiểm tra có yêu cầu chứng nhận nào liên quan không
+    const relatedRequestsCount = await CertificateRequest.countDocuments({ certificateName: certificateId });
+
+    if (relatedRequestsCount > 0) {
+      return {
+        success: true,
+        canDelete: false,
+        data: {
+          certificate,
+          relatedRequestsCount,
+          message: `Không thể xóa chứng nhận "${certificate.name}" vì đã có ${relatedRequestsCount} yêu cầu liên quan trong hệ thống`
+        }
+      };
+    }
 
     return {
       success: true,
-      message: 'Lấy templates theo type thành công',
-      data: templates
+      canDelete: true,
+      data: {
+        certificate,
+        message: `Bạn có chắc chắn muốn xóa chứng nhận "${certificate.name}"?`
+      }
     };
-  }
+  },
 
-  // Lấy active templates theo type
-  async getActiveTemplatesByType(typeId) {
-    // Kiểm tra type tồn tại
-    const type = await certificateRepository.findTypeById(typeId);
-    if (!type) {
-      throw new AppError('Certificate type không tồn tại', 404);
-    }
-
-    const templates = await certificateRepository.findActiveTemplatesByType(typeId);
-
+  /**
+   * Lấy thống kê
+   */
+  getStats: async () => {
+    const stats = await certificateRepository.getStats();
     return {
       success: true,
-      message: 'Lấy active templates thành công',
-      data: templates
+      data: stats
     };
   }
+};
 
-  // Toggle trạng thái active của template
-  async toggleTemplateStatus(templateId) {
-    // Kiểm tra template tồn tại
-    const template = await certificateRepository.findTemplateById(templateId);
-    if (!template) {
-      throw new AppError('Không tìm thấy certificate template', 404);
-    }
-
-    // Toggle trạng thái
-    const updatedTemplate = await certificateRepository.updateTemplate(templateId, {
-      isActive: !template.isActive
-    });
-
-    return {
-      success: true,
-      message: `${updatedTemplate.isActive ? 'Kích hoạt' : 'Vô hiệu hóa'} template thành công`,
-      data: updatedTemplate
-    };
-  }
-}
-
-module.exports = new CertificateService();
+module.exports = certificateService;

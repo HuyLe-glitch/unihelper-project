@@ -17,6 +17,13 @@ class MajorController {
     res.status(201).json(result);
   });
 
+  // Batch create majors - Thêm nhiều chuyên ngành cùng lúc
+  createBatchMajors = catchAsync(async (req, res) => {
+    const { faculty, majors } = req.body;
+    const result = await majorService.createBatchMajors(faculty, majors);
+    res.status(201).json(result);
+  });
+
   updateMajor = catchAsync(async (req, res) => {
     const result = await majorService.updateMajor(req.params.id, req.body);
     res.status(200).json(result);
@@ -24,6 +31,12 @@ class MajorController {
 
   deleteMajor = catchAsync(async (req, res) => {
     const result = await majorService.deleteMajor(req.params.id);
+    res.status(200).json(result);
+  });
+
+  // Kiểm tra có thể xóa chuyên ngành không (đếm sinh viên)
+  checkCanDeleteMajor = catchAsync(async (req, res) => {
+    const result = await majorService.checkCanDeleteMajor(req.params.id);
     res.status(200).json(result);
   });
 }

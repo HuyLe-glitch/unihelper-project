@@ -1,57 +1,120 @@
 const express = require('express');
 const certificateController = require('../controllers/certificateController');
-const { certificateTypeValidation, certificateTemplateValidation, certificateQueryValidation, idValidation } = require('../validators/certificateValidation');
+const { 
+  typeValidation, 
+  certificateValidation, 
+  idValidation, 
+  typeIdValidation,
+  queryValidation 
+} = require('../validators/certificateValidation');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
 /**
- * Certificate Routes - Các endpoint cho Certificate Management
+ * Certificate Routes
+ * Quản lý loại chứng nhận và chứng nhận
  */
 
-// Middleware bảo vệ tất cả routes
+// Protect all routes
 router.use(protect);
 
-// =============== CERTIFICATE TYPES ROUTES ===============
+// ==========================================
+// CERTIFICATE TYPE ROUTES
+// ==========================================
 
-// GET /api/certificates/types - Lấy danh sách certificate types
-router.get('/types', certificateQueryValidation.getTypesQuery, certificateController.getCertificateTypes);
+// GET /api/certificates/types - Lấy tất cả loại chứng nhận
+router.get('/types', certificateController.getAllTypes);
 
-// POST /api/certificates/types - Tạo certificate type mới (Admin/Staff only)
-router.post('/types', restrictTo('ADMIN', 'STAFF'), certificateTypeValidation.createType, certificateController.createCertificateType);
+// GET /api/certificates/types/:id - Lấy loại chứng nhận theo ID
+router.get('/types/:id', idValidation, certificateController.getTypeById);
 
-// patch /api/certificates/types/:id - Cập nhật certificate type (Admin/Staff only)
-router.patch('/types/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTypeValidation.updateType, certificateController.updateCertificateType);
+// POST /api/certificates/types - Tạo loại chứng nhận mới (Admin/Staff)
+router.post(
+  '/types', 
+  restrictTo('ADMIN', 'STAFF'), 
+  typeValidation.create, 
+  certificateController.createType
+);
 
-// DELETE /api/certificates/types/:id - Xóa certificate type (Admin only)
-router.delete('/types/:id', restrictTo('ADMIN'), idValidation.validateObjectId, certificateController.deleteCertificateType);
+// PATCH /api/certificates/types/:id - Cập nhật loại chứng nhận (Admin/Staff)
+router.patch(
+  '/types/:id', 
+  restrictTo('ADMIN', 'STAFF'), 
+  typeValidation.update, 
+  certificateController.updateType
+);
 
-// =============== CERTIFICATE TEMPLATES ROUTES ===============
+// GET /api/certificates/types/:id/check-delete - Kiểm tra có thể xóa loại chứng nhận (Admin only)
+router.get(
+  '/types/:id/check-delete',
+  restrictTo('ADMIN'),
+  idValidation,
+  certificateController.checkCanDeleteType
+);
 
-// GET /api/certificates/templates - Lấy danh sách certificate templates
-router.get('/templates', certificateQueryValidation.getTemplatesQuery, certificateController.getCertificateTemplates);
+// DELETE /api/certificates/types/:id - Xóa loại chứng nhận (Admin only)
+router.delete(
+  '/types/:id', 
+  restrictTo('ADMIN'), 
+  idValidation, 
+  certificateController.deleteType
+);
 
-// GET /api/certificates/templates/:id - Lấy template theo ID
-router.get('/templates/:id', idValidation.validateObjectId, certificateController.getCertificateTemplateById);
+// ==========================================
+// CERTIFICATE ROUTES
+// ==========================================
 
-// POST /api/certificates/templates - Tạo certificate template mới (Admin/Staff only)
-router.post('/templates', restrictTo('ADMIN', 'STAFF'), certificateTemplateValidation.createTemplate, certificateController.createCertificateTemplate);
+// GET /api/certificates/stats - Lấy thống kê (đặt trước route có :id)
+router.get('/stats', certificateController.getStats);
 
-// patch /api/certificates/templates/:id - Cập nhật certificate template (Admin/Staff only)
-router.patch('/templates/:id', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateTemplateValidation.updateTemplate, certificateController.updateCertificateTemplate);
+// GET /api/certificates - Lấy tất cả chứng nhận
+router.get('/', queryValidation, certificateController.getAllCertificates);
 
-// DELETE /api/certificates/templates/:id - Xóa certificate template (Admin only)
-router.delete('/templates/:id', restrictTo('ADMIN'), idValidation.validateObjectId, certificateController.deleteCertificateTemplate);
+// GET /api/certificates/by-type/:typeId - Lấy chứng nhận theo loại
+router.get('/by-type/:typeId', typeIdValidation, certificateController.getCertificatesByType);
 
-// patch /api/certificates/templates/:id/toggle - Toggle trạng thái template (Admin/Staff only)
-router.patch('/templates/:id/toggle', restrictTo('ADMIN', 'STAFF'), idValidation.validateObjectId, certificateController.toggleTemplateStatus);
+// GET /api/certificates/:id - Lấy chứng nhận theo ID
+router.get('/:id', idValidation, certificateController.getCertificateById);
 
-// =============== NESTED ROUTES ===============
+// POST /api/certificates - Tạo chứng nhận mới (Admin/Staff)
+router.post(
+  '/', 
+  restrictTo('ADMIN', 'STAFF'), 
+  certificateValidation.create, 
+  certificateController.createCertificate
+);
 
-// GET /api/certificates/types/:typeId/templates - Lấy templates theo type
-router.get('/types/:typeId/templates', idValidation.validateTypeId, certificateController.getTemplatesByType);
+// POST /api/certificates/batch - Tạo nhiều chứng nhận (Admin/Staff)
+router.post(
+  '/batch', 
+  restrictTo('ADMIN', 'STAFF'), 
+  certificateValidation.createBatch, 
+  certificateController.createCertificatesBatch
+);
 
-// GET /api/certificates/types/:typeId/templates/active - Lấy active templates theo type
-router.get('/types/:typeId/templates/active', idValidation.validateTypeId, certificateController.getActiveTemplatesByType);
+// PATCH /api/certificates/:id - Cập nhật chứng nhận (Admin/Staff)
+router.patch(
+  '/:id', 
+  restrictTo('ADMIN', 'STAFF'), 
+  certificateValidation.update, 
+  certificateController.updateCertificate
+);
+
+// GET /api/certificates/:id/check-delete - Kiểm tra có thể xóa chứng nhận (Admin only)
+router.get(
+  '/:id/check-delete',
+  restrictTo('ADMIN'),
+  idValidation,
+  certificateController.checkCanDeleteCertificate
+);
+
+// DELETE /api/certificates/:id - Xóa chứng nhận (Admin only)
+router.delete(
+  '/:id', 
+  restrictTo('ADMIN'), 
+  idValidation, 
+  certificateController.deleteCertificate
+);
 
 module.exports = router;

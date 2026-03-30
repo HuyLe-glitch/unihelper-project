@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const staffController = require('../controllers/staffController');
+const staffDashboardController = require('../controllers/staffDashboardController');
 const authMiddleware = require('../middleware/authMiddleware');
 const staffMiddleware = require('../middleware/staffMiddleware');
 
@@ -28,6 +29,24 @@ router.get('/profile', staffController.getProfile);
 
 // [GET] /staff/dashboard
 router.get('/dashboard', staffController.getDashboard);
+
+// [GET] /staff/dashboard/ctsv - Dashboard CTSV với stats và requests
+router.get('/dashboard/ctsv', staffDashboardController.getCtsvDashboard);
+
+// [GET] /staff/dashboard/ktx - Dashboard KTX với stats và requests
+router.get('/dashboard/ktx', staffDashboardController.getKtxDashboard);
+
+// [GET] /staff/dashboard/ctsv/stats - Chỉ stats CTSV
+router.get('/dashboard/ctsv/stats', staffDashboardController.getCtsvStats);
+
+// [GET] /staff/dashboard/ktx/stats - Chỉ stats KTX
+router.get('/dashboard/ktx/stats', staffDashboardController.getKtxStats);
+
+// [GET] /staff/dashboard/ctsv/requests - Yêu cầu CTSV gần đây
+router.get('/dashboard/ctsv/requests', staffDashboardController.getRecentCtsvRequests);
+
+// [GET] /staff/dashboard/ktx/requests - Yêu cầu KTX gần đây
+router.get('/dashboard/ktx/requests', staffDashboardController.getRecentKtxRequests);
 
 // ============================================
 // REQUEST MANAGEMENT

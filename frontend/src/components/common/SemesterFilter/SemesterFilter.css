@@ -1,0 +1,530 @@
+/* ========================================
+   SEMESTER FILTER COMPONENT
+   Reusable component for Staff CTSV & KTX
+   ======================================== */
+
+/* Variables */
+.semester-filter {
+  --sf-primary: #8b5cf6;
+  --sf-primary-dark: #7c3aed;
+  --sf-primary-light: rgba(139, 92, 246, 0.1);
+  --sf-text: #1e293b;
+  --sf-text-muted: #64748b;
+  --sf-border: #e2e8f0;
+  --sf-danger: #ef4444;
+  --sf-danger-light: rgba(239, 68, 68, 0.1);
+  --sf-radius: 12px;
+  --sf-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  
+  display: contents !important;
+}
+
+/* ========================================
+   SELECT WRAPPER
+   ======================================== */
+.semester-filter__select-wrapper {
+  position: relative;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center !important;
+}
+
+.semester-filter__select {
+  min-width: 160px;
+  height: 44px;
+  padding: 0 36px 0 14px;
+  border: 2px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sf-text);
+  background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") right 14px center no-repeat;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.semester-filter__select:hover {
+  border-color: var(--sf-primary);
+  background-color: white;
+}
+
+.semester-filter__select:focus {
+  outline: none;
+  border-color: var(--sf-primary);
+  background-color: white;
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+/* Tooltip showing date range - Hiển thị ở DƯỚI */
+.semester-filter__tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-dark) 100%);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  white-space: nowrap;
+  animation: sfSlideDown 0.25s ease;
+  pointer-events: none;
+}
+
+/* Arrow pointing up */
+.semester-filter__tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: var(--sf-primary);
+}
+
+@keyframes sfSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes sfSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.semester-filter__date-range {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 0.2px;
+}
+
+/* ========================================
+   DATE INPUT WRAPPER
+   ======================================== */
+.semester-filter__date-wrapper {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
+}
+
+.semester-filter__date-input {
+  min-width: 160px;
+  width: 160px;
+  height: 44px;
+  padding: 0 60px 0 14px; /* padding-right cho X button và calendar */
+  border: 2px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sf-text);
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color-scheme: light;
+  box-sizing: border-box;
+}
+
+.semester-filter__date-input:hover {
+  border-color: var(--sf-primary);
+  background-color: white;
+}
+
+.semester-filter__date-input:focus {
+  outline: none;
+  border-color: var(--sf-primary);
+  background-color: white;
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+/* Calendar icon styling - đặt ở góc phải, nhỏ gọn */
+.semester-filter__date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  right: 10px;
+  border-radius: 4px;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px 16px;
+  filter: none !important;
+  transition: all 0.2s ease;
+}
+
+.semester-filter__date-input::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--sf-primary-light);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+}
+
+/* Clear date button - nhỏ gọn, nằm bên trái calendar icon */
+.semester-filter__clear-btn {
+  position: absolute;
+  right: 32px; /* Đặt bên trái calendar icon */
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: var(--sf-danger-light);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sf-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.semester-filter__clear-btn:hover {
+  background: var(--sf-danger);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ========================================
+   INFO BAR - Tách riêng, không kéo dãn dropdown
+   ======================================== */
+.semester-filter__info-bar {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.15);
+  animation: sfFadeIn 0.2s ease;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+@keyframes sfFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.semester-filter__info-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.semester-filter__icon {
+  font-size: 14px;
+}
+
+.semester-filter__dates {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text);
+}
+
+.semester-filter__semester-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-primary-dark);
+  padding-left: 20px;
+}
+
+.semester-filter__clear-semester-btn {
+  padding: 10px 18px;
+  background: white;
+  border: 2px solid var(--sf-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.semester-filter__clear-semester-btn:hover {
+  background: var(--sf-danger-light);
+  border-color: var(--sf-danger);
+  color: var(--sf-danger);
+}
+
+/* ========================================
+   COMPACT VARIANT
+   ======================================== */
+.semester-filter.compact .semester-filter__select {
+  min-width: 180px;
+  padding: 10px 36px 10px 14px;
+  font-size: 14px;
+}
+
+.semester-filter.compact .semester-filter__date-input {
+  min-width: 150px;
+  padding: 10px 36px 10px 14px;
+  font-size: 14px;
+}
+
+.semester-filter.compact .semester-filter__info-bar {
+  padding: 12px 18px;
+}
+
+.semester-filter.compact .semester-filter__label {
+  font-size: 14px;
+}
+
+.semester-filter.compact .semester-filter__dates {
+  font-size: 13px;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 1200px) {
+  .semester-filter__select {
+    min-width: 200px;
+  }
+  
+  .semester-filter__date-input {
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .semester-filter__select,
+  .semester-filter__date-input {
+    min-width: 100%;
+    width: 100%;
+  }
+  
+  /* Chuyển info-bar thành position relative để đẩy các phần tử khác xuống */
+  .semester-filter__info-bar {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    margin-top: 8px;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .semester-filter__dropdown {
+    min-height: auto;
+    width: 100%;
+  }
+  
+  .semester-filter__info-content {
+    justify-content: center;
+  }
+  
+  .semester-filter__clear-semester-btn {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   CUSTOM DROPDOWN (NEW)
+   ======================================== */
+.semester-filter__dropdown {
+  position: relative;
+  min-height: 48px;
+}
+
+.semester-filter__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px;
+  min-height: 48px;
+  background: #f8fafc;
+  border: 2px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  cursor: pointer;
+  min-width: 180px;
+  font-size: 14px;
+  color: var(--sf-text);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.semester-filter__trigger:hover {
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+.semester-filter__trigger.open {
+  border-color: var(--sf-primary);
+  background: white;
+  box-shadow: 0 0 0 4px var(--sf-primary-light);
+}
+
+.semester-filter__trigger.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.semester-filter__trigger-icon {
+  font-size: 16px;
+}
+
+.semester-filter__trigger-value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.semester-filter__trigger-arrow {
+  font-size: 10px;
+  color: var(--sf-text-muted);
+  transition: transform 0.3s ease;
+}
+
+.semester-filter__trigger-arrow.open {
+  transform: rotate(180deg);
+}
+
+.semester-filter__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.semester-filter__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  background: white;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius);
+  box-shadow: var(--sf-shadow);
+  z-index: 100;
+  overflow: hidden;
+  animation: sfDropdownSlide 0.2s ease;
+}
+
+@keyframes sfDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.semester-filter__search {
+  padding: 10px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.semester-filter__search input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--sf-border);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.semester-filter__search input::placeholder {
+  color: #9ca3af;
+}
+
+.semester-filter__search input:focus {
+  border-color: var(--sf-primary);
+}
+
+.semester-filter__items {
+  max-height: 176px; /* Giới hạn ~4 dòng (44px mỗi item) */
+  overflow-y: auto;
+}
+
+/* Custom scrollbar cho items list */
+.semester-filter__items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.semester-filter__items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.semester-filter__items::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.semester-filter__items::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+.semester-filter__item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--sf-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.semester-filter__item:hover {
+  background: var(--sf-primary-light);
+}
+
+.semester-filter__item.active {
+  background: var(--sf-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.semester-filter__no-result {
+  color: var(--sf-text-muted);
+  font-style: italic;
+  cursor: default;
+}
+
+.semester-filter__no-result:hover {
+  background: transparent;
+}
+
